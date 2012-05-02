@@ -1,5 +1,4 @@
-ChronoModel
-===========
+# ChronoModel
 
 A temporal database system on PostgreSQL using
 [table inheritance](http://www.postgresql.org/docs/9.0/static/ddl-inherit.html) and
@@ -35,11 +34,30 @@ changes.
 
 See the README.sql file for the plain SQL.
 
-Active Record Migrations
-------------------------
+
+## Requirements
+
+* Active Record >= 3.0
+* PostgreSQL >= 9.0
+
+
+## Installation
+
+Add this line to your application's Gemfile:
+    gem 'chronomodel'
+
+And then execute:
+    $ bundle
+
+Or install it yourself as:
+    $ gem install chronomodel
+
+
+## Migrations
 
 This library hooks the following `ActiveRecord::Migration` methods to make
-them temporal aware.
+them temporal aware. Except from passing the `temporal => true` option to
+`create_table`, everything else is handled automatically behind the scenes.
 
  * `create_table :temporal => true` - creates current and history tables,
       indexes, the interface view and the temporal rules
@@ -48,8 +66,8 @@ them temporal aware.
  * `rename_table`  - renames tables, views, sequences, indexes and rules
  * `rename_column` - renames the current table column and updates the rules
 
-Usage
------
+
+## Usage
 
 A model backed by a temporal view will behave like any other model backed by a
 plain table. If you want to do as-of-date queries, you need to include the
@@ -79,3 +97,12 @@ Will execute:
     SELECT * FROM countries WHERE id = X AND #{1.year.ago.to_s(:db)} BETWEEN valid_from AND valid_to
     SELECT * FROM compositions WHERE country_id = X AND #{1.year.ago.to_s(:db)} BETWEEN valid_from AND valid_to
     SET search_path public
+
+
+## Contributing
+
+ 1. Fork it
+ 2. Create your feature branch (`git checkout -b my-new-feature`)
+ 3. Commit your changes (`git commit -am 'Added some feature'`)
+ 4. Push to the branch (`git push origin my-new-feature`)
+ 5. Create new Pull Request
