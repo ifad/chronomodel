@@ -40,9 +40,10 @@ module ChronoModel
       history = chrono_history_table_for(name)
 
       [current, history].each do |table|
-        seq = serial_sequence(table, primary_key(table))
-        execute "ALTER SEQUENCE #{seq} RENAME TO #{seq.sub(name, new_name).split('.').last}"
+        seq     = serial_sequence(table, primary_key(table))
+        new_seq = seq.sub(name.to_s, new_name.to_s).split('.').last
 
+        execute "ALTER SEQUENCE #{seq} RENAME TO #{new_seq}"
         execute "ALTER TABLE #{table} RENAME TO #{new_name}"
       end
       execute "ALTER VIEW #{chrono_view_for(name)} RENAME TO #{new_name}"
