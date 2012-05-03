@@ -94,18 +94,21 @@ module ChronoModel
     end
 
     # If removing a column from a temporal table, we are forced to drop the
+    # view, then change the column from the table in the current schema and
+    # eventually recreate the rules.
+    #
+    def change_column(table_name, *args)
+      return super unless is_chrono?(table_name)
+      chrono_alter(table_name) {|current| super current, *args }
+    end
+
+    # If removing a column from a temporal table, we are forced to drop the
     # view, then drop the column from the table in the current schema and
     # eventually recreate the rules.
+    #
     def remove_column(table_name, *column_names)
       return super unless is_chrono?(table_name)
-
-      execute "DROP VIEW #{chrono_view_for(table_name)}"
-
-      current = chrono_current_table_for(table_name)
-      super current, *column_names
-
-      # Recreate the rules
-      chrono_create_view_for(table_name, primary_key(current))
+      chrono_alter(table_name) {|current| super current, *column_names }
     end
 
     protected
@@ -216,6 +219,22 @@ module ChronoModel
             WHERE #{current}.#{pk} = old.#{pk}
           )
         SQL
+      end
+
+      # In destructive changes, such as removing columns or changing column
+      # types, the view must be dropped and recreated - moreover the change
+      # itself must be applied to the table in the current schema, and this
+      # method yields its name for convenience.
+      #
+      def chrono_alter(table_name)
+        transaction do
+          execute "DROP VIEW #{chrono_view_for(table_name)}"
+
+          yield (current = chrono_current_table_for(table_name))
+
+          # Recreate the rules
+          chrono_create_view_for(table_name, primary_key(current))
+        end
       end
 
       def chrono_current_schema
