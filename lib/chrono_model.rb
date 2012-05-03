@@ -26,10 +26,8 @@ module ChronoModel
       current = chrono_current_table_for(table_name)
       super current, options
 
-      primary_key = primary_key(current)
-
-      chrono_create_history_for(table_name, primary_key)
-      chrono_create_view_for(table_name, primary_key)
+      chrono_create_history_for(table_name)
+      chrono_create_view_for(table_name)
     end
 
     # If renaming a temporal table, rename the history and view as well.
@@ -76,11 +74,10 @@ module ChronoModel
       return super unless is_chrono?(table_name)
 
       # Add the column to the current table
-      current = chrono_current_table_for(table_name)
-      super current, column_name, type, options
+      super chrono_current_table_for(table_name), column_name, type, options
 
       # Update the rules
-      chrono_create_view_for(table_name, primary_key(current))
+      chrono_create_view_for(table_name)
     end
 
     # If renaming a column of a temporal table, rename it in the table in
@@ -89,16 +86,12 @@ module ChronoModel
     def rename_column(table_name, column_name, new_column_name)
       return super unless is_chrono?(table_name)
 
-      # Rename the column in the current table...
-      current = chrono_current_table_for(table_name)
-      super current, column_name, new_column_name
-
-      # ...and in the view.
-      view = chrono_view_for(table_name)
+      # Rename the column in the current table and in the view
+      super chrono_current_table_for(table_name), column_name, new_column_name
       super chrono_view_for(table_name), column_name, new_column_name
 
       # Update the rules
-      chrono_create_view_for(table_name, primary_key(current))
+      chrono_create_view_for(table_name)
     end
 
     # If removing a column from a temporal table, we are forced to drop the
@@ -126,6 +119,21 @@ module ChronoModel
       chrono_alter(table_name) {|current| super current, *column_names }
     end
 
+    # Fetch columns defitions from the current schema table rather than
+    # from the view, as primary key and default values are stored there
+    # rather than in the view.
+    def column_definitions(table_name)
+      return super unless is_chrono?(table_name)
+      super chrono_current_table_for(table_name)
+    end
+
+    # Fetch the primary key alone from the current schema table as the
+    # view won't have this information.
+    def primary_key(table_name)
+      return super unless is_chrono?(table_name)
+      super chrono_current_table_for(table_name)
+    end
+
     protected
       # Returns true if the given name references a temporal table.
       #
@@ -142,7 +150,9 @@ module ChronoModel
       end
 
       # Create the history table in the history schema
-      def chrono_create_history_for(table, pk)
+      def chrono_create_history_for(table)
+        pk = primary_key(table)
+
         execute <<-SQL
           CREATE TABLE #{chrono_history_table_for(table)} (
             hid         serial primary key,
@@ -175,7 +185,8 @@ module ChronoModel
       end
 
       # Create the public view and its rules
-      def chrono_create_view_for(table, pk)
+      def chrono_create_view_for(table)
+        pk      = primary_key(table)
         view    = chrono_view_for(table)
         current = chrono_current_table_for(table)
         history = chrono_history_table_for(table)
@@ -248,7 +259,7 @@ module ChronoModel
           yield (current = chrono_current_table_for(table_name))
 
           # Recreate the rules
-          chrono_create_view_for(table_name, primary_key(current))
+          chrono_create_view_for(table_name)
         end
       end
 
