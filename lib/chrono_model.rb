@@ -4,9 +4,10 @@ require 'active_record'
 require 'active_record/connection_adapters/postgresql_adapter'
 
 module ChronoModel
-  module SchemaStatements
-    AR = ActiveRecord::Base
+  class Error < ActiveRecord::ActiveRecordError #:nodoc:
+  end
 
+  class Adapter < ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
     # Creates the given table, possibly creating the temporal schema
     # objects if the `:temporal` option is given and set to true.
     #
@@ -15,7 +16,7 @@ module ChronoModel
       return super unless options[:temporal]
 
       if options[:id] == false
-        raise AR::ActiveRecordError, "Temporal tables require a primary key."
+        raise Error, "Temporal tables require a primary key."
       end
 
       # Create required schemas
@@ -30,6 +31,28 @@ module ChronoModel
       chrono_create_history_for(table_name, primary_key)
       chrono_create_view_for(table_name, primary_key)
     end
+
+    # If adding a column to a temporal table, creates it in the table in
+    # the current schema and updates the view rules.
+    #
+    def add_column(table_name, column_name, type, options = {})
+      return super unless is_chrono?(table_name)
+
+      # Add the column to the current table
+      current = chrono_current_table_for(table_name)
+      super current, column_name, type, options
+
+      # Update the rules
+      chrono_create_view_for(table_name, primary_key(current))
+    end
+
+    protected
+      # Returns true if the given name references a temporal table.
+      #
+      def is_chrono?(table)
+        table_exists?(chrono_current_table_for(table)) &&
+          table_exists?(chrono_history_table_for(table))
+      end
 
     private
       def chrono_create_temporal_schemas!
@@ -156,7 +179,10 @@ module ChronoModel
   end
 end
 
-# Patch AR
-ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.instance_eval do
-  include ChronoModel::SchemaStatements
+# Replace AR's PG adapter with the ChronoModel one. This (dirty) approach is
+# required because the PG adapter defines +add_column+ itself, thus making
+# impossible to use super() in overridden Module methods.
+#
+silence_warnings do
+  ActiveRecord::ConnectionAdapters.const_set :PostgreSQLAdapter, ChronoModel::Adapter
 end
