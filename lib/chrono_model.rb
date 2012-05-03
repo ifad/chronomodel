@@ -51,6 +51,14 @@ module ChronoModel
       execute "ALTER VIEW #{chrono_view_for(name)} RENAME TO #{new_name}"
     end
 
+    # If changing a temporal table, redirect the change to the table in the
+    # current schema and recreate views.
+    #
+    def change_table(table_name, *args)
+      return super unless is_chrono?(table_name)
+      chrono_alter(table_name) {|current| super current, *args}
+    end
+
     # If dropping a temporal table, drops it from the current schema
     # adding the CASCADE option so to delete the history, view and rules.
     #
@@ -100,6 +108,13 @@ module ChronoModel
     def change_column(table_name, *args)
       return super unless is_chrono?(table_name)
       chrono_alter(table_name) {|current| super current, *args }
+    end
+
+    # Change the default on the current schema table.
+    #
+    def change_column_default(table_name, *args)
+      return super unless is_chrono?(table_name)
+      super chrono_current_table_for(table_name), *args
     end
 
     # If removing a column from a temporal table, we are forced to drop the
