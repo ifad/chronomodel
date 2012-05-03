@@ -61,11 +61,12 @@ them temporal aware. Except from passing the `temporal => true` option to
 
  * `create_table :temporal => true` - creates current and history tables,
       indexes, the interface view and the temporal rules
- * `add_column`    - adds the column to the current table and updates rules
  * `drop_table`    - drops the temporal table and all dependant objects
  * `rename_table`  - renames tables, views, sequences, indexes and rules
+ * `add_column`    - adds the column to the current table and updates rules
  * `rename_column` - renames the current table column and updates the rules
-
+ * `add_index`     - creates the index in the history table as well
+ * `remove_index`  - removes the index from the history table as well
 
 ## Usage
 
