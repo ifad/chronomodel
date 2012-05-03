@@ -62,8 +62,7 @@ module ChronoModel
     def drop_table(table_name, options = {})
       return super unless is_chrono?(table_name)
 
-      current = chrono_current_table_for(table_name)
-      execute "DROP TABLE #{current} CASCADE"
+      execute "DROP TABLE #{chrono_current_table_for(table_name)} CASCADE"
     end
 
     # If adding a column to a temporal table, creates it in the table in
@@ -72,11 +71,13 @@ module ChronoModel
     def add_column(table_name, column_name, type, options = {})
       return super unless is_chrono?(table_name)
 
-      # Add the column to the current table
-      super chrono_current_table_for(table_name), column_name, type, options
+      transaction do
+        # Add the column to the current table
+        super chrono_current_table_for(table_name), column_name, type, options
 
-      # Update the rules
-      chrono_create_view_for(table_name)
+        # Update the rules
+        chrono_create_view_for(table_name)
+      end
     end
 
     # If renaming a column of a temporal table, rename it in the table in
@@ -86,11 +87,13 @@ module ChronoModel
       return super unless is_chrono?(table_name)
 
       # Rename the column in the current table and in the view
-      super chrono_current_table_for(table_name), column_name, new_column_name
-      super chrono_view_for(table_name), column_name, new_column_name
+      transaction do
+        super chrono_current_table_for(table_name), column_name, new_column_name
+        super chrono_view_for(table_name), column_name, new_column_name
 
-      # Update the rules
-      chrono_create_view_for(table_name)
+        # Update the rules
+        chrono_create_view_for(table_name)
+      end
     end
 
     # If removing a column from a temporal table, we are forced to drop the
@@ -254,7 +257,7 @@ module ChronoModel
         transaction do
           execute "DROP VIEW #{chrono_view_for(table_name)}"
 
-          yield (current = chrono_current_table_for(table_name))
+          yield chrono_current_table_for(table_name)
 
           # Recreate the rules
           chrono_create_view_for(table_name)
