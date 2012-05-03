@@ -155,20 +155,20 @@ module ChronoModel
 
         execute <<-SQL
           CREATE TABLE #{chrono_history_table_for(table)} (
-            hid         serial primary key,
-            valid_from  timestamp not null,
-            valid_to    timestamp not null default '9999-12-31',
-            recorded_at timestamp not null default now(),
+            hid         SERIAL PRIMARY KEY,
+            valid_from  timestamp NOT NULL,
+            valid_to    timestamp NOT NULL DEFAULT '9999-12-31',
+            recorded_at timestamp NOT NULL DEFAULT now(),
 
-            constraint from_before_to check (valid_from < valid_to),
+            CONSTRAINT from_before_to CHECK (valid_from < valid_to),
 
-            constraint overlapping_times exclude using gist (
+            CONSTRAINT overlapping_times EXCLUDE USING gist (
               box(
-                point( extract( epoch from valid_from), id ),
-                point( extract( epoch from valid_to - interval '1 millisecond'), id )
+                point( extract( epoch FROM valid_from), id ),
+                point( extract( epoch FROM valid_to - INTERVAL '1 millisecond'), id )
               ) with &&
             )
-          ) inherits ( #{chrono_current_table_for(table)} )
+          ) INHERITS ( #{chrono_current_table_for(table)} )
         SQL
 
         # Create index for history timestamps
@@ -235,6 +235,7 @@ module ChronoModel
 
         # DELETE - save the current data in the history and eventually delete the data
         # from the current table.
+        #
         execute <<-SQL
           CREATE OR REPLACE RULE #{table}_del AS ON DELETE TO #{view} DO INSTEAD (
 
