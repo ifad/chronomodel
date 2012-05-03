@@ -14,4 +14,6 @@ Gem::Specification.new do |gem|
   gem.name          = "chrono_model"
   gem.require_paths = ["lib"]
   gem.version       = ChronoModel::VERSION
+
+  gem.add_dependency "activerecord", "~> 3.0"
 end
