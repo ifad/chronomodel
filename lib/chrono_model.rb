@@ -32,16 +32,6 @@ module ChronoModel
       chrono_create_view_for(table_name, primary_key)
     end
 
-    # If dropping a temporal table, drops it from the current schema
-    # adding the CASCADE option so to delete the history, view and rules.
-    #
-    def drop_table(table_name, options = {})
-      return super unless is_chrono?(table_name)
-
-      current = chrono_current_table_for(table_name)
-      execute "DROP TABLE #{current} CASCADE"
-    end
-
     # If renaming a temporal table, rename the history and view as well.
     #
     def rename_table(name, new_name)
@@ -59,6 +49,16 @@ module ChronoModel
         execute "ALTER TABLE #{table} RENAME TO #{new_name}"
       end
       execute "ALTER VIEW #{chrono_view_for(name)} RENAME TO #{new_name}"
+    end
+
+    # If dropping a temporal table, drops it from the current schema
+    # adding the CASCADE option so to delete the history, view and rules.
+    #
+    def drop_table(table_name, options = {})
+      return super unless is_chrono?(table_name)
+
+      current = chrono_current_table_for(table_name)
+      execute "DROP TABLE #{current} CASCADE"
     end
 
     # If adding a column to a temporal table, creates it in the table in
