@@ -42,6 +42,25 @@ module ChronoModel
       execute "DROP TABLE #{current} CASCADE"
     end
 
+    # If renaming a temporal table, rename the history and view as well.
+    #
+    def rename_table(name, new_name)
+      return super unless is_chrono?(name)
+
+      clear_cache!
+
+      current = chrono_current_table_for(name)
+      history = chrono_history_table_for(name)
+
+      [current, history].each do |table|
+        seq = serial_sequence(table, primary_key(table))
+        execute "ALTER SEQUENCE #{seq} RENAME TO #{seq.sub(name, new_name).split('.').last}"
+
+        execute "ALTER TABLE #{table} RENAME TO #{new_name}"
+      end
+      execute "ALTER VIEW  #{chrono_view_for(name)} RENAME TO #{new_name}"
+    end
+
     # If adding a column to a temporal table, creates it in the table in
     # the current schema and updates the view rules.
     #
