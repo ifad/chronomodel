@@ -16,4 +16,5 @@ Gem::Specification.new do |gem|
   gem.version       = ChronoModel::VERSION
 
   gem.add_dependency "activerecord", "~> 3.0"
+  gem.add_dependency "pg"
 end
