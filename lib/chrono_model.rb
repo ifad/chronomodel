@@ -22,12 +22,11 @@ module ChronoModel
       # Create required schemas
       chrono_create_temporal_schemas!
 
-      # Create the current table in the temporal schema
-      current = chrono_current_table_for(table_name)
-      super current, options
-
-      chrono_create_history_for(table_name)
-      chrono_create_view_for(table_name)
+      transaction do
+        super chrono_current_table_for(table_name), options
+        chrono_create_history_for(table_name)
+        chrono_create_view_for(table_name)
+      end
     end
 
     # If renaming a temporal table, rename the history and view as well.
@@ -158,9 +157,9 @@ module ChronoModel
             valid_to    timestamp NOT NULL DEFAULT '9999-12-31',
             recorded_at timestamp NOT NULL DEFAULT now(),
 
-            CONSTRAINT from_before_to CHECK (valid_from < valid_to),
+            CONSTRAINT #{table}_from_before_to CHECK (valid_from < valid_to),
 
-            CONSTRAINT overlapping_times EXCLUDE USING gist (
+            CONSTRAINT #{table}_overlapping_times EXCLUDE USING gist (
               box(
                 point( extract( epoch FROM valid_from), id ),
                 point( extract( epoch FROM valid_to - INTERVAL '1 millisecond'), id )
@@ -171,13 +170,13 @@ module ChronoModel
 
         # Create index for history timestamps
         execute <<-SQL
-          CREATE INDEX timestamps ON #{chrono_history_table_for(table)}
+          CREATE INDEX #{table}_timestamps ON #{chrono_history_table_for(table)}
           USING btree ( valid_from, valid_to ) WITH ( fillfactor = 100 )
         SQL
 
         # Create index for the inherited table primary key
         execute <<-SQL
-          CREATE INDEX #{table}_pk ON #{chrono_history_table_for(table)}
+          CREATE INDEX #{table}_inherit_pkey ON #{chrono_history_table_for(table)}
           USING btree ( #{primary_key(table)} ) WITH ( fillfactor = 90 )
         SQL
       end
