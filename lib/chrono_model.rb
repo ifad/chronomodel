@@ -208,11 +208,11 @@ module ChronoModel
         execute <<-SQL
           CREATE OR REPLACE RULE #{table}_ins AS ON INSERT TO #{view} DO INSTEAD (
 
-            INSERT INTO #{current} ( #{fields} ) VALUES ( #{values} )
-            RETURNING #{current}.*;
+            INSERT INTO #{current} ( #{fields} ) VALUES ( #{values} );
 
             INSERT INTO #{history} ( #{pk}, #{fields}, valid_from )
             VALUES ( currval('#{sequence}'), #{values}, now() )
+            RETURNING #{pk}, #{fields};
           )
         SQL
 

@@ -46,15 +46,15 @@ create index country_id on history.countries using btree ( id ) with ( fillfacto
 --
 create view public.countries as select * from only temporal.countries;
 
--- INSERT - insert data both in the current data table and in the history table
---
+-- INSERT - insert data both in the current data table and in the history table.
+-- Return data from the history table as the RETURNING clause must be the last
+-- one in the rule.
 create rule countries_ins as on insert to public.countries do instead (
-  insert into temporal.countries ( name )
-    values ( new.name )
-    returning temporal.countries.*;
+  insert into temporal.countries ( name ) values ( new.name );
 
   insert into history.countries ( id, name, valid_from )
     values ( currval('temporal.countries_id_seq'), new.name, now() )
+    returning ( new.name )
 );
 
 -- UPDATE - set the last history entry validity to now, save the current data in
