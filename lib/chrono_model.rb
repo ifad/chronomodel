@@ -92,6 +92,21 @@ module ChronoModel
       chrono_create_view_for(table_name, primary_key(current))
     end
 
+    # If removing a column from a temporal table, we are forced to drop the
+    # view, then drop the column from the table in the current schema and
+    # eventually recreate the rules.
+    def remove_column(table_name, *column_names)
+      return super unless is_chrono?(table_name)
+
+      execute "DROP VIEW #{chrono_view_for(table_name)}"
+
+      current = chrono_current_table_for(table_name)
+      super current, *column_names
+
+      # Recreate the rules
+      chrono_create_view_for(table_name, primary_key(current))
+    end
+
     protected
       # Returns true if the given name references a temporal table.
       #

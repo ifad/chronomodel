@@ -65,6 +65,7 @@ them temporal aware. Except from passing the `temporal => true` option to
  * `rename_table`  - renames tables, views, sequences, indexes and rules
  * `add_column`    - adds the column to the current table and updates rules
  * `rename_column` - renames the current table column and updates the rules
+ * `remove_column` - removes the current table column and updates the rules
  * `add_index`     - creates the index in the history table as well
  * `remove_index`  - removes the index from the history table as well
 
