@@ -77,6 +77,7 @@ module ChronoModel
 
     # If renaming a column of a temporal table, rename it in the table in
     # the current schema and update the view rules.
+    #
     def rename_column(table_name, column_name, new_column_name)
       return super unless is_chrono?(table_name)
 
