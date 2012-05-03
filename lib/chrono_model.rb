@@ -58,7 +58,7 @@ module ChronoModel
 
         execute "ALTER TABLE #{table} RENAME TO #{new_name}"
       end
-      execute "ALTER VIEW  #{chrono_view_for(name)} RENAME TO #{new_name}"
+      execute "ALTER VIEW #{chrono_view_for(name)} RENAME TO #{new_name}"
     end
 
     # If adding a column to a temporal table, creates it in the table in
@@ -70,6 +70,23 @@ module ChronoModel
       # Add the column to the current table
       current = chrono_current_table_for(table_name)
       super current, column_name, type, options
+
+      # Update the rules
+      chrono_create_view_for(table_name, primary_key(current))
+    end
+
+    # If renaming a column of a temporal table, rename it in the table in
+    # the current schema and update the view rules.
+    def rename_column(table_name, column_name, new_column_name)
+      return super unless is_chrono?(table_name)
+
+      # Rename the column in the current table...
+      current = chrono_current_table_for(table_name)
+      super current, column_name, new_column_name
+
+      # ...and in the view.
+      view = chrono_view_for(table_name)
+      super chrono_view_for(table_name), column_name, new_column_name
 
       # Update the rules
       chrono_create_view_for(table_name, primary_key(current))
