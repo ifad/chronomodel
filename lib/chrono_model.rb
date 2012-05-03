@@ -151,8 +151,6 @@ module ChronoModel
 
       # Create the history table in the history schema
       def chrono_create_history_for(table)
-        pk = primary_key(table)
-
         execute <<-SQL
           CREATE TABLE #{chrono_history_table_for(table)} (
             hid         SERIAL PRIMARY KEY,
@@ -180,7 +178,7 @@ module ChronoModel
         # Create index for the inherited table primary key
         execute <<-SQL
           CREATE INDEX #{table}_pk ON #{chrono_history_table_for(table)}
-          USING btree ( #{pk} ) WITH ( fillfactor = 90 )
+          USING btree ( #{primary_key(table)} ) WITH ( fillfactor = 90 )
         SQL
       end
 
