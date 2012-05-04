@@ -70,6 +70,35 @@ module ChronoModel
       _on_current_schema { execute "DROP TABLE #{table_name} CASCADE" }
     end
 
+    # If adding an index to a temporal table, add it to the one in the
+    # current schema and to the history one. If the `:unique` option is
+    # present, it is removed from the index created in the history table.
+    #
+    def add_index(table_name, column_name, options = {})
+      return super unless is_chrono?(table_name)
+
+      transaction do
+        _on_current_schema { super }
+
+        # Uniqueness constraints do not make sense in the history table
+        options = options.dup.tap {|o| o.delete(:unique)} if options[:unique].present?
+
+        _on_history_schema { super table_name, column_name, options }
+      end
+    end
+
+    # If removing an index from a temporal table, remove it both from the
+    # current and the history schema ones.
+    #
+    def remove_index(table_name, *)
+      return super unless is_chrono?(table_name)
+
+      transaction do
+        _on_current_schema { super }
+        _on_history_schema { super }
+      end
+    end
+
     # If adding a column to a temporal table, creates it in the table in
     # the current schema and updates the view rules.
     #
@@ -133,13 +162,16 @@ module ChronoModel
       chrono_alter(table_name) { super }
     end
 
-    # Runs column_definitions and primary_key in the current schema,
+    # Runs column_definitions, primary_key and indexes in the current schema,
     # as the table there defined is the source for this information.
+    #
+    # Moreover, the PostgreSQLAdapter +indexes+ method uses current_schema(),
+    # thus this is the only (and cleanest) way to make injection work.
     #
     # Schema nesting is disabled on these calls, make sure to fetch metadata
     # from the caller's selected schema and not from the current one.
     #
-    [:column_definitions, :primary_key].each do |method|
+    [:column_definitions, :primary_key, :indexes].each do |method|
       define_method(method) do |table_name|
         return super(table_name) unless is_chrono?(table_name)
         _on_current_schema(false) { super(table_name) }
