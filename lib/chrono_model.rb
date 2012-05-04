@@ -194,10 +194,21 @@ module ChronoModel
       block.call
 
     ensure
-      if (nesting || @_on_schema_nesting == 1) &&
-        @connection.transaction_status != PGconn::PQTRANS_INERROR
+      if (nesting || @_on_schema_nesting == 1)
 
-        self.schema_search_path = old_path
+        # If the transaction is aborted, any execute() call will raise
+        # "transaction is aborted errors" - thus calling the Adapter's
+        # setter won't update the memoized variable.
+        #
+        # Here we reset it to +nil+ to refresh it on the next call, as
+        # there is no way to know which path will be restored when the
+        # transaction ends.
+        #
+        if @connection.transaction_status == PGconn::PQTRANS_INERROR
+          @schema_search_path = nil
+        else
+          self.schema_search_path = old_path
+        end
       end
       @_on_schema_nesting -= 1
     end
