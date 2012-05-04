@@ -40,17 +40,19 @@ module ChronoModel
 
       clear_cache!
 
-      [CURRENT_SCHEMA, HISTORY_SCHEMA].each do |schema|
-        on_schema(schema) do
-          seq     = serial_sequence(name, primary_key(name))
-          new_seq = seq.sub(name.to_s, new_name.to_s).split('.').last
+      transaction do
+        [CURRENT_SCHEMA, HISTORY_SCHEMA].each do |schema|
+          on_schema(schema) do
+            seq     = serial_sequence(name, primary_key(name))
+            new_seq = seq.sub(name.to_s, new_name.to_s).split('.').last
 
-          execute "ALTER SEQUENCE #{seq}  RENAME TO #{new_seq}"
-          execute "ALTER TABLE    #{name} RENAME TO #{new_name}"
+            execute "ALTER SEQUENCE #{seq}  RENAME TO #{new_seq}"
+            execute "ALTER TABLE    #{name} RENAME TO #{new_name}"
+          end
         end
-      end
 
-      execute "ALTER VIEW #{name} RENAME TO #{new_name}"
+        execute "ALTER VIEW #{name} RENAME TO #{new_name}"
+      end
     end
 
     # If changing a temporal table, redirect the change to the table in the
