@@ -113,6 +113,13 @@ module ChronoModel
       super chrono_current_table_for(table_name), *args
     end
 
+    # Change the null constraint on the current schema table.
+    #
+    def change_column_null(table_name, *args)
+      return super unless is_chrono?(table_name)
+      super chrono_current_table_for(table_name), *args
+    end
+
     # If removing a column from a temporal table, we are forced to drop the
     # view, then drop the column from the table in the current schema and
     # eventually recreate the rules.
