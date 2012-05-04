@@ -136,25 +136,38 @@ module ChronoModel
     # Runs column_definitions and primary_key in the current schema,
     # as the table there defined is the source for this information.
     #
+    # Schema nesting is disabled on these calls, make sure to fetch metadata
+    # from the caller's selected schema and not from the current one.
+    #
     [:column_definitions, :primary_key].each do |method|
       define_method(method) do |table_name|
         return super(table_name) unless is_chrono?(table_name)
-        _on_current_schema { super(table_name) }
+        _on_current_schema(false) { super(table_name) }
       end
     end
 
-    # Evaluates the given block in the given +schema+ search path
+    # Evaluates the given block in the given +schema+ search path.
     #
-    def on_schema(schema, &block)
-      old_path = self.schema_search_path
+    # By default, nested call are allowed, to disable this feature
+    # pass +false+ as the second parameter.
+    #
+    def on_schema(schema, nesting = true, &block)
+      @_on_schema_nesting = (@_on_schema_nesting || 0) + 1
 
-      self.schema_search_path = schema
+      if nesting || @_on_schema_nesting == 1
+        old_path = self.schema_search_path
+        self.schema_search_path = schema
+      end
+
       block.call
 
     ensure
-      unless @connection.transaction_status == PGconn::PQTRANS_INERROR
+      if (nesting || @_on_schema_nesting == 1) &&
+        @connection.transaction_status != PGconn::PQTRANS_INERROR
+
         self.schema_search_path = old_path
       end
+      @_on_schema_nesting -= 1
     end
 
     protected
@@ -284,12 +297,12 @@ module ChronoModel
         end
       end
 
-      def _on_current_schema(&block)
-        on_schema(CURRENT_SCHEMA, &block)
+      def _on_current_schema(nesting = true, &block)
+        on_schema(CURRENT_SCHEMA, nesting, &block)
       end
 
-      def _on_history_schema(&block)
-        on_schema(HISTORY_SCHEMA, &block)
+      def _on_history_schema(nesting = true, &block)
+        on_schema(HISTORY_SCHEMA, nesting, &block)
       end
 
   end
