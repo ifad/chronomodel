@@ -75,7 +75,7 @@ A model backed by a temporal view will behave like any other model backed by a
 plain table. If you want to do as-of-date queries, you need to include the
 `ChronoModel::TimeMachine` module in your model.
 
-    model Country
+    module Country < ActiveRecord::Base
       include ChronoModel::TimeMachine
     end
 
