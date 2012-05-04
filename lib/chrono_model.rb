@@ -1,5 +1,6 @@
 require 'chrono_model/version'
 require 'chrono_model/adapter'
+require 'chrono_model/time_machine'
 
 module ChronoModel
   class Error < ActiveRecord::ActiveRecordError #:nodoc:
