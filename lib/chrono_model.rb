@@ -30,6 +30,8 @@ module ChronoModel
         _on_history_schema { chrono_create_history_for(table_name) }
 
         chrono_create_view_for(table_name)
+
+        TableCache.add! table_name
       end
     end
 
@@ -52,6 +54,9 @@ module ChronoModel
         end
 
         execute "ALTER VIEW #{name} RENAME TO #{new_name}"
+
+        TableCache.del! name
+        TableCache.add! new_name
       end
     end
 
@@ -70,6 +75,8 @@ module ChronoModel
       return super unless is_chrono?(table_name)
 
       _on_current_schema { execute "DROP TABLE #{table_name} CASCADE" }
+
+      TableCache.del! table_name
     end
 
     # If adding an index to a temporal table, add it to the one in the
@@ -216,11 +223,20 @@ module ChronoModel
     end
 
     protected
+      TableCache = (Class.new(HashWithIndifferentAccess) do
+        def all         ; keys;                 ; end
+        def add!  table ; self[table] = true    ; end
+        def del!  table ; self[table] = nil     ; end
+        def fetch table ; self[table] ||= yield ; end
+      end).new
+
       # Returns true if the given name references a temporal table.
       #
       def is_chrono?(table)
-        _on_current_schema { table_exists?(table) } &&
+        TableCache.fetch(table) do
+          _on_current_schema { table_exists?(table) } &&
           _on_history_schema { table_exists?(table) }
+        end
       end
 
     private
