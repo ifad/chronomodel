@@ -5,6 +5,14 @@ module ChronoModel
   module TimeMachine
     extend ActiveSupport::Concern
 
+    included do
+      unless connection.is_chrono? table_name
+        raise Error, "#{table_name} is not a temporal table. " \
+          "Please use change_table :#{table_name}, :temporal => true"
+      end
+
+    end
+
     # Returns a read-only representation of this record as it was +time+ ago.
     #
     def as_of(time)

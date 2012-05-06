@@ -260,22 +260,21 @@ module ChronoModel
       @_on_schema_nesting -= 1
     end
 
-    protected
-      TableCache = (Class.new(HashWithIndifferentAccess) do
-        def all         ; keys;                 ; end
-        def add!  table ; self[table] = true    ; end
-        def del!  table ; self[table] = nil     ; end
-        def fetch table ; self[table] ||= yield ; end
-      end).new
+    TableCache = (Class.new(HashWithIndifferentAccess) do
+      def all         ; keys;                 ; end
+      def add!  table ; self[table] = true    ; end
+      def del!  table ; self[table] = nil     ; end
+      def fetch table ; self[table] ||= yield ; end
+    end).new
 
-      # Returns true if the given name references a temporal table.
-      #
-      def is_chrono?(table)
-        TableCache.fetch(table) do
-          _on_temporal_schema { table_exists?(table) } &&
-          _on_history_schema { table_exists?(table) }
-        end
+    # Returns true if the given name references a temporal table.
+    #
+    def is_chrono?(table)
+      TableCache.fetch(table) do
+        _on_temporal_schema { table_exists?(table) } &&
+        _on_history_schema { table_exists?(table) }
       end
+    end
 
     private
       def chrono_create_schemas!
