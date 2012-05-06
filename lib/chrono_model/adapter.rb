@@ -63,9 +63,47 @@ module ChronoModel
     # If changing a temporal table, redirect the change to the table in the
     # temporal schema and recreate views.
     #
-    def change_table(table_name, *)
-      return super unless is_chrono?(table_name)
-      chrono_alter(table_name) { super }
+    # If the `:temporal` option is specified, enables or disables temporal
+    # features on the given table. Please note that you'll lose your history
+    # when demoting a temporal table to a plain one.
+    #
+    def change_table(table_name, options = {}, &block)
+      transaction do
+
+        # Add an empty proc to support calling change_table without a block.
+        #
+        block ||= proc { }
+
+        if options[:temporal] == true
+          if !is_chrono?(table_name)
+            # Add temporal features to this table
+            #
+            execute "ALTER TABLE #{table_name} SET SCHEMA #{TEMPORAL_SCHEMA}"
+            _on_history_schema { chrono_create_history_for(table_name) }
+            chrono_create_view_for(table_name)
+
+            TableCache.add! table_name
+          end
+
+          chrono_alter(table_name) { super table_name, options, &block }
+        else
+          if options[:temporal] == false && is_chrono?(table_name)
+            # Remove temporal features from this table
+            #
+            execute "DROP VIEW #{table_name}"
+            _on_history_schema { execute "DROP TABLE #{table_name}" }
+
+            default_schema = select_value 'SELECT current_schema()'
+            _on_temporal_schema do
+              execute "ALTER TABLE #{table_name} SET SCHEMA #{default_schema}"
+            end
+
+            TableCache.del! table_name
+          end
+
+          super table_name, options, &block
+        end
+      end
     end
 
     # If dropping a temporal table, drops it from the temporal schema
