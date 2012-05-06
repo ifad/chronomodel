@@ -8,8 +8,8 @@ module ChronoModel
   # adapter for a clean override of its methods using super.
   #
   class Adapter < ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
-    CURRENT_SCHEMA = 'temporal' # The schema holding current data
-    HISTORY_SCHEMA = 'history'  # The schema holding historical data
+    TEMPORAL_SCHEMA = 'temporal' # The schema holding current data
+    HISTORY_SCHEMA  = 'history'  # The schema holding historical data
 
     # Creates the given table, possibly creating the temporal schema
     # objects if the `:temporal` option is given and set to true.
@@ -26,7 +26,7 @@ module ChronoModel
       chrono_create_schemas!
 
       transaction do
-        _on_current_schema { super }
+        _on_temporal_schema { super }
         _on_history_schema { chrono_create_history_for(table_name) }
 
         chrono_create_view_for(table_name)
@@ -43,7 +43,7 @@ module ChronoModel
       clear_cache!
 
       transaction do
-        [CURRENT_SCHEMA, HISTORY_SCHEMA].each do |schema|
+        [TEMPORAL_SCHEMA, HISTORY_SCHEMA].each do |schema|
           on_schema(schema) do
             seq     = serial_sequence(name, primary_key(name))
             new_seq = seq.sub(name.to_s, new_name.to_s).split('.').last
@@ -61,33 +61,33 @@ module ChronoModel
     end
 
     # If changing a temporal table, redirect the change to the table in the
-    # current schema and recreate views.
+    # temporal schema and recreate views.
     #
     def change_table(table_name, *)
       return super unless is_chrono?(table_name)
       chrono_alter(table_name) { super }
     end
 
-    # If dropping a temporal table, drops it from the current schema
+    # If dropping a temporal table, drops it from the temporal schema
     # adding the CASCADE option so to delete the history, view and rules.
     #
     def drop_table(table_name, *)
       return super unless is_chrono?(table_name)
 
-      _on_current_schema { execute "DROP TABLE #{table_name} CASCADE" }
+      _on_temporal_schema { execute "DROP TABLE #{table_name} CASCADE" }
 
       TableCache.del! table_name
     end
 
     # If adding an index to a temporal table, add it to the one in the
-    # current schema and to the history one. If the `:unique` option is
+    # temporal schema and to the history one. If the `:unique` option is
     # present, it is removed from the index created in the history table.
     #
     def add_index(table_name, column_name, options = {})
       return super unless is_chrono?(table_name)
 
       transaction do
-        _on_current_schema { super }
+        _on_temporal_schema { super }
 
         # Uniqueness constraints do not make sense in the history table
         options = options.dup.tap {|o| o.delete(:unique)} if options[:unique].present?
@@ -97,26 +97,26 @@ module ChronoModel
     end
 
     # If removing an index from a temporal table, remove it both from the
-    # current and the history schema ones.
+    # temporal and the history schemas.
     #
     def remove_index(table_name, *)
       return super unless is_chrono?(table_name)
 
       transaction do
-        _on_current_schema { super }
+        _on_temporal_schema { super }
         _on_history_schema { super }
       end
     end
 
     # If adding a column to a temporal table, creates it in the table in
-    # the current schema and updates the view rules.
+    # the temporal schema and updates the view rules.
     #
     def add_column(table_name, *)
       return super unless is_chrono?(table_name)
 
       transaction do
-        # Add the column to the current table
-        _on_current_schema { super }
+        # Add the column to the temporal table
+        _on_temporal_schema { super }
 
         # Update the rules
         chrono_create_view_for(table_name)
@@ -124,14 +124,14 @@ module ChronoModel
     end
 
     # If renaming a column of a temporal table, rename it in the table in
-    # the current schema and update the view rules.
+    # the temporal schema and update the view rules.
     #
     def rename_column(table_name, *)
       return super unless is_chrono?(table_name)
 
-      # Rename the column in the current table and in the view
+      # Rename the column in the temporal table and in the view
       transaction do
-        _on_current_schema { super }
+        _on_temporal_schema { super }
         super
 
         # Update the rules
@@ -140,7 +140,7 @@ module ChronoModel
     end
 
     # If removing a column from a temporal table, we are forced to drop the
-    # view, then change the column from the table in the current schema and
+    # view, then change the column from the table in the temporal schema and
     # eventually recreate the rules.
     #
     def change_column(table_name, *)
@@ -148,22 +148,22 @@ module ChronoModel
       chrono_alter(table_name) { super }
     end
 
-    # Change the default on the current schema table.
+    # Change the default on the temporal schema table.
     #
     def change_column_default(table_name, *)
       return super unless is_chrono?(table_name)
-      _on_current_schema { super }
+      _on_temporal_schema { super }
     end
 
-    # Change the null constraint on the current schema table.
+    # Change the null constraint on the temporal schema table.
     #
     def change_column_null(table_name, *)
       return super unless is_chrono?(table_name)
-      _on_current_schema { super }
+      _on_temporal_schema { super }
     end
 
     # If removing a column from a temporal table, we are forced to drop the
-    # view, then drop the column from the table in the current schema and
+    # view, then drop the column from the table in the temporal schema and
     # eventually recreate the rules.
     #
     def remove_column(table_name, *)
@@ -171,19 +171,19 @@ module ChronoModel
       chrono_alter(table_name) { super }
     end
 
-    # Runs column_definitions, primary_key and indexes in the current schema,
+    # Runs column_definitions, primary_key and indexes in the temporal schema,
     # as the table there defined is the source for this information.
     #
     # Moreover, the PostgreSQLAdapter +indexes+ method uses current_schema(),
     # thus this is the only (and cleanest) way to make injection work.
     #
     # Schema nesting is disabled on these calls, make sure to fetch metadata
-    # from the caller's selected schema and not from the current one.
+    # from the first caller's selected schema and not from the current one.
     #
     [:column_definitions, :primary_key, :indexes].each do |method|
       define_method(method) do |table_name|
         return super(table_name) unless is_chrono?(table_name)
-        _on_current_schema(false) { super(table_name) }
+        _on_temporal_schema(false) { super(table_name) }
       end
     end
 
@@ -234,14 +234,14 @@ module ChronoModel
       #
       def is_chrono?(table)
         TableCache.fetch(table) do
-          _on_current_schema { table_exists?(table) } &&
+          _on_temporal_schema { table_exists?(table) } &&
           _on_history_schema { table_exists?(table) }
         end
       end
 
     private
       def chrono_create_schemas!
-        [CURRENT_SCHEMA, HISTORY_SCHEMA].each do |schema|
+        [TEMPORAL_SCHEMA, HISTORY_SCHEMA].each do |schema|
           execute "CREATE SCHEMA #{schema}" unless schema_exists?(schema)
         end
       end
@@ -263,7 +263,7 @@ module ChronoModel
                 point( extract( epoch FROM valid_to - INTERVAL '1 millisecond'), id )
               ) with &&
             )
-          ) INHERITS ( #{CURRENT_SCHEMA}.#{table} )
+          ) INHERITS ( #{TEMPORAL_SCHEMA}.#{table} )
         SQL
 
         # Create index for history timestamps
@@ -283,8 +283,8 @@ module ChronoModel
       #
       def chrono_create_view_for(table)
         pk      = primary_key(table)
-        current = [CURRENT_SCHEMA, table].join('.')
-        history = [HISTORY_SCHEMA, table].join('.')
+        current = [TEMPORAL_SCHEMA, table].join('.')
+        history = [HISTORY_SCHEMA,  table].join('.')
 
         # SELECT - return only current data
         #
@@ -298,7 +298,7 @@ module ChronoModel
 
         fields, values = columns.join(', '), columns.map {|c| "new.#{c}"}.join(', ')
 
-        # INSERT - inert data both in the current table and in the history one
+        # INSERT - inert data both in the temporal table and in the history one.
         #
         execute <<-SQL
           CREATE OR REPLACE RULE #{table}_ins AS ON INSERT TO #{table} DO INSTEAD (
@@ -307,12 +307,12 @@ module ChronoModel
 
             INSERT INTO #{history} ( #{pk}, #{fields}, valid_from )
             VALUES ( currval('#{sequence}'), #{values}, now() )
-            RETURNING #{pk}, #{fields};
+            RETURNING #{pk}, #{fields}
           )
         SQL
 
         # UPDATE - set the last history entry validity to now, save the current data
-        # in a new history entry and update the current table with the new data.
+        # in a new history entry and update the temporal table with the new data.
         #
         execute <<-SQL
           CREATE OR REPLACE RULE #{table}_upd AS ON UPDATE TO #{table} DO INSTEAD (
@@ -329,7 +329,7 @@ module ChronoModel
         SQL
 
         # DELETE - save the current data in the history and eventually delete the data
-        # from the current table.
+        # from the temporal table.
         #
         execute <<-SQL
           CREATE OR REPLACE RULE #{table}_del AS ON DELETE TO #{table} DO INSTEAD (
@@ -345,21 +345,21 @@ module ChronoModel
 
       # In destructive changes, such as removing columns or changing column
       # types, the view must be dropped and recreated, while the change has
-      # to be applied to the table in the current schema.
+      # to be applied to the table in the temporal schema.
       #
       def chrono_alter(table_name)
         transaction do
           execute "DROP VIEW #{table_name}"
 
-          _on_current_schema { yield }
+          _on_temporal_schema { yield }
 
           # Recreate the rules
           chrono_create_view_for(table_name)
         end
       end
 
-      def _on_current_schema(nesting = true, &block)
-        on_schema(CURRENT_SCHEMA, nesting, &block)
+      def _on_temporal_schema(nesting = true, &block)
+        on_schema(TEMPORAL_SCHEMA, nesting, &block)
       end
 
       def _on_history_schema(nesting = true, &block)
