@@ -11,6 +11,10 @@ module ChronoModel
     TEMPORAL_SCHEMA = 'temporal' # The schema holding current data
     HISTORY_SCHEMA  = 'history'  # The schema holding historical data
 
+    def chrono_supported?
+      postgresql_version >= 90000
+    end
+
     # Creates the given table, possibly creating the temporal schema
     # objects if the `:temporal` option is given and set to true.
     #
