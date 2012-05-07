@@ -76,10 +76,16 @@ module ChronoModel
         )
       end
 
+      # Returns the whole history as read only.
+      #
+      def history
+        readonly.from(history_table_name).order(history_field(:recorded_at))
+      end
+
       # Fetches the given +object+ history, sorted by history record time.
       #
       def history_of(object)
-        readonly.from(history_table_name).where(:id => object).order(history_field(:recorded_at))
+        history.where(:id => object)
       end
 
       # Returns this table name in the +Adapter::HISTORY_SCHEMA+
