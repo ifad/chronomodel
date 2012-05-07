@@ -29,6 +29,22 @@ module ChronoModel
       self.class.history_of(self)
     end
 
+    # Aborts the destroy if this is an historical record
+    #
+    def destroy
+      if historical?
+        raise ActiveRecord::ReadOnlyRecord, 'Cannot delete historical records'
+      else
+        super
+      end
+    end
+
+    # Returns true if this record was fetched from history
+    #
+    def historical?
+      as_of_time.present?
+    end
+
     %w( valid_from valid_to recorded_at as_of_time ).each do |attr|
       define_method(attr) { Conversions.string_to_utc_time(attributes[attr]) }
     end
