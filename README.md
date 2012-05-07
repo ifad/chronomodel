@@ -77,6 +77,8 @@ plain table. If you want to do as-of-date queries, you need to include the
 
     module Country < ActiveRecord::Base
       include ChronoModel::TimeMachine
+
+      has_many :compositions
     end
 
 This will make an `as_of` class method available to your model. E.g.:
@@ -85,9 +87,9 @@ This will make an `as_of` class method available to your model. E.g.:
 
 Will execute:
 
-    SET search_path history, public
-    SELECT * FROM countries WHERE #{1.year.ago.to_s(:db)} BETWEEN valid_from AND valid_to
-    SET search_path public
+    WITH countries AS (
+      SELECT * FROM history.countries WHERE #{1.year.ago.to_s(:db)} BETWEEN valid_from AND valid_to
+    ) SELECT * FROM countries
 
 This work on associations using temporal extensions as well:
 
@@ -95,11 +97,13 @@ This work on associations using temporal extensions as well:
 
 Will execute:
 
-    SET search_path history, public
-    SELECT * FROM countries WHERE id = X AND #{1.year.ago.to_s(:db)} BETWEEN valid_from AND valid_to
-    SELECT * FROM compositions WHERE country_id = X AND #{1.year.ago.to_s(:db)} BETWEEN valid_from AND valid_to
-    SET search_path public
+    WITH countries AS (
+      SELECT * FROM history.countries WHERE #{1.year.ago.to_s(:db)} BETWEEN valid_from AND valid_to
+    ) SELECT * FROM countries LIMIT 1
 
+    WITH compositions AS (
+      SELECT * FROM history.countries WHERE -same-timestamp-as-above- BETWEEN valid_from AND valid_to
+    ) SELECT * FROM compositions WHERE country_id = X
 
 ## Contributing
 
