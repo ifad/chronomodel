@@ -67,14 +67,10 @@ module ChronoModel
       #
       def as_of(time)
         time = Conversions.time_to_utc_string(time.utc)
-
-        readonly.with(
-          table_name, unscoped.
-            select("#{history_table_name}.*, '#{time}' AS as_of_time").
-            from(history_table_name).
-            where("'#{time}' BETWEEN #{table_name}.valid_from AND #{table_name}.valid_to")
-        )
+        temporal(time, table_name, history_table_name)
       end
+
+      delegate :with, :temporal, :to => :scoped
 
       # Returns the whole history as read only.
       #
