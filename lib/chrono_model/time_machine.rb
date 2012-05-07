@@ -42,11 +42,24 @@ module ChronoModel
     # Returns true if this record was fetched from history
     #
     def historical?
-      as_of_time.present?
+      hid.present?
     end
 
-    %w( valid_from valid_to recorded_at as_of_time ).each do |attr|
+    HISTORY_ATTRIBUTES = %w( valid_from valid_to recorded_at as_of_time ).each do |attr|
       define_method(attr) { Conversions.string_to_utc_time(attributes[attr]) }
+    end
+
+    # Strips the history timestamps when duplicating history records
+    #
+    def initialize_dup(other)
+      super
+
+      if historical?
+        HISTORY_ATTRIBUTES.each {|attr| @attributes.delete(attr)}
+        @attributes.delete 'hid'
+        @readonly = false
+        @new_record = true
+      end
     end
 
     module ClassMethods
