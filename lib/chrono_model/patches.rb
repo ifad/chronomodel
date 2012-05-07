@@ -77,7 +77,7 @@ module ChronoModel
           if @temporal
             arel.join_sources.each do |join|
               if connection.is_chrono? join.left.name
-                temporal(nil, join.left.name, "history.#{join.left.name}")
+                temporal(nil, join.left.name, "#{Adapter::HISTORY_SCHEMA}.#{join.left.name}")
               end
             end
           end
