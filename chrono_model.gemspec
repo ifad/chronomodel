@@ -15,6 +15,6 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
   gem.version       = ChronoModel::VERSION
 
-  gem.add_dependency "activerecord", "~> 3.0"
+  gem.add_dependency "activerecord", "~> 3.2"
   gem.add_dependency "pg"
 end
