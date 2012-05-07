@@ -89,7 +89,7 @@ module ChronoModel
       ISO_DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(\.\d+)?\z/
 
       def string_to_utc_time(string)
-        if string =~ TS_FORMAT
+        if string =~ ISO_DATETIME
           microsec = ($7.to_f * 1_000_000).to_i
           Time.utc $1.to_i, $2.to_i, $3.to_i, $4.to_i, $5.to_i, $6.to_i, microsec
         end
