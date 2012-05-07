@@ -29,42 +29,59 @@ module ChronoModel
       self.class.history_of(self)
     end
 
+    %w( valid_from valid_to recorded_at as_of_time ).each do |attr|
+      define_method(attr) { Conversions.string_to_utc_time(attributes[attr]) }
+    end
+
     module ClassMethods
       # Fetches as of +time+ records.
       #
       def as_of(time)
-        on_history do
-          where(':ts BETWEEN valid_from AND valid_to', :ts => time)
-        end
+        time = Conversions.time_to_utc_string(time.utc)
+
+        readonly.with(
+          table_name, unscoped.
+            select("#{history_table_name}.*, '#{time}' AS as_of_time").
+            from(history_table_name).
+            where("'#{time}' BETWEEN #{table_name}.valid_from AND #{table_name}.valid_to")
+        )
       end
 
       # Fetches the given +object+ history, sorted by history record time.
       #
       def history_of(object)
-        on_history do
-          where(:id => object).order(history_field(:recorded_at))
-        end
+        readonly.from(history_table_name).where(:id => object).order(history_field(:recorded_at))
+      end
+
+      # Returns this table name in the +Adapter::HISTORY_SCHEMA+
+      #
+      def history_table_name
+        [Adapter::HISTORY_SCHEMA, table_name].join('.')
       end
 
       private
-        # Assumes the block will return an ActiveRecord::Relation and
-        # makes it fetch data from the +history_table+ in read-only mode.
-        #
-        def on_history(&block)
-          block.call.readonly.from(history_table)
-        end
-
-        # Returns this table name in the +Adapter::HISTORY_SCHEMA+
-        #
-        def history_table
-          [Adapter::HISTORY_SCHEMA, table_name].join('.')
-        end
-
         # Returns the given field in the +history_table+.
         #
         def history_field(name)
-          [history_table, name].join('.')
+          [history_table_name, name].join('.')
         end
+    end
+
+    module Conversions
+      extend self
+
+      ISO_DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(\.\d+)?\z/
+
+      def string_to_utc_time(string)
+        if string =~ TS_FORMAT
+          microsec = ($7.to_f * 1_000_000).to_i
+          Time.utc $1.to_i, $2.to_i, $3.to_i, $4.to_i, $5.to_i, $6.to_i, microsec
+        end
+      end
+
+      def time_to_utc_string(time)
+        [time.to_s(:db), sprintf('%06d', time.usec)].join '.'
+      end
     end
 
   end
