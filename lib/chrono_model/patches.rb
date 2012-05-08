@@ -86,6 +86,10 @@ module ChronoModel
       end
     end
 
+    module Querying
+      delegate :with, :to => :scoped
+    end
+
     # Fixes ARel's WITH visitor method with the correct SQL syntax
     #
     # FIXME: the .children.first is messy. This should be properly

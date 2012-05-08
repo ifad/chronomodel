@@ -26,4 +26,5 @@ silence_warnings do
 
   # This adds .with support to ActiveRecord::Relation
   ActiveRecord::Relation.instance_eval { include ChronoModel::Patches::QueryMethods }
+  ActiveRecord::Base.extend ChronoModel::Patches::Querying
 end

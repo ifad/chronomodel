@@ -70,7 +70,7 @@ module ChronoModel
         temporal(time, table_name, history_table_name)
       end
 
-      delegate :with, :temporal, :to => :scoped
+      delegate :temporal, :to => :scoped
 
       # Returns the whole history as read only.
       #
