@@ -294,7 +294,7 @@ module ChronoModel
             hid         SERIAL PRIMARY KEY,
             valid_from  timestamp NOT NULL,
             valid_to    timestamp NOT NULL DEFAULT '9999-12-31',
-            recorded_at timestamp NOT NULL DEFAULT now(),
+            recorded_at timestamp NOT NULL DEFAULT timezone('UTC', now()),
 
             CONSTRAINT #{table}_from_before_to CHECK (valid_from < valid_to),
 
@@ -347,7 +347,7 @@ module ChronoModel
             INSERT INTO #{current} ( #{fields} ) VALUES ( #{values} );
 
             INSERT INTO #{history} ( #{pk}, #{fields}, valid_from )
-            VALUES ( currval('#{sequence}'), #{values}, now() )
+            VALUES ( currval('#{sequence}'), #{values}, timezone('UTC', now()) )
             RETURNING #{pk}, #{fields}
           )
         SQL
@@ -358,11 +358,11 @@ module ChronoModel
         execute <<-SQL
           CREATE OR REPLACE RULE #{table}_upd AS ON UPDATE TO #{table} DO INSTEAD (
 
-            UPDATE #{history} SET valid_to = now()
+            UPDATE #{history} SET valid_to = timezone('UTC', now())
             WHERE #{pk} = old.#{pk} AND valid_to = '9999-12-31';
 
             INSERT INTO #{history} ( #{pk}, #{fields}, valid_from )
-            VALUES ( old.#{pk}, #{values}, now() );
+            VALUES ( old.#{pk}, #{values}, timezone('UTC', now()) );
 
             UPDATE ONLY #{current} SET #{updates}
             WHERE #{pk} = old.#{pk}
@@ -375,7 +375,7 @@ module ChronoModel
         execute <<-SQL
           CREATE OR REPLACE RULE #{table}_del AS ON DELETE TO #{table} DO INSTEAD (
 
-            UPDATE #{history} SET valid_to = now()
+            UPDATE #{history} SET valid_to = timezone('UTC', now())
             WHERE #{pk} = old.#{pk} AND valid_to = '9999-12-31';
 
             DELETE FROM ONLY #{current}
