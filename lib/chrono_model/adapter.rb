@@ -289,6 +289,9 @@ module ChronoModel
 
       # Create the history table in the history schema
       def chrono_create_history_for(table)
+        parent = "#{TEMPORAL_SCHEMA}.#{table}"
+        p_pkey = primary_key(parent)
+
         execute <<-SQL
           CREATE TABLE #{table} (
             hid         SERIAL PRIMARY KEY,
@@ -304,20 +307,29 @@ module ChronoModel
                 point( extract( epoch FROM valid_to - INTERVAL '1 millisecond'), id )
               ) with &&
             )
-          ) INHERITS ( #{TEMPORAL_SCHEMA}.#{table} )
+          ) INHERITS ( #{parent} )
         SQL
 
-        # Create index for history timestamps
-        execute <<-SQL
-          CREATE INDEX #{table}_timestamps ON #{table}
-          USING btree ( valid_from, valid_to ) WITH ( fillfactor = 100 )
-        SQL
+        # Inherited primary key
+        execute "CREATE INDEX #{table}_inherit_pkey ON #{table} ( #{p_pkey} )"
+        # Snapshot of all entities at a specific point in time
+        execute "CREATE INDEX #{table}_snapshot     ON #{table} ( valid_from, valid_to )"
 
-        # Create index for the inherited table primary key
-        execute <<-SQL
-          CREATE INDEX #{table}_inherit_pkey ON #{table}
-          USING btree ( #{primary_key(table)} ) WITH ( fillfactor = 90 )
-        SQL
+        if postgresql_version >= 90100
+          # PG 9.1 makes efficient use of single-column indexes
+          execute "CREATE INDEX #{table}_valid_from   ON #{table} ( valid_from )"
+          execute "CREATE INDEX #{table}_valid_to     ON #{table} ( valid_to )"
+          execute "CREATE INDEX #{table}_recorded_at  ON #{table} ( recorded_at )"
+        else
+          # PG 9.0 requires multi-column indexes instead.
+          #
+          # Snapshot of a single entity at a specific point in time
+          execute "CREATE INDEX #{table}_instance_snapshot ON #{table} ( id, valid_from, valid_to )"
+          # History update
+          execute "CREATE INDEX #{table}_instance_update   ON #{table} ( id, valid_to )"
+          # Single instance whole history
+          execute "CREATE INDEX #{table}_instance_history  ON #{table} ( id, recorded_at )"
+        end
       end
 
       # Create the public view and its rewrite rules

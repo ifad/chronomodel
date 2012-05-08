@@ -36,8 +36,21 @@ create table history.countries (
   )
 ) inherits ( temporal.countries );
 
-create index timestamps on history.countries using btree ( valid_from, valid_to ) with ( fillfactor = 100 );
-create index country_id on history.countries using btree ( id ) with ( fillfactor = 90 );
+-- Inherited primary key
+create index country_inherit_pkey ON countries ( id )
+
+-- Snapshot of all entities at a specific point in time
+create index country_snapshot          on history.countries ( valid_from, valid_to )
+
+-- Snapshot of a single entity at a specific point in time
+create index country_instance_snapshot on history.countries ( id, valid_from, valid_to )
+
+-- History update
+create index country_instance_update   on history.countries ( id, valid_to )
+
+-- Single instance whole history
+create index country_instance_history  on history.countries ( id, recorded_at )
+
 
 -- The countries view, what the Rails' application ORM will actually CRUD on, and
 -- the core of the temporal updates.
