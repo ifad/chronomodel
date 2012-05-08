@@ -58,31 +58,8 @@ module ChronoModel
         end
       end
 
-      # FIXME this parameter passing is ugly - refactor it.
-      def temporal(time, table, history)
-        @temporal ||= time
-
-        readonly.with(
-          table, unscoped.
-            select("#{history}.*, '#@temporal' AS as_of_time").
-            from(history).
-            where("'#@temporal' BETWEEN valid_from AND valid_to")
-        )
-      end
-
       def build_arel
-        super.tap do |arel|
-          arel.with with_values if with_values.present?
-
-          if @temporal
-            arel.join_sources.each do |join|
-              if connection.is_chrono? join.left.name
-                temporal(nil, join.left.name, "#{Adapter::HISTORY_SCHEMA}.#{join.left.name}")
-              end
-            end
-          end
-
-        end
+        super.tap {|arel| arel.with with_values if with_values.present? }
       end
     end
 

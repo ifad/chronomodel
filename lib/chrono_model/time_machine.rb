@@ -15,6 +15,15 @@ module ChronoModel
         raise Error, "#{table_name} is not a temporal table. " \
           "Please use change_table :#{table_name}, :temporal => true"
       end
+
+      TimeMachine.chrono_models[table_name] = self
+    end
+
+    # Returns an Hash keyed by table name of models that included
+    # ChronoModel::TimeMachine
+    #
+    def self.chrono_models
+      (@chrono_models ||= {})
     end
 
     # Returns a read-only representation of this record as it was +time+ ago.
@@ -67,10 +76,17 @@ module ChronoModel
       #
       def as_of(time)
         time = Conversions.time_to_utc_string(time.utc)
-        temporal(time, table_name, history_table_name)
+
+        readonly.with(table_name, on_history(time)).tap do |relation|
+          relation.instance_variable_set(:@temporal, time)
+        end
       end
 
-      delegate :temporal, :to => :scoped
+      def on_history(time)
+        unscoped.from(history_table_name).
+          select("#{history_table_name}.*, '#{time}' AS as_of_time").
+          where("'#{time}' BETWEEN valid_from AND valid_to")
+      end
 
       # Returns the whole history as read only.
       #
@@ -89,8 +105,22 @@ module ChronoModel
       def history_table_name
         [Adapter::HISTORY_SCHEMA, table_name].join('.')
       end
-
     end
+
+    module QueryMethods
+      def build_arel
+        super.tap do |arel|
+
+          # Extract joined tables and add temporal WITH if appropriate
+          arel.join_sources.map {|j| j.to_sql =~ /JOIN "(\w+)" ON/ && $1}.compact.each do |table|
+            next unless (model = TimeMachine.chrono_models[table])
+            with(table, model.on_history(@temporal))
+          end if @temporal
+
+        end
+      end
+    end
+    ActiveRecord::Relation.instance_eval { include QueryMethods }
 
     module Conversions
       extend self
