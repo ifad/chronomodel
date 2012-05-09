@@ -9,6 +9,10 @@ module ChronoModel
   end
 end
 
+if defined?(Rails)
+  require 'chrono_model/railtie'
+end
+
 # Install it.
 silence_warnings do
   # Replace AR's PG adapter with the ChronoModel one. This (dirty) approach is

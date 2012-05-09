@@ -280,13 +280,13 @@ module ChronoModel
       end
     end
 
-    private
-      def chrono_create_schemas!
-        [TEMPORAL_SCHEMA, HISTORY_SCHEMA].each do |schema|
-          execute "CREATE SCHEMA #{schema}" unless schema_exists?(schema)
-        end
+    def chrono_create_schemas!
+      [TEMPORAL_SCHEMA, HISTORY_SCHEMA].each do |schema|
+        execute "CREATE SCHEMA #{schema}" unless schema_exists?(schema)
       end
+    end
 
+    private
       # Create the history table in the history schema
       def chrono_create_history_for(table)
         parent = "#{TEMPORAL_SCHEMA}.#{table}"
