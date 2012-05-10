@@ -21,7 +21,7 @@ while history in hold in another table in the `history` schema. The latter
 automated schema updates for free. Partitioning of history is even possible but not implemented
 yet.
 
-The updatable view is created in the default _public_ schema, making it visible to Active Record.
+The updatable view is created in the default `public` schema, making it visible to Active Record.
 
 All Active Record schema migration statements are decorated with code that handles the temporal
 structure by e.g. keeping the view rules in sync or dropping/recreating it when required by your
@@ -152,9 +152,9 @@ for more information.
    never be merged into Rails, as it is against its principle of treating the
    SQL database as a dummy data store.
 
-  * No tests nor specs *YET*.
+ * No tests nor specs *YET*.
 
-  * The schema dumper is WAY TOO hacky.
+ * The schema dumper is WAY TOO hacky.
 
 
 ## Contributing
