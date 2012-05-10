@@ -8,49 +8,46 @@ This is a data structure for a [Slowly-Changing Dimension Type 2](http://en.wiki
 temporal database, implemented using only [PostgreSQL](http://www.postgresql.org) >= 9.0 features.
 
 Any application code is completely unaware of the temporal features: queries
-are done against a view that behaves exactly like a plain table (it can be
-`SELECT`ed, `UPDATE`d, `INSERT`ed `INTO` and `DELETE`d `FROM`), but behind the
-scenes the database redirects the queries to backend tables holding actual
-data, using [the rule system](http://www.postgresql.org/docs/9.0/static/rules-update.html).
+are done against an updatable view that behaves exactly like a plain table
+while but behind the scenes the database redirects the queries to backend
+tables holding actual data, using [the rule system](http://www.postgresql.org/docs/9.0/static/rules-update.html).
 
-All data is stored both in a _current_ table and in an _history_ one,
+Current data is hold in a _current_ table, while history in an _history_ one,
 [inheriting](http://www.postgresql.org/docs/9.0/static/ddl-inherit.html) from
-the _current_. To query historical data at a given _date_, a `where date
-between valid_from and valid_to` clause is enough.
-
-The _current_ and _history_ tables are created in different
+the _current_. The two tables are created in two different
 [schemas](http://www.postgresql.org/docs/9.0/static/ddl-schemas.html), while
-the view is in the default _public_ schema: the application will see only the
-view by default.
+the view is created in the default _public_ schema, so Active Record sees only
+it as the table backing your models.
 
-By changing the [schema search path](http://www.postgresql.org/docs/9.0/static/ddl-schemas.html#DDL-SCHEMAS-PATH)
-it is possible to redirect queries to the _history_ tables without changing
-the application code, only by adding the aforementioned WHERE clause.
-Moreover, this allows to do `JOIN`s between _history_ tables and non-temporal
-ones.
+Data extraction at a single point in time and JOINs between temporal and non-temporal
+data is implemented using [Common Table Expressions](http://www.postgresql.org/docs/9.0/static/queries-with.html)
+(WITH queries) and a `WHERE date BETWEEN valid_from AND valid_to` clause, generated
+automatically by the Active Record patches and for which a model API is provided.
 
-Caveat: tre rules must be kept in sync with the schema, and updated if it
-changes.
+All Active Record schema migration statements are decorated with code that
+handles the temporal structure by e.g. keeping the view rules in sync or
+dropping/recreating it when required by the changes themselves. A schema
+dumper is available as well.
 
-See the README.sql file for the plain SQL.
+Optimal temporal timestamps indexing is provided for both PostgreSQL 9.0 and
+9.1 query planners.
+
+See [README.sql](https://github.com/ifad/chronomodel/blob/master/README.sql) file for the plain SQL.
 
 
 ## Requirements
 
-* Active Record >= 3.0
+* Active Record >= 3.2
 * PostgreSQL >= 9.0
 
 
 ## Installation
 
 Add this line to your application's Gemfile:
-    gem 'chronomodel'
+    gem 'chronomodel', :git => 'git://github.com/ifad/chronomodel'
 
 And then execute:
     $ bundle
-
-Or install it yourself as:
-    $ gem install chronomodel
 
 
 ## Migrations
@@ -104,6 +101,9 @@ Will execute:
     WITH compositions AS (
       SELECT * FROM history.countries WHERE -same-timestamp-as-above- BETWEEN valid_from AND valid_to
     ) SELECT * FROM compositions WHERE country_id = X
+
+More documentation to come.
+
 
 ## Contributing
 
