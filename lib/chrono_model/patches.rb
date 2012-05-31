@@ -21,7 +21,8 @@ module ChronoModel
 
       private
         def chrono?
-          owner.class.chrono? && reflection.klass.chrono? && owner.as_of_time.present?
+          owner.respond_to?(:as_of_time) && owner.as_of_time.present? &&
+	    owner.class.chrono? && reflection.klass.chrono?
         end
     end
 
