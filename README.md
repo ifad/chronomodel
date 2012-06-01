@@ -30,7 +30,7 @@ migrations. A schema dumper is available as well.
 Data extraction at a single point in time and even `JOIN`s between temporal and non-temporal data
 is implemented using
 [Common Table Expressions](http://www.postgresql.org/docs/9.0/static/queries-with.html)
-(WITH queries) and a `WHERE date BETWEEN valid_from AND valid_to` clause, generated automatically
+(WITH queries) and a `WHERE date >= valid_from AND date < valid_to` clause, generated automatically
 by the provided `TimeMachine` module to be included in your models.
 
 Optimal temporal timestamps indexing is provided for both PostgreSQL 9.0 and 9.1 query planners.
@@ -103,7 +103,7 @@ This will make an `as_of` class method available to your model. E.g.:
 Will execute:
 
     WITH countries AS (
-      SELECT * FROM history.countries WHERE #{1.year.ago.to_s(:db)} BETWEEN valid_from AND valid_to
+      SELECT * FROM history.countries WHERE #{1.year.ago.utc} >= valid_from AND #{1.year.ago.utc} < valid_to
     ) SELECT * FROM countries
 
 This work on associations using temporal extensions as well:
@@ -113,11 +113,11 @@ This work on associations using temporal extensions as well:
 Will execute:
 
     WITH countries AS (
-      SELECT * FROM history.countries WHERE #{1.year.ago.utc.to_s(:db)} BETWEEN valid_from AND valid_to
+      SELECT * FROM history.countries WHERE #{1.year.ago.utc} >= valid_from AND #{1.year.ago.utc} < valid_to
     ) SELECT * FROM countries LIMIT 1
 
     WITH compositions AS (
-      SELECT * FROM history.countries WHERE -same-timestamp-as-above- BETWEEN valid_from AND valid_to
+      SELECT * FROM history.countries WHERE #{above_timestamp} >= valid_from AND #{above_timestamp} < valid_to
     ) SELECT * FROM compositions WHERE country_id = X
     
 And `.joins` works as well:
@@ -127,9 +127,9 @@ And `.joins` works as well:
 Will execute:
 
     WITH countries AS (
-      SELECT * FROM history.countries WHERE #{1.year.ago.utc.to_s(:db)} BETWEEN valid_from AND valid_to
+      SELECT * FROM history.countries WHERE #{1.year.ago.utc} >= valid_from AND #{1.year.ago.utc} < valid_to
     ), compositions AS (
-      SELECT * FROM history.countries WHERE #{1.year.ago.utc.to_s(:db)} BETWEEN valid_from AND valid_to
+      SELECT * FROM history.countries WHERE #{above_timestamp} >= valid_from AND #{above_timestamp} < valid_to
     ) SELECT * FROM countries INNER JOIN countries ON compositions.country_id = countries.id
 
 More methods are provided, see the

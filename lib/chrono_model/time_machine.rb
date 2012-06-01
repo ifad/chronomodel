@@ -85,7 +85,7 @@ module ChronoModel
       def on_history(time)
         unscoped.from(history_table_name).
           select("#{history_table_name}.*, '#{time}' AS as_of_time").
-          where("'#{time}' BETWEEN valid_from AND valid_to")
+          where("'#{time}' >= valid_from AND '#{time}' < valid_to")
       end
 
       # Returns the whole history as read only.
