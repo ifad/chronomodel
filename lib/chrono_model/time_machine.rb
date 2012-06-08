@@ -51,7 +51,7 @@ module ChronoModel
     # Returns true if this record was fetched from history
     #
     def historical?
-      hid.present?
+      attributes.key?('hid')
     end
 
     HISTORY_ATTRIBUTES = %w( valid_from valid_to recorded_at as_of_time ).each do |attr|
