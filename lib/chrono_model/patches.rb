@@ -8,21 +8,39 @@ module ChronoModel
     #
     # Each record fetched from the +as_of+ scope on the owner class will have
     # an additional "as_of_time" field yielding the UTC time of the request,
-    # then the as_of scope is called on this association's class.
-    #
-    # This behaviour is enabled iff both the owner and the target are temporal
-    # aware models, and this is an association called on a temporal scope.
+    # then the as_of scope is called on either this association's class or
+    # on the join model's (:through association) one.
     #
     class Association < ActiveRecord::Associations::Association
+
+      # Add temporal Common Table Expressions (WITH queries) to the resulting
+      # scope, checking whether either the association class or the through
+      # association one are ChronoModels.
       def scoped
-        return super unless chrono?
-        super.as_of(owner.as_of_time)
+        return super unless _chrono_record?
+
+        ctes = {}
+
+        if reflection.klass.chrono?
+          ctes.update _chrono_ctes_for(reflection.klass)
+        end
+
+        if respond_to?(:through_reflection) && through_reflection.klass.chrono?
+          ctes.update _chrono_ctes_for(through_reflection.klass)
+        end
+
+        scoped = super
+        ctes.each {|table, cte| scoped = scoped.with(table, cte) }
+        return scoped
       end
 
       private
-        def chrono?
-          owner.respond_to?(:as_of_time) && owner.as_of_time.present? &&
-	    owner.class.chrono? && reflection.klass.chrono?
+        def _chrono_ctes_for(klass)
+          klass.as_of(owner.as_of_time).with_values
+        end
+
+        def _chrono_record?
+          owner.respond_to?(:as_of_time) && owner.as_of_time.present?
         end
     end
 
