@@ -71,6 +71,15 @@ module ChronoModel
       end
     end
 
+    # Returns an Array of timestamps for which this instance has an history
+    # record. Takes temporal associations into account.
+    #
+    def history_timestamps
+      self.class.history_timestamps do |query|
+        query.where(:id => self)
+      end
+    end
+
     module ClassMethods
       # Fetches as of +time+ records.
       #
@@ -104,6 +113,37 @@ module ChronoModel
       #
       def history_table_name
         [Adapter::HISTORY_SCHEMA, table_name].join('.')
+      end
+
+      # Returns an Array of unique UTC timestamps for which at least an
+      # history record exists. Takes temporal associations into account.
+      #
+      def history_timestamps
+        assocs = reflect_on_all_associations.select {|a| a.klass.chrono?}
+
+        models = [self].concat(assocs.map(&:klass))
+        fields = models.inject([]) {|a,m| a.concat m.quoted_history_fields}
+
+        relation = self.
+          joins(*assocs.map(&:name)).
+          select("DISTINCT UNNEST(ARRAY[#{fields.join(',')}]) AS ts").
+          order('ts')
+
+        relation = yield relation if block_given?
+
+        connection.on_schema(Adapter::HISTORY_SCHEMA) do
+          connection.select_values(relation.to_sql, "#{self.name} periods").map! do |ts|
+            Conversions.string_to_utc_time ts
+          end
+        end
+      end
+
+      def quoted_history_fields
+        [:valid_from, :valid_to].map do |field|
+          [connection.quote_table_name(table_name),
+           connection.quote_column_name(field)
+          ].join('.')
+        end
       end
     end
 
