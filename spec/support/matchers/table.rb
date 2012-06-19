@@ -1,3 +1,4 @@
+require 'ostruct'
 module ChronoTest::Matchers
 
   module Table
@@ -34,6 +35,27 @@ module ChronoTest::Matchers
         def public_schema
           'public'
         end
+
+        def select_value(sql, binds, name = nil)
+          result = exec_query(sql, binds, name || 'select_value')
+          result.rows.first.try(:[], 0)
+        end
+
+        def select_values(sql, binds, name = nil)
+          result = exec_query(sql, binds, name || 'select_values')
+          result.rows.map(&:first)
+        end
+
+      private
+        FooColumn = OpenStruct.new(:name => '')
+
+        def exec_query(sql, binds, name)
+          binds.map! do |col, val|
+            val ? [col, val] : [FooColumn, col]
+          end
+          connection.exec_query(sql, name, binds)
+        end
+
     end
 
     # ##################################################################
@@ -102,11 +124,15 @@ module ChronoTest::Matchers
         end
 
         def inherits_from_temporal?
-          @inheritance = connection.select_value(%[ SELECT EXISTS (
-            SELECT 1 FROM pg_catalog.pg_inherits
-             WHERE inhrelid  = '#{history_schema}.#{table}'::regclass::oid
-               AND inhparent = '#{temporal_schema}.#{table}'::regclass::oid
-          ) ]) == 't'
+          binds = ["#{history_schema}.#{table}", "#{temporal_schema}.#{table}"]
+
+          @inheritance = select_value(<<-SQL, binds, 'Check inheritance') == 't'
+            SELECT EXISTS (
+              SELECT 1 FROM pg_catalog.pg_inherits
+               WHERE inhrelid  = $1::regclass::oid
+                 AND inhparent = $2::regclass::oid
+            )
+          SQL
         end
     end
 
@@ -144,21 +170,22 @@ module ChronoTest::Matchers
         end
 
         def is_updatable?
-          @updatable = connection.select_value(%[
+          binds = [ public_schema, table ]
+
+          @updatable = select_value(<<-SQL, binds, 'Check updatable') == 'YES'
             SELECT is_updatable FROM information_schema.views
-             WHERE table_schema = '#{public_schema}'
-               AND table_name   = '#{table}'
-          ]) == 'YES'
+             WHERE table_schema = $1 AND table_name = $2
+          SQL
         end
 
         def has_rules?
-          rules = connection.select_values %[
+          rules = select_values(<<-SQL, [ table ], 'Check rules')
             SELECT UNNEST(REGEXP_MATCHES(
                 definition, 'ON (INSERT|UPDATE|DELETE) TO #{table} DO INSTEAD'
               ))
              FROM pg_catalog.pg_rules
-            WHERE tablename = '#{table}'
-          ]
+            WHERE tablename = $1
+          SQL
 
           @insert_rule = rules.include? 'INSERT'
           @update_rule = rules.include? 'UPDATE'
