@@ -1,0 +1,7 @@
+# CREATE ROLE chronomodel LOGIN ENCRYPTED PASSWORD 'chronomodel' CREATEDB;
+#
+hostname: localhost
+username: chronomodel
+password: chronomodel
+database: chronomodel
+#
