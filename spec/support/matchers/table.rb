@@ -16,10 +16,6 @@ module ChronoTest::Matchers
       end
 
       protected
-        def table_exists?(options)
-          connection.table_exists? [options[:in], table].join('.')
-        end
-
         def connection
           ChronoTest.connection
         end
@@ -34,6 +30,24 @@ module ChronoTest::Matchers
 
         def public_schema
           'public'
+        end
+
+        # Database statements
+        #
+        def relation_exists?(options)
+          schema = options[:in]
+          kind   = options[:kind] == :view ? 'v' : 'r'
+
+          select_value(<<-SQL, [ table, schema ], 'Check table exists') == 't'
+            SELECT EXISTS (
+              SELECT 1
+                FROM pg_class c
+                LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
+               WHERE c.relkind = '#{kind}'
+                 AND c.relname = $1
+                 AND n.nspname = $2
+            )
+          SQL
         end
 
         def select_value(sql, binds, name = nil)
@@ -65,7 +79,7 @@ module ChronoTest::Matchers
       def matches?(table)
         super(table)
 
-        table_exists? :in => public_schema
+        relation_exists? :in => public_schema
       end
 
       def failure_message_for_should
@@ -85,7 +99,7 @@ module ChronoTest::Matchers
       def matches?(table)
         super(table)
 
-        table_exists? :in => temporal_schema
+        relation_exists? :in => temporal_schema
       end
 
       def failure_message_for_should
@@ -120,7 +134,7 @@ module ChronoTest::Matchers
 
       private
         def table_exists?
-          @existance = super :in => history_schema
+          @existance = relation_exists? :in => history_schema
         end
 
         def inherits_from_temporal?
@@ -149,7 +163,7 @@ module ChronoTest::Matchers
       def matches?(table)
         super(table)
 
-        table_exists? && [ is_updatable?, has_rules? ].all?
+        view_exists? && [ is_updatable?, has_rules? ].all?
       end
 
       def failure_message_for_should
@@ -165,8 +179,8 @@ module ChronoTest::Matchers
       end
 
       private
-        def table_exists?
-          @existance = super :in => public_schema
+        def view_exists?
+          @existance = relation_exists? :in => public_schema, :kind => :view
         end
 
         def is_updatable?
