@@ -100,4 +100,18 @@ describe ChronoModel::Adapter do
     end
   end
 
+  describe '.drop_table' do
+    subject { 'test_table' }
+
+    before :all do
+      adapter.create_table subject, :temporal => true, &columns
+      adapter.drop_table subject
+    end
+
+    it { should_not have_public_backing }
+    it { should_not have_temporal_backing }
+    it { should_not have_history_backing }
+    it { should_not have_public_interface }
+  end
+
 end
