@@ -118,4 +118,74 @@ describe ChronoModel::Adapter do
     it { should_not have_public_interface }
   end
 
+  describe '.add_index' do
+    context ':temporal => true' do
+      before :all do
+        adapter.create_table subject, :temporal => true, &table
+
+        adapter.add_index subject, [:foo, :bar], :name => 'foobar_index'
+        adapter.add_index subject, [:test],      :name => 'test_index'
+      end
+      after(:all) { adapter.drop_table subject }
+
+      it { should have_temporal_index 'foobar_index', %w( foo bar ) }
+      it { should have_history_index  'foobar_index', %w( foo bar ) }
+      it { should have_temporal_index 'test_index',   %w( test ) }
+      it { should have_history_index  'test_index',   %w( test ) }
+
+      it { should_not have_index 'foobar_index', %w( foo bar ) }
+      it { should_not have_index 'test_index',   %w( test ) }
+    end
+
+    context ':temporal => false' do
+      before :all do
+        adapter.create_table subject, :temporal => false, &table
+
+        adapter.add_index subject, [:foo, :bar], :name => 'foobar_index'
+        adapter.add_index subject, [:test],      :name => 'test_index'
+      end
+      after(:all) { adapter.drop_table subject }
+
+      it { should_not have_temporal_index 'foobar_index', %w( foo bar ) }
+      it { should_not have_history_index  'foobar_index', %w( foo bar ) }
+      it { should_not have_temporal_index 'test_index',   %w( test ) }
+      it { should_not have_history_index  'test_index',   %w( test ) }
+
+      it { should have_index 'foobar_index', %w( foo bar ) }
+      it { should have_index 'test_index',   %w( test ) }
+    end
+  end
+
+  describe '.remove_index' do
+    context ':temporal => true' do
+      before :all do
+        adapter.create_table subject, :temporal => true, &table
+        adapter.add_index subject, [:foo, :bar], :name => 'foobar_index'
+        adapter.add_index subject, [:test],      :name => 'test_index'
+
+        adapter.remove_index subject, :name => 'test_index'
+      end
+      after(:all) { adapter.drop_table subject }
+
+      it { should_not have_temporal_index 'test_index', %w( test ) }
+      it { should_not have_history_index  'test_index', %w( test ) }
+      it { should_not have_index          'test_index', %w( test ) }
+    end
+
+    context ':temporal => false' do
+      before :all do
+        adapter.create_table subject, :temporal => false, &table
+        adapter.add_index subject, [:foo, :bar], :name => 'foobar_index'
+        adapter.add_index subject, [:test],      :name => 'test_index'
+
+        adapter.remove_index subject, :name => 'test_index'
+      end
+      after(:all) { adapter.drop_table subject }
+
+      it { should_not have_temporal_index 'test_index', %w( test ) }
+      it { should_not have_history_index  'test_index', %w( test ) }
+      it { should_not have_index          'test_index', %w( test ) }
+    end
+  end
+
 end

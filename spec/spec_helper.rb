@@ -5,6 +5,7 @@ require 'chrono_model'
 require 'support/connection'
 require 'support/matchers/table'
 require 'support/matchers/column'
+require 'support/matchers/index'
 
 RSpec.configure do |config|
   config.treat_symbols_as_metadata_keys_with_true_values = true
@@ -13,6 +14,7 @@ RSpec.configure do |config|
 
   config.include(ChronoTest::Matchers::Table)
   config.include(ChronoTest::Matchers::Column)
+  config.include(ChronoTest::Matchers::Index)
 
   config.before :suite do
     ChronoTest.recreate_database!
