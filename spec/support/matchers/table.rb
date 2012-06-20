@@ -193,12 +193,13 @@ module ChronoTest::Matchers
         end
 
         def has_rules?
-          rules = select_values(<<-SQL, [ table ], 'Check rules')
+          rules = select_values(<<-SQL, [ public_schema, table ], 'Check rules')
             SELECT UNNEST(REGEXP_MATCHES(
                 definition, 'ON (INSERT|UPDATE|DELETE) TO #{table} DO INSTEAD'
               ))
              FROM pg_catalog.pg_rules
-            WHERE tablename = $1
+            WHERE schemaname = $1
+              AND tablename  = $2
           SQL
 
           @insert_rule = rules.include? 'INSERT'
