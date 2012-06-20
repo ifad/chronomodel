@@ -76,4 +76,28 @@ describe ChronoModel::Adapter do
     end
   end
 
+  describe '.change_table' do
+    subject { 'test_table' }
+
+    context ':temporal => true on a non-temporal table' do
+      before :all do
+        adapter.create_table subject, :temporal => false, &columns
+        adapter.change_table subject, :temporal => true
+      end
+      after(:all) { adapter.drop_table subject }
+
+      it_should_behave_like 'temporal table'
+    end
+
+    context ':temporal => false on a temporal table' do
+      before :all do
+        adapter.create_table subject, :temporal => true, &columns
+        adapter.change_table subject, :temporal => false
+      end
+      after(:all) { adapter.drop_table subject }
+
+      it_should_behave_like 'plain table'
+    end
+  end
+
 end
