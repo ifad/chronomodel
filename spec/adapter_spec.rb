@@ -5,6 +5,7 @@ shared_examples_for 'temporal table' do
 
   it { should have_temporal_backing }
   it { should have_history_backing }
+  it { should have_history_columns }
   it { should have_public_interface }
 end
 
