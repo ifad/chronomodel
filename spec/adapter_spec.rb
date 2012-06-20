@@ -36,16 +36,12 @@ shared_examples_for 'plain table' do
 end
 
 describe ChronoModel::Adapter do
-  let(:adapter) { ChronoTest::AR.connection }
+  let(:adapter) { ChronoTest.connection }
+  it { adapter.should be_a_kind_of(ChronoModel::Adapter) }
 
-  subject { adapter }
-
-  it { should be_a_kind_of(ChronoModel::Adapter) }
-
+  subject { 'test_table' }
 
   describe '.create_table' do
-    subject { 'test_table' }
-
     context ':temporal => true' do
       before(:all) { adapter.create_table subject, :temporal => true, &table }
       after(:all) { adapter.drop_table subject }
@@ -89,8 +85,6 @@ describe ChronoModel::Adapter do
   end
 
   describe '.change_table' do
-    subject { 'test_table' }
-
     context ':temporal => true on a non-temporal table' do
       before :all do
         adapter.create_table subject, :temporal => false, &table
@@ -113,8 +107,6 @@ describe ChronoModel::Adapter do
   end
 
   describe '.drop_table' do
-    subject { 'test_table' }
-
     before :all do
       adapter.create_table subject, :temporal => true, &table
       adapter.drop_table subject
