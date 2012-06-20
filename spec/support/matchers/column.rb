@@ -43,7 +43,29 @@ module ChronoTest::Matchers
     end
 
 
+    class HaveTemporalColumns < HaveColumns
+      def initialize(columns)
+        super(columns, temporal_schema)
+      end
+    end
+
+    def have_temporal_columns(*args)
+      HaveTemporalColumns.new(*args)
+    end
+
+
     class HaveHistoryColumns < HaveColumns
+      def initialize(columns)
+        super(columns, history_schema)
+      end
+    end
+
+    def have_history_columns(*args)
+      HaveHistoryColumns.new(*args)
+    end
+
+
+    class HaveHistoryExtraColumns < HaveColumns
       def initialize
         super([
           ['valid_from',  'timestamp without time zone'],
@@ -54,8 +76,8 @@ module ChronoTest::Matchers
       end
     end
 
-    def have_history_columns
-      HaveHistoryColumns.new
+    def have_history_extra_columns
+      HaveHistoryExtraColumns.new
     end
   end
 end

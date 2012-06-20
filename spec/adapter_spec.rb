@@ -19,10 +19,12 @@ shared_examples_for 'temporal table' do
 
   it { should have_temporal_backing }
   it { should have_history_backing }
-  it { should have_history_columns }
+  it { should have_history_extra_columns }
   it { should have_public_interface }
 
   it { should have_columns(columns) }
+  it { should have_temporal_columns(columns) }
+  it { should have_history_columns(columns) }
 end
 
 shared_examples_for 'plain table' do
@@ -185,6 +187,99 @@ describe ChronoModel::Adapter do
       it { should_not have_temporal_index 'test_index', %w( test ) }
       it { should_not have_history_index  'test_index', %w( test ) }
       it { should_not have_index          'test_index', %w( test ) }
+    end
+  end
+
+  describe '.add_column' do
+    let(:extra_columns) { [['foobarbaz', 'integer']] }
+
+    context ':temporal => true' do
+      before :all do
+        adapter.create_table subject, :temporal => true, &table
+
+        adapter.add_column subject, :foobarbaz, :integer
+      end
+      after(:all) { adapter.drop_table subject }
+
+      it { should have_columns(extra_columns) }
+      it { should have_temporal_columns(extra_columns) }
+      it { should have_history_columns(extra_columns) }
+    end
+
+    context ':temporal => false' do
+      before :all do
+        adapter.create_table subject, :temporal => false, &table
+
+        adapter.add_column subject, :foobarbaz, :integer
+      end
+      after(:all) { adapter.drop_table subject }
+
+      it { should have_columns(extra_columns) }
+    end
+  end
+
+  describe '.remove_column' do
+    let(:resulting_columns) { columns.reject {|c,_| c == 'foo'} }
+
+    context ':temporal => true' do
+      before :all do
+        adapter.create_table subject, :temporal => true, &table
+
+        adapter.remove_column subject, :foo
+      end
+      after(:all) { adapter.drop_table subject }
+
+      it { should have_columns(resulting_columns) }
+      it { should have_temporal_columns(resulting_columns) }
+      it { should have_history_columns(resulting_columns) }
+
+      it { should_not have_columns([['foo', 'integer']]) }
+      it { should_not have_temporal_columns([['foo', 'integer']]) }
+      it { should_not have_history_columns([['foo', 'integer']]) }
+    end
+
+    context ':temporal => false' do
+      before :all do
+        adapter.create_table subject, :temporal => false, &table
+
+        adapter.remove_column subject, :foo
+      end
+      after(:all) { adapter.drop_table subject }
+
+      it { should have_columns(resulting_columns) }
+      it { should_not have_columns([['foo', 'integer']]) }
+    end
+  end
+
+
+  describe '.rename_column' do
+    context ':temporal => true' do
+      before :all do
+        adapter.create_table subject, :temporal => true, &table
+
+        adapter.rename_column subject, :foo, :taratapiatapioca
+      end
+      after(:all) { adapter.drop_table subject }
+
+      it { should_not have_columns([['foo', 'integer']]) }
+      it { should_not have_temporal_columns([['foo', 'integer']]) }
+      it { should_not have_history_columns([['foo', 'integer']]) }
+
+      it { should have_columns([['taratapiatapioca', 'integer']]) }
+      it { should have_temporal_columns([['taratapiatapioca', 'integer']]) }
+      it { should have_history_columns([['taratapiatapioca', 'integer']]) }
+    end
+
+    context ':temporal => false' do
+      before :all do
+        adapter.create_table subject, :temporal => false, &table
+
+        adapter.rename_column subject, :foo, :taratapiatapioca
+      end
+      after(:all) { adapter.drop_table subject }
+
+      it { should_not have_columns([['foo', 'integer']]) }
+      it { should have_columns([['taratapiatapioca', 'integer']]) }
     end
   end
 
