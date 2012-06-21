@@ -300,4 +300,44 @@ describe ChronoModel::Adapter do
     end
   end
 
+  describe '.column_definitions' do
+    subject { adapter.column_definitions(table).map {|d| d.take(2)} }
+
+    assert = proc do
+      it { (subject & columns).should == columns }
+      it { should include(['id', 'integer']) }
+    end
+
+    with_temporal_table &assert
+    with_plain_table    &assert
+  end
+
+  describe '.primary_key' do
+    subject { adapter.primary_key(table) }
+
+    assert = proc do
+      it { should == 'id' }
+    end
+
+    with_temporal_table &assert
+    with_plain_table    &assert
+  end
+
+  describe '.indexes' do
+    subject { adapter.indexes(table) }
+
+    assert = proc do
+      before(:all) do
+        adapter.add_index table, :foo,         :name => 'foo_index'
+        adapter.add_index table, [:bar, :baz], :name => 'bar_index'
+      end
+
+      it { subject.map(&:name).should =~ %w( foo_index bar_index ) }
+      it { subject.map(&:columns).should =~ [['foo'], ['bar', 'baz']] }
+    end
+
+    with_temporal_table &assert
+    with_plain_table    &assert
+  end
+
 end
