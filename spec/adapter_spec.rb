@@ -340,4 +340,42 @@ describe ChronoModel::Adapter do
     with_plain_table    &assert
   end
 
+  describe '.on_schema' do
+    before(:all) do
+      5.times {|i| adapter.execute "CREATE SCHEMA test_#{i}"}
+    end
+
+    context 'with nesting' do
+
+      it 'saves the schema at each recursion' do
+        should be_in_schema(:default)
+
+        adapter.on_schema('test_1') { should be_in_schema('test_1')
+          adapter.on_schema('test_2') { should be_in_schema('test_2')
+            adapter.on_schema('test_3') { should be_in_schema('test_3')
+            }
+            should be_in_schema('test_2')
+          }
+          should be_in_schema('test_1')
+        }
+
+        should be_in_schema(:default)
+      end
+
+    end
+
+    context 'without nesting' do
+      it 'ignores recursive calls' do
+        should be_in_schema(:default)
+
+        adapter.on_schema('test_1', false) { should be_in_schema('test_1')
+          adapter.on_schema('test_2', false) { should be_in_schema('test_1')
+            adapter.on_schema('test_3', false) { should be_in_schema('test_1')
+        } } }
+
+        should be_in_schema(:default)
+      end
+    end
+  end
+
 end

@@ -3,6 +3,7 @@
 require 'chrono_model'
 
 require 'support/connection'
+require 'support/matchers/schema'
 require 'support/matchers/table'
 require 'support/matchers/column'
 require 'support/matchers/index'
@@ -12,6 +13,7 @@ RSpec.configure do |config|
   config.run_all_when_everything_filtered = true
   config.filter_run :focus
 
+  config.include(ChronoTest::Matchers::Schema)
   config.include(ChronoTest::Matchers::Table)
   config.include(ChronoTest::Matchers::Column)
   config.include(ChronoTest::Matchers::Index)
