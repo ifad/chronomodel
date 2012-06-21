@@ -137,6 +137,14 @@ More methods are provided, see the
 for more information.
 
 
+## Running tests
+
+You need a running Postgresql instance. Create `spec/config.yml` with the
+connection authentication details (use `spec/config.yml.example` as template).
+
+Run `rake`. SQL queries are logged to `spec/debug.log`. If you want to see
+them in your output, use `rake VERBOSE=true`.
+
 ## Caveats
 
  * `.includes` still doesn't work, but it'll fixed soon.
@@ -151,8 +159,6 @@ for more information.
    an extension framework for connection adapters. This library will (clearly)
    never be merged into Rails, as it is against its principle of treating the
    SQL database as a dummy data store.
-
- * No tests nor specs *YET*.
 
  * The schema dumper is WAY TOO hacky.
 

@@ -6,11 +6,15 @@ module ChronoTest
   extend self
 
   AR = ActiveRecord::Base
-  AR.logger = ::Logger.new($stderr).tap do |l|
+  log = ENV['VERBOSE'].present? ? $stderr : 'spec/debug.log'
+  AR.logger = ::Logger.new(log).tap do |l|
     l.level = 0
   end
 
   def connect!(spec = self.config)
+    unless ENV['VERBOSE'].present?
+      spec = spec.merge(:min_messages => 'WARNING')
+    end
     AR.establish_connection spec
   end
 
