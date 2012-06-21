@@ -314,4 +314,30 @@ describe ChronoModel::Adapter do
     end
   end
 
+  describe '.remove_column' do
+    context ':temporal => true' do
+      before :all do
+        adapter.create_table subject, :temporal => true, &table
+
+        adapter.remove_column subject, :foo
+      end
+      after(:all) { adapter.drop_table subject }
+
+      it { should_not have_columns([['foo', 'integer']]) }
+      it { should_not have_temporal_columns([['foo', 'integer']]) }
+      it { should_not have_history_columns([['foo', 'integer']]) }
+    end
+
+    context ':temporal => false' do
+      before :all do
+        adapter.create_table subject, :temporal => false, &table
+
+        adapter.remove_column subject, :foo
+      end
+      after(:all) { adapter.drop_table subject }
+
+      it { should_not have_columns([['foo', 'integer']]) }
+    end
+  end
+
 end
