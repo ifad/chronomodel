@@ -93,7 +93,7 @@ describe ChronoModel::Adapter do
   describe '.change_table' do
     with_temporal_table do
       before :all do
-        adapter.change_table subject, :temporal => false
+        adapter.change_table table, :temporal => false
       end
 
       it_should_behave_like 'plain table'
@@ -101,7 +101,7 @@ describe ChronoModel::Adapter do
 
     with_plain_table do
       before :all do
-        adapter.change_table subject, :temporal => true
+        adapter.change_table table, :temporal => true
       end
 
       it_should_behave_like 'temporal table'
@@ -112,7 +112,7 @@ describe ChronoModel::Adapter do
     before :all do
       adapter.create_table table, :temporal => true, &columns
 
-      adapter.drop_table subject
+      adapter.drop_table table
     end
 
     it { should_not have_public_backing }
@@ -124,8 +124,8 @@ describe ChronoModel::Adapter do
   describe '.add_index' do
     with_temporal_table do
       before :all do
-        adapter.add_index subject, [:foo, :bar], :name => 'foobar_index'
-        adapter.add_index subject, [:test],      :name => 'test_index'
+        adapter.add_index table, [:foo, :bar], :name => 'foobar_index'
+        adapter.add_index table, [:test],      :name => 'test_index'
       end
 
       it { should have_temporal_index 'foobar_index', %w( foo bar ) }
@@ -139,8 +139,8 @@ describe ChronoModel::Adapter do
 
     with_plain_table do
       before :all do
-        adapter.add_index subject, [:foo, :bar], :name => 'foobar_index'
-        adapter.add_index subject, [:test],      :name => 'test_index'
+        adapter.add_index table, [:foo, :bar], :name => 'foobar_index'
+        adapter.add_index table, [:test],      :name => 'test_index'
       end
 
       it { should_not have_temporal_index 'foobar_index', %w( foo bar ) }
@@ -156,10 +156,10 @@ describe ChronoModel::Adapter do
   describe '.remove_index' do
     with_temporal_table do
       before :all do
-        adapter.add_index subject, [:foo, :bar], :name => 'foobar_index'
-        adapter.add_index subject, [:test],      :name => 'test_index'
+        adapter.add_index table, [:foo, :bar], :name => 'foobar_index'
+        adapter.add_index table, [:test],      :name => 'test_index'
 
-        adapter.remove_index subject, :name => 'test_index'
+        adapter.remove_index table, :name => 'test_index'
       end
 
       it { should_not have_temporal_index 'test_index', %w( test ) }
@@ -169,10 +169,10 @@ describe ChronoModel::Adapter do
 
     with_plain_table do
       before :all do
-        adapter.add_index subject, [:foo, :bar], :name => 'foobar_index'
-        adapter.add_index subject, [:test],      :name => 'test_index'
+        adapter.add_index table, [:foo, :bar], :name => 'foobar_index'
+        adapter.add_index table, [:test],      :name => 'test_index'
 
-        adapter.remove_index subject, :name => 'test_index'
+        adapter.remove_index table, :name => 'test_index'
       end
 
       it { should_not have_temporal_index 'test_index', %w( test ) }
@@ -186,7 +186,7 @@ describe ChronoModel::Adapter do
 
     with_temporal_table do
       before :all do
-        adapter.add_column subject, :foobarbaz, :integer
+        adapter.add_column table, :foobarbaz, :integer
       end
 
       it { should have_columns(extra_columns) }
@@ -196,7 +196,7 @@ describe ChronoModel::Adapter do
 
     with_plain_table do
       before :all do
-        adapter.add_column subject, :foobarbaz, :integer
+        adapter.add_column table, :foobarbaz, :integer
       end
 
       it { should have_columns(extra_columns) }
@@ -208,7 +208,7 @@ describe ChronoModel::Adapter do
 
     with_temporal_table do
       before :all do
-        adapter.remove_column subject, :foo
+        adapter.remove_column table, :foo
       end
 
       it { should have_columns(resulting_columns) }
@@ -222,7 +222,7 @@ describe ChronoModel::Adapter do
 
     with_plain_table do
       before :all do
-        adapter.remove_column subject, :foo
+        adapter.remove_column table, :foo
       end
 
       it { should have_columns(resulting_columns) }
@@ -233,7 +233,7 @@ describe ChronoModel::Adapter do
   describe '.rename_column' do
     with_temporal_table do
       before :all do
-        adapter.rename_column subject, :foo, :taratapiatapioca
+        adapter.rename_column table, :foo, :taratapiatapioca
       end
 
       it { should_not have_columns([['foo', 'integer']]) }
@@ -247,7 +247,7 @@ describe ChronoModel::Adapter do
 
     with_plain_table do
       before :all do
-        adapter.rename_column subject, :foo, :taratapiatapioca
+        adapter.rename_column table, :foo, :taratapiatapioca
       end
 
       it { should_not have_columns([['foo', 'integer']]) }
@@ -258,7 +258,7 @@ describe ChronoModel::Adapter do
   describe '.change_column' do
     with_temporal_table do
       before :all do
-        adapter.change_column subject, :foo, :float
+        adapter.change_column table, :foo, :float
       end
 
       it { should_not have_columns([['foo', 'integer']]) }
@@ -272,7 +272,7 @@ describe ChronoModel::Adapter do
 
     with_plain_table do
       before(:all) do
-        adapter.change_column subject, :foo, :float
+        adapter.change_column table, :foo, :float
       end
 
       it { should_not have_columns([['foo', 'integer']]) }
@@ -283,7 +283,7 @@ describe ChronoModel::Adapter do
   describe '.remove_column' do
     with_temporal_table do
       before :all do
-        adapter.remove_column subject, :foo
+        adapter.remove_column table, :foo
       end
 
       it { should_not have_columns([['foo', 'integer']]) }
@@ -293,7 +293,7 @@ describe ChronoModel::Adapter do
 
     with_plain_table do
       before :all do
-        adapter.remove_column subject, :foo
+        adapter.remove_column table, :foo
       end
 
       it { should_not have_columns([['foo', 'integer']]) }
