@@ -283,4 +283,35 @@ describe ChronoModel::Adapter do
     end
   end
 
+  describe '.change_column' do
+    context ':temporal => true' do
+      before :all do
+        adapter.create_table subject, :temporal => true, &table
+
+        adapter.change_column subject, :foo, :float
+      end
+      after(:all) { adapter.drop_table subject }
+
+      it { should_not have_columns([['foo', 'integer']]) }
+      it { should_not have_temporal_columns([['foo', 'integer']]) }
+      it { should_not have_history_columns([['foo', 'integer']]) }
+
+      it { should have_columns([['foo', 'double precision']]) }
+      it { should have_temporal_columns([['foo', 'double precision']]) }
+      it { should have_history_columns([['foo', 'double precision']]) }
+    end
+
+    context ':temporal => false' do
+      before :all do
+        adapter.create_table subject, :temporal => false, &table
+
+        adapter.change_column subject, :foo, :float
+      end
+      after(:all) { adapter.drop_table subject }
+
+      it { should_not have_columns([['foo', 'integer']]) }
+      it { should have_columns([['foo', 'double precision']]) }
+    end
+  end
+
 end
