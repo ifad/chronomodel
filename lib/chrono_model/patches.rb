@@ -31,7 +31,7 @@ module ChronoModel
 
         scoped = super
         ctes.each {|table, cte| scoped = scoped.with(table, cte) }
-        return scoped
+        return scoped.readonly
       end
 
       private

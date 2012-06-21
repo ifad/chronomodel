@@ -90,4 +90,29 @@ describe ChronoModel::TimeMachine do
     end
   end
 
+  describe '#history' do
+    describe 'returns historical instances' do
+      it { foo.history.should have(3).entries }
+      it { foo.history.map(&:name).should == ['foo', 'foo bar', 'new foo'] }
+
+      it { bar.history.should have(4).entries }
+      it { bar.history.map(&:name).should == ['bar', 'foo bar', 'bar bar', 'new bar'] }
+    end
+
+    describe 'returns read only records' do
+      it { foo.history.all?(&:readonly?).should be_true }
+      it { bar.history.all?(&:readonly?).should be_true }
+    end
+
+    describe 'takes care of associated records' do
+      it { foo.history.map {|f| f.bars.first.try(:name)}.should == [nil, 'foo bar', 'new bar'] }
+    end
+
+    describe 'returns read only associated records' do
+      it { foo.history[2].bars.all?(&:readonly?).should be_true }
+      it { bar.history.all? {|b| b.foo.readonly?}.should be_true }
+    end
+
+  end
+
 end

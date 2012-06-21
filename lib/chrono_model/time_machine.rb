@@ -106,7 +106,10 @@ module ChronoModel
       # Fetches the given +object+ history, sorted by history record time.
       #
       def history_of(object)
-        history.where(:id => object)
+        history.
+          select("#{history_table_name}.*").
+          select('LEAST(valid_to, now()::timestamp) AS as_of_time').
+          where(:id => object)
       end
 
       # Returns this table name in the +Adapter::HISTORY_SCHEMA+
