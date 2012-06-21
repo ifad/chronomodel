@@ -119,7 +119,9 @@ module ChronoModel
       # history record exists. Takes temporal associations into account.
       #
       def history_timestamps
-        assocs = reflect_on_all_associations.select {|a| a.klass.chrono?}
+        assocs = reflect_on_all_associations.select {|a|
+          [:has_one, :has_many].include?(a.macro) && a.klass.chrono?
+        }
 
         models = [self].concat(assocs.map(&:klass))
         fields = models.inject([]) {|a,m| a.concat m.quoted_history_fields}
@@ -131,8 +133,11 @@ module ChronoModel
 
         relation = yield relation if block_given?
 
+        sql = "SELECT ts FROM ( #{relation.to_sql} ) foo WHERE ts IS NOT NULL AND ts < NOW()"
+        sql.gsub! 'INNER JOIN', 'LEFT OUTER JOIN'
+
         connection.on_schema(Adapter::HISTORY_SCHEMA) do
-          connection.select_values(relation.to_sql, "#{self.name} periods").map! do |ts|
+          connection.select_values(sql, "#{self.name} history periods").map! do |ts|
             Conversions.string_to_utc_time ts
           end
         end
