@@ -2,6 +2,8 @@ require 'spec_helper'
 require 'support/helpers'
 
 shared_examples_for 'temporal table' do
+  it { adapter.is_chrono?(subject).should be_true }
+
   it { should_not have_public_backing }
 
   it { should have_temporal_backing }
@@ -15,6 +17,8 @@ shared_examples_for 'temporal table' do
 end
 
 shared_examples_for 'plain table' do
+  it { adapter.is_chrono?(subject).should be_false }
+
   it { should have_public_backing }
 
   it { should_not have_temporal_backing }
@@ -27,7 +31,20 @@ end
 describe ChronoModel::Adapter do
   include ChronoTest::Helpers::Adapter
 
-  it { adapter.should be_a_kind_of(ChronoModel::Adapter) }
+  context do
+    subject { adapter }
+    it { should be_a_kind_of(ChronoModel::Adapter) }
+
+    context do
+      before { adapter.stub(:postgresql_version => 90000) }
+      it { should be_chrono_supported }
+    end
+
+    context do
+      before { adapter.stub(:postgresql_version => 80400) }
+      it { should_not be_chrono_supported }
+    end
+  end
 
   let(:table) { 'test_table' }
   subject { table }
