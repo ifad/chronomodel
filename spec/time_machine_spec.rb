@@ -201,4 +201,42 @@ describe ChronoModel::TimeMachine do
     end
   end
 
+  context do
+    history_attrs = ChronoModel::TimeMachine::HISTORY_ATTRIBUTES
+
+    let!(:history) { foo.history.first }
+    let!(:current) { foo }
+
+    history_attrs.each do |attr|
+      describe ['#', attr].join do
+        describe 'on history records' do
+          subject { history.public_send(attr) }
+
+          it { should be_present }
+          it { should be_a(Time) }
+          it { should be_utc }
+        end
+
+        describe 'on current records' do
+          subject { current.public_send(attr) }
+          it { should be_nil }
+        end
+      end
+    end
+
+    describe '#initialize_dup' do
+      describe 'on history records' do
+        subject { history.dup }
+
+        history_attrs.each do |attr|
+          its(attr) { should be_nil }
+        end
+
+        it { should_not be_readonly }
+        it { should be_new_record }
+
+      end
+    end
+  end
+
 end
