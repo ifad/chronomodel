@@ -281,6 +281,19 @@ describe ChronoModel::TimeMachine do
         it { Foo.as_of(Time.now     ).find(subject).bars.should == [bars[1]] }
       end
     end
+
+    describe '.history' do
+      let(:foo_history) {
+        ['foo', 'foo bar', 'new foo', 'alive foo', 'dying foo', 'foo 0', 'foo 1']
+      }
+
+      let(:bar_history) {
+        ['bar', 'foo bar', 'bar bar', 'new bar', 'bar 0', 'bar 1']
+      }
+
+      it { Foo.history.map(&:name).should == foo_history }
+      it { Bar.history.map(&:name).should == bar_history }
+    end
   end
 
 end
