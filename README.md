@@ -44,8 +44,9 @@ defining this temporal schema for a single table.
 
 ## Requirements
 
-* Active Record >= 3.2
-* PostgreSQL >= 9.0
+* Ruby &gt;= 1.9.2
+* Active Record &gt;= 3.2
+* PostgreSQL &gt;= 9.0
 
 
 ## Installation
