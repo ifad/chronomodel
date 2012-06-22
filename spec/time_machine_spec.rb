@@ -105,7 +105,8 @@ describe ChronoModel::TimeMachine do
     end
 
     describe 'takes care of associated records' do
-      it { foo.history.map {|f| f.bars.first.try(:name)}.should == [nil, 'foo bar', 'new bar'] }
+      subject { foo.history.map {|f| f.bars.first.try(:name)} }
+      it { should == [nil, 'foo bar', 'new bar'] }
     end
 
     describe 'returns read only associated records' do
