@@ -175,4 +175,30 @@ describe ChronoModel::TimeMachine do
     end
   end
 
+  describe '#history_timestamps' do
+    timestamps_from = lambda {|*records|
+      records.map(&:history).flatten!.inject([]) {|ret, rec|
+        ret.concat [rec.valid_from, rec.valid_to]
+      }.sort.uniq[0..-2]
+    }
+
+    describe 'on records having an :has_many relationship' do
+      subject { foo.history_timestamps }
+
+      describe 'returns timestamps of the record and its associations' do
+        its(:size) { should == foo.ts.size + bar.ts.size }
+        it { should == timestamps_from.call(foo, bar) }
+      end
+    end
+
+    describe 'on records having a :belongs_to relationship' do
+      subject { bar.history_timestamps }
+
+      describe 'returns timestamps of the record only' do
+        its(:size) { should == bar.ts.size }
+        it { should == timestamps_from.call(bar) }
+      end
+    end
+  end
+
 end
