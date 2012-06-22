@@ -113,7 +113,66 @@ describe ChronoModel::TimeMachine do
       it { foo.history[2].bars.all?(&:readonly?).should be_true }
       it { bar.history.all? {|b| b.foo.readonly?}.should be_true }
     end
+  end
 
+  describe '#historical?' do
+    describe 'on plain records' do
+      subject { foo.historical? }
+      it { should be_false }
+    end
+
+    describe 'on historical records' do
+      describe 'from #history' do
+        subject { foo.history.first }
+        it { should be_true }
+      end
+
+      describe 'from #as_of' do
+        subject { foo.as_of(Time.now) }
+        it { should be_true }
+      end
+    end
+  end
+
+  describe '#destroy' do
+    describe 'on historical records' do
+      subject { foo.history.first.destroy }
+      it { expect { subject }.to raise_error(ActiveRecord::ReadOnlyRecord) }
+    end
+
+    describe 'on current records' do
+      let!(:rec) {
+        rec = ts_eval { Foo.create!(:name => 'alive foo', :fooity => 42) }
+        ts_eval(rec) { update_attributes!(:name => 'dying foo') }
+      }
+
+      subject { rec.destroy }
+
+      it { expect { subject }.to_not raise_error }
+      it { expect { rec.reload }.to raise_error(ActiveRecord::RecordNotFound) }
+
+      describe 'does not delete its history' do
+        context do
+          subject { rec.as_of(rec.ts.first) }
+          its(:name) { should == 'alive foo' }
+        end
+
+        context do
+          subject { rec.as_of(rec.ts.last) }
+          its(:name) { should == 'dying foo' }
+        end
+
+        context do
+          subject { Foo.as_of(rec.ts.first).where(:fooity => 42).first }
+          its(:name) { should == 'alive foo' }
+        end
+
+        context do
+          subject { Foo.history.where(:fooity => 42).map(&:name) }
+          it { should == ['alive foo', 'dying foo'] }
+        end
+      end
+    end
   end
 
 end
