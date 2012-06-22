@@ -239,4 +239,48 @@ describe ChronoModel::TimeMachine do
     end
   end
 
+  # Class methods
+  context do
+    let!(:foos) { Array.new(2) {|i| ts_eval { Foo.create! :name => "foo #{i}" } } }
+    let!(:bars) { Array.new(2) {|i| ts_eval { Bar.create! :name => "bar #{i}", :foo => foos[i] } } }
+
+    after(:all) { foos.each(&:destroy); bars.each(&:destroy) }
+
+    describe '.as_of' do
+      it { Foo.as_of(1.month.ago).should == [] }
+
+      it { Foo.as_of(foos[0].ts[0]).should == [foo, foos[0]] }
+      it { Foo.as_of(foos[1].ts[0]).should == [foo, foos[0], foos[1]] }
+      it { Foo.as_of(Time.now     ).should == [foo, foos[0], foos[1]] }
+
+      it { Bar.as_of(foos[1].ts[0]).should == [bar] }
+
+      it { Bar.as_of(bars[0].ts[0]).should == [bar, bars[0]] }
+      it { Bar.as_of(bars[1].ts[0]).should == [bar, bars[0], bars[1]] }
+      it { Bar.as_of(Time.now     ).should == [bar, bars[0], bars[1]] }
+
+      # Associations
+      context do
+        subject { foos[0] }
+
+        it { Foo.as_of(foos[0].ts[0]).find(subject).bars.should == [] }
+        it { Foo.as_of(foos[1].ts[0]).find(subject).bars.should == [] }
+        it { Foo.as_of(bars[0].ts[0]).find(subject).bars.should == [bars[0]] }
+        it { Foo.as_of(bars[1].ts[0]).find(subject).bars.should == [bars[0]] }
+        it { Foo.as_of(Time.now     ).find(subject).bars.should == [bars[0]] }
+      end
+
+      context do
+        subject { foos[1] }
+
+        it { expect { Foo.as_of(foos[0].ts[0]).find(subject) }.to raise_error(ActiveRecord::RecordNotFound) }
+        it { expect { Foo.as_of(foos[1].ts[0]).find(subject) }.to_not raise_error }
+
+        it { Foo.as_of(bars[0].ts[0]).find(subject).bars.should == [] }
+        it { Foo.as_of(bars[1].ts[0]).find(subject).bars.should == [bars[1]] }
+        it { Foo.as_of(Time.now     ).find(subject).bars.should == [bars[1]] }
+      end
+    end
+  end
+
 end
