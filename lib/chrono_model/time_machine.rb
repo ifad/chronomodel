@@ -100,7 +100,7 @@ module ChronoModel
       # Returns the whole history as read only.
       #
       def history
-        readonly.from(history_table_name).order("#{history_table_name}.recorded_at")
+        readonly.from(history_table_name).order("#{history_table_name}.recorded_at, hid")
       end
 
       # Fetches the given +object+ history, sorted by history record time.
