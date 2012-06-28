@@ -11,7 +11,7 @@ module ChronoModel
           "Currently, only PostgreSQL >= 9.0 is supported."
       end
 
-      unless chrono?
+      if table_exists? && !chrono?
         raise Error, "#{table_name} is not a temporal table. " \
           "Please use change_table :#{table_name}, :temporal => true"
       end
