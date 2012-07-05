@@ -118,6 +118,10 @@ module ChronoModel
         [Adapter::HISTORY_SCHEMA, table_name].join('.')
       end
 
+      def temporal_table_name
+        [Adapter::TEMPORAL_SCHEMA, table_name].join('.')
+      end
+
       # Returns an Array of unique UTC timestamps for which at least an
       # history record exists. Takes temporal associations into account.
       #
