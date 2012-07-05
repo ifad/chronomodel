@@ -353,16 +353,32 @@ module ChronoModel
 
         # INSERT - inert data both in the temporal table and in the history one.
         #
-        execute <<-SQL
-          CREATE OR REPLACE RULE #{table}_ins AS ON INSERT TO #{table} DO INSTEAD (
+        if sequence.present?
+          execute <<-SQL
+            CREATE OR REPLACE RULE #{table}_ins AS ON INSERT TO #{table} DO INSTEAD (
 
-            INSERT INTO #{current} ( #{fields} ) VALUES ( #{values} );
+              INSERT INTO #{current} ( #{fields} ) VALUES ( #{values} );
 
-            INSERT INTO #{history} ( #{pk}, #{fields}, valid_from )
-            VALUES ( currval('#{sequence}'), #{values}, timezone('UTC', now()) )
-            RETURNING #{pk}, #{fields}
-          )
-        SQL
+              INSERT INTO #{history} ( #{pk}, #{fields}, valid_from )
+              VALUES ( currval('#{sequence}'), #{values}, timezone('UTC', now()) )
+              RETURNING #{pk}, #{fields}
+            )
+          SQL
+        else
+          fields_with_pk = "#{pk}, " << fields
+          values_with_pk = "new.#{pk}, " << values
+
+          execute <<-SQL
+            CREATE OR REPLACE RULE #{table}_ins AS ON INSERT TO #{table} DO INSTEAD (
+
+              INSERT INTO #{current} ( #{fields_with_pk} ) VALUES ( #{values_with_pk} );
+
+              INSERT INTO #{history} ( #{fields_with_pk}, valid_from )
+              VALUES ( #{values_with_pk}, timezone('UTC', now()) )
+              RETURNING #{fields_with_pk}
+            )
+          SQL
+        end
 
         # UPDATE - set the last history entry validity to now, save the current data
         # in a new history entry and update the temporal table with the new data.
