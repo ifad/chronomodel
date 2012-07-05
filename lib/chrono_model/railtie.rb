@@ -11,6 +11,7 @@ module ChronoModel
       end
 
       task 'db:schema:load' => 'db:chrono:create_schemas'
+      task 'db:migrate'     => 'db:chrono:create_schemas'
     end
 
     class SchemaDumper < ::ActiveRecord::SchemaDumper
