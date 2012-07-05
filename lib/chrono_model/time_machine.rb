@@ -127,7 +127,7 @@ module ChronoModel
       #
       def history_timestamps
         assocs = reflect_on_all_associations.select {|a|
-          [:has_one, :has_many].include?(a.macro) && a.klass.chrono?
+          [:belongs_to, :has_one, :has_many].include?(a.macro) && a.klass.chrono?
         }
 
         models = [self].concat(assocs.map(&:klass))
