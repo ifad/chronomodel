@@ -194,9 +194,9 @@ describe ChronoModel::TimeMachine do
     describe 'on records having a :belongs_to relationship' do
       subject { bar.history_timestamps }
 
-      describe 'returns timestamps of the record only' do
-        its(:size) { should == bar.ts.size }
-        it { should == timestamps_from.call(bar) }
+      describe 'returns timestamps of the record and its associations' do
+        its(:size) { should == foo.ts.size + bar.ts.size }
+        it { should == timestamps_from.call(foo, bar) }
       end
     end
   end
