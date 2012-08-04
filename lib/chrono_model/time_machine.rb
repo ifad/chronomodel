@@ -151,7 +151,7 @@ module ChronoModel
       end
 
       def quoted_history_fields
-        [:valid_from, :valid_to].map do |field|
+        @quoted_history_fields ||= [:valid_from, :valid_to].map do |field|
           [connection.quote_table_name(table_name),
            connection.quote_column_name(field)
           ].join('.')
