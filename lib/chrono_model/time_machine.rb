@@ -32,6 +32,29 @@ module ChronoModel
 
         extend TimeMachine::HistoryMethods
 
+        # The history id is `hid`, but this cannot set as primary key
+        # or temporal assocations will break. Solutions are welcome.
+        def id
+          hid
+        end
+
+        # Referenced record ID
+        #
+        def rid
+          attributes[self.class.primary_key]
+        end
+
+        # HACK to make ActiveAdmin work properly. This will be surely
+        # better written in the future.
+        #
+        def self.find(*args)
+          old = self.primary_key
+          self.primary_key = :hid
+          super
+        ensure
+          self.primary_key = old
+        end
+
         # SCD Type 2 validity from timestamp
         #
         def valid_from
