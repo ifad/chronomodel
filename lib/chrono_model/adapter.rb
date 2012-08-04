@@ -8,9 +8,14 @@ module ChronoModel
   # adapter for a clean override of its methods using super.
   #
   class Adapter < ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
-    TEMPORAL_SCHEMA = 'temporal' # The schema holding current data
-    HISTORY_SCHEMA  = 'history'  # The schema holding historical data
+    # The schema holding current data
+    TEMPORAL_SCHEMA = 'temporal'
 
+    # The schema holding historical data
+    HISTORY_SCHEMA  = 'history'
+
+    # Chronomodel is supported starting with PostgreSQL >= 9.0
+    #
     def chrono_supported?
       postgresql_version >= 90000
     end
