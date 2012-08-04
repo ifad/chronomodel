@@ -97,7 +97,8 @@ plain table. If you want to do as-of-date queries, you need to include the
       has_many :compositions
     end
 
-This will make an `as_of` class method available to your model. E.g.:
+This will create a `Country::History` model inherited from `Country`, and it
+will make an `as_of` class method available to your model. E.g.:
 
     Country.as_of(1.year.ago)
 

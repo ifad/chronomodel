@@ -10,7 +10,7 @@ describe ChronoModel::TimeMachine do
   describe '.chrono_models' do
     subject { ChronoModel::TimeMachine.chrono_models }
 
-    it { should == {'foos' => Foo, 'bars' => Bar} }
+    it { should == {'foos' => Foo::History, 'bars' => Bar::History} }
   end
 
 
@@ -202,13 +202,11 @@ describe ChronoModel::TimeMachine do
   end
 
   context do
-    history_attrs = ChronoModel::TimeMachine::HISTORY_ATTRIBUTES
-
     let!(:history) { foo.history.first }
     let!(:current) { foo }
 
-    history_attrs.each do |attr|
-      describe ['#', attr].join do
+    spec = lambda {|attr|
+      return lambda {|*|
         describe 'on history records' do
           subject { history.public_send(attr) }
 
@@ -219,23 +217,13 @@ describe ChronoModel::TimeMachine do
 
         describe 'on current records' do
           subject { current.public_send(attr) }
-          it { should be_nil }
+          it { expect { subject }.to raise_error(NoMethodError) }
         end
-      end
-    end
+      }
+    }
 
-    describe '#initialize_dup' do
-      describe 'on history records' do
-        subject { history.dup }
-
-        history_attrs.each do |attr|
-          its(attr) { should be_nil }
-        end
-
-        it { should_not be_readonly }
-        it { should be_new_record }
-
-      end
+    %w( valid_from valid_to recorded_at as_of_time ).each do |attr|
+      describe ['#', attr].join, &spec.call(attr)
     end
   end
 
@@ -291,8 +279,8 @@ describe ChronoModel::TimeMachine do
         ['bar', 'foo bar', 'bar bar', 'new bar', 'bar 0', 'bar 1']
       }
 
-      it { Foo.history.map(&:name).should == foo_history }
-      it { Bar.history.map(&:name).should == bar_history }
+      it { Foo.history.all.map(&:name).should == foo_history }
+      it { Bar.history.all.map(&:name).should == bar_history }
     end
   end
 

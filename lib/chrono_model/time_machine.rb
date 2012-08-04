@@ -16,121 +16,156 @@ module ChronoModel
           "Please use change_table :#{table_name}, :temporal => true"
       end
 
-      TimeMachine.chrono_models[table_name] = self
+      history = TimeMachine.define_history_model_for(self)
+      TimeMachine.chrono_models[table_name] = history
     end
 
-    # Returns an Hash keyed by table name of models that included
-    # ChronoModel::TimeMachine
+    # Returns an Hash keyed by table name of ChronoModels
     #
     def self.chrono_models
       (@chrono_models ||= {})
     end
 
+    def self.define_history_model_for(model)
+      history = Class.new(model) do
+        self.table_name = [Adapter::HISTORY_SCHEMA, model.table_name].join('.')
+
+        extend TimeMachine::HistoryMethods
+
+        # SCD Type 2 validity from timestamp
+        #
+        def valid_from
+          utc_timestamp_from('valid_from')
+        end
+
+        # SCD Type 2 validity to timestamp
+        #
+        def valid_to
+          utc_timestamp_from('valid_to')
+        end
+
+        # History recording timestamp
+        #
+        def recorded_at
+          utc_timestamp_from('recorded_at')
+        end
+
+        # Virtual attribute used to pass around the
+        # current timestamp in association queries
+        #
+        def as_of_time
+          Conversions.string_to_utc_time attributes['as_of_time']
+        end
+
+        # Inhibit destroy of historical records
+        #
+        def destroy
+          raise ActiveRecord::ReadOnlyRecord, 'Cannot delete historical records'
+        end
+
+        private
+          # Hack around AR timezone support. These timestamps are recorded
+          # by the chrono rewrite rules in UTC, but AR reads them as they
+          # were stored in the local timezone - thus here we reset its
+          # assumption. TODO: OPTIMIZE.
+          #
+          def utc_timestamp_from(attr)
+            attributes[attr].utc + Time.now.utc_offset
+          end
+      end
+
+      model.singleton_class.instance_eval do
+        define_method(:history) { history }
+      end
+
+      model.const_set :History, history
+
+      return history
+    end
+
     # Returns a read-only representation of this record as it was +time+ ago.
     #
     def as_of(time)
-      self.class.as_of(time).find(self)
+      self.class.as_of(time).where(:id => self.id).first!
     end
 
     # Return the complete read-only history of this instance.
     #
     def history
-      self.class.history_of(self)
-    end
-
-    # Aborts the destroy if this is an historical record
-    #
-    def destroy
-      if historical?
-        raise ActiveRecord::ReadOnlyRecord, 'Cannot delete historical records'
-      else
-        super
-      end
-    end
-
-    # Returns true if this record was fetched from history
-    #
-    def historical?
-      attributes.key?('hid')
-    end
-
-    HISTORY_ATTRIBUTES = %w( valid_from valid_to recorded_at as_of_time ).each do |attr|
-      define_method(attr) { Conversions.string_to_utc_time(attributes[attr]) }
-    end
-
-    # Strips the history timestamps when duplicating history records
-    #
-    def initialize_dup(other)
-      super
-
-      if historical?
-        HISTORY_ATTRIBUTES.each {|attr| @attributes.delete(attr)}
-        @attributes.delete 'hid'
-        @readonly = false
-        @new_record = true
-      end
+      self.class.history.of(self)
     end
 
     # Returns an Array of timestamps for which this instance has an history
     # record. Takes temporal associations into account.
     #
     def history_timestamps
-      self.class.history_timestamps do |query|
+      self.class.history.timestamps do |query|
         query.where(:id => self)
       end
     end
 
+    def historical?
+      self.kind_of? self.class.history
+    end
+
     module ClassMethods
+      # Returns an ActiveRecord::Relation on the history of this model as
+      # it was +time+ ago.
+      def as_of(time)
+        history.as_of(time)
+      end
+    end
+
+    # Methods that make up the history interface of the companion History
+    # model build on each Model that includes TimeMachine
+    module HistoryMethods
       # Fetches as of +time+ records.
       #
       def as_of(time)
-        time = Conversions.time_to_utc_string(time.utc)
+        time = Conversions.time_to_utc_string(time.utc) if time.kind_of? Time
 
-        readonly.with(table_name, on_history(time)).tap do |relation|
-          relation.instance_variable_set(:@temporal, time)
-        end
+        superclass.readonly.
+          with(superclass.table_name, at(time)).tap do |relation|
+            relation.instance_variable_set(:@temporal, time)
+          end
       end
 
-      def on_history(time)
-        unscoped.from(history_table_name).
-          select("#{history_table_name}.*, '#{time}' AS as_of_time").
-          where("'#{time}' >= valid_from AND '#{time}' < valid_to")
+      # Fetches history record at the given time
+      #
+      def at(time)
+        from, to = quoted_history_fields
+        unscoped.
+          select("#{quoted_table_name}.*, '#{time}' AS as_of_time").
+          where("'#{time}' >= #{from} AND '#{time}' < #{to}")
       end
 
       # Returns the whole history as read only.
       #
-      def history
-        readonly.from(history_table_name).order("#{history_table_name}.recorded_at, hid")
+      def all
+        readonly.
+          order("#{table_name}.recorded_at, hid").all
       end
 
       # Fetches the given +object+ history, sorted by history record time.
       #
-      def history_of(object)
-        history.
-          select("#{history_table_name}.*").
-          select('LEAST(valid_to, now()::timestamp) AS as_of_time').
+      def of(object)
+        now = 'LEAST(valid_to, now()::timestamp)'
+        readonly.
+          select("#{table_name}.*, #{now} AS as_of_time").
+          order("#{table_name}.recorded_at, hid").
           where(:id => object)
       end
 
-      # Returns this table name in the +Adapter::HISTORY_SCHEMA+
-      #
-      def history_table_name
-        [Adapter::HISTORY_SCHEMA, table_name].join('.')
-      end
-
-      def temporal_table_name
-        [Adapter::TEMPORAL_SCHEMA, table_name].join('.')
-      end
 
       # Returns an Array of unique UTC timestamps for which at least an
       # history record exists. Takes temporal associations into account.
       #
-      def history_timestamps
+      def timestamps
         assocs = reflect_on_all_associations.select {|a|
           [:belongs_to, :has_one, :has_many].include?(a.macro) && a.klass.chrono?
         }
 
-        models = [self].concat(assocs.map(&:klass))
+        models = [self].concat(assocs.map {|a| a.klass.history})
         fields = models.inject([]) {|a,m| a.concat m.quoted_history_fields}
 
         relation = self.
@@ -144,7 +179,7 @@ module ChronoModel
         sql.gsub! 'INNER JOIN', 'LEFT OUTER JOIN'
 
         connection.on_schema(Adapter::HISTORY_SCHEMA) do
-          connection.select_values(sql, "#{self.name} history periods").map! do |ts|
+          connection.select_values(sql, "#{self.name} periods").map! do |ts|
             Conversions.string_to_utc_time ts
           end
         end
@@ -166,7 +201,7 @@ module ChronoModel
           # Extract joined tables and add temporal WITH if appropriate
           arel.join_sources.map {|j| j.to_sql =~ /JOIN "(\w+)" ON/ && $1}.compact.each do |table|
             next unless (model = TimeMachine.chrono_models[table])
-            with(table, model.on_history(@temporal))
+            with(table, model.history.at(@temporal))
           end if @temporal
 
         end
