@@ -10,7 +10,7 @@ describe ChronoModel::TimeMachine do
   describe '.chrono_models' do
     subject { ChronoModel::TimeMachine.chrono_models }
 
-    it { should == {'foos' => Foo::History, 'bars' => Bar::History} }
+    it { should == {'foos' => Foo::History, 'defoos' => Defoo::History, 'bars' => Bar::History} }
   end
 
 
@@ -87,6 +87,28 @@ describe ChronoModel::TimeMachine do
 
     it 'raises RecordNotFound when no history records are found' do
       expect { foo.as_of(1.minute.ago) }.to raise_error
+    end
+
+    describe 'it honors default_scopes' do
+      let!(:active) {
+        active = ts_eval { Defoo.create! :name => 'active 1', :active => true }
+        ts_eval(active) { update_attributes! :name => 'active 2' }
+      }
+
+      let!(:hidden) {
+        hidden = ts_eval { Defoo.create! :name => 'hidden 1', :active => false }
+        ts_eval(hidden) { update_attributes! :name => 'hidden 2' }
+      }
+
+      it { Defoo.as_of(active.ts[0]).map(&:name).should == ['active 1'] }
+      it { Defoo.as_of(active.ts[1]).map(&:name).should == ['active 2'] }
+      it { Defoo.as_of(hidden.ts[0]).map(&:name).should == ['active 2'] }
+      it { Defoo.as_of(hidden.ts[1]).map(&:name).should == ['active 2'] }
+
+      it { Defoo.unscoped.as_of(active.ts[0]).map(&:name).should == ['active 1'] }
+      it { Defoo.unscoped.as_of(active.ts[1]).map(&:name).should == ['active 2'] }
+      it { Defoo.unscoped.as_of(hidden.ts[0]).map(&:name).should == ['active 2', 'hidden 1'] }
+      it { Defoo.unscoped.as_of(hidden.ts[1]).map(&:name).should == ['active 2', 'hidden 2'] }
     end
   end
 

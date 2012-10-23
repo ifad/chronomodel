@@ -64,6 +64,11 @@ module ChronoTest::Helpers
             t.string     :name
             t.references :bar
           end
+
+          adapter.create_table 'defoos', :temporal => true do |t|
+            t.string  :name
+            t.boolean :active
+          end
         end
 
         after(:all) do
@@ -89,6 +94,12 @@ module ChronoTest::Helpers
 
         class ::Baz < ActiveRecord::Base
           belongs_to :baz
+        end
+
+        class ::Defoo < ActiveRecord::Base
+          include ChronoModel::TimeMachine
+
+          default_scope where(:active => true)
         end
       }
 
