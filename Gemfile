@@ -4,7 +4,7 @@ source 'https://rubygems.org'
 gemspec
 
 group :development do
-  gem 'ruby-debug19'
+  gem 'debugger'
   gem 'pry'
   gem 'rspec'
 end
