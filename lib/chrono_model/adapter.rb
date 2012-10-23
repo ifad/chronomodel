@@ -92,6 +92,24 @@ module ChronoModel
             chrono_create_view_for(table_name)
 
             TableCache.add! table_name
+
+            # Optionally copy the plain table data, setting up history
+            # retroactively.
+            #
+            if options[:copy_data]
+              seq  = _on_history_schema { serial_sequence(table_name, primary_key(table_name)) }
+              from = options[:validity] || '0001-01-01 00:00:00'
+
+              execute %[
+                INSERT INTO #{HISTORY_SCHEMA}.#{table_name}
+                SELECT *,
+                  nextval('#{seq}')               AS hid,
+                  timestamp '#{from}'             AS valid_from,
+                  timestamp '9999-12-31 00:00:00' AS valid_to,
+                  timezone('UTC', now())          AS recorded_at
+                FROM #{TEMPORAL_SCHEMA}.#{table_name}
+              ]
+            end
           end
 
           chrono_alter(table_name) { super table_name, options, &block }

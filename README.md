@@ -85,6 +85,23 @@ by the other schema statements. E.g.:
  * `remove_index`  - removes the index from the history table as well
 
 
+## Adding Temporal extensions to an existing table
+
+Use `change_table`:
+
+    change_table :your_table, :temporal => true
+
+If you want to also set up the history from your current data:
+
+    change_table :your_table, :temporal => true, :copy_data => true
+
+This will create an history record for each record in your table, setting its
+validity from midnight, January 1st, 1 CE. You can set a specific validity
+with the `:validity` option:
+
+    change_table :your_table, :temporal => true, :copy_data => true, :validity => '1977-01-01'
+
+
 ## Data querying
 
 A model backed by a temporal view will behave like any other model backed by a
