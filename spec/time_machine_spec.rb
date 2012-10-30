@@ -306,4 +306,54 @@ describe ChronoModel::TimeMachine do
     end
   end
 
+  # Transactions
+  context 'Within transactions' do
+    context 'multiple updates to an existing record' do
+      let!(:r1) do
+        Foo.create!(:name => 'xact test').tap do |record|
+          Foo.transaction do
+            record.update_attribute 'name', 'lost into oblivion'
+            record.update_attribute 'name', 'does work'
+          end
+        end
+      end
+
+      it "generate only a single history record" do
+        r1.history.should have(2).entries
+
+        r1.history.first.name.should == 'xact test'
+        r1.history.last.name.should  == 'does work'
+      end
+    end
+
+    context 'insertion and subsequent update' do
+      let!(:r2) do
+        Foo.transaction do
+          Foo.create!(:name => 'lost into oblivion').tap do |record|
+            record.update_attribute 'name', 'I am Bar'
+            record.update_attribute 'name', 'I am Foo'
+          end
+        end
+      end
+
+      it 'generates a single history record' do
+        r2.history.should have(1).entry
+
+        r2.history.first.name.should == 'I am Foo'
+      end
+    end
+
+    context 'insertion and subsequent deletion' do
+      let!(:r3) do
+        Foo.transaction do
+          Foo.create!(:name => 'it never happened').destroy
+        end
+      end
+
+      it 'does not generate any history' do
+        Foo.history.where(:id => r3.id).should be_empty
+      end
+    end
+  end
+
 end

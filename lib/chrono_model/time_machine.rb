@@ -137,6 +137,10 @@ module ChronoModel
       self.kind_of? self.class.history
     end
 
+    def attributes(*)
+      super.tap {|x| x.delete('__xid')}
+    end
+
     module ClassMethods
       # Returns an ActiveRecord::Relation on the history of this model as
       # it was +time+ ago.

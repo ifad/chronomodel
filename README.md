@@ -181,6 +181,10 @@ them in your output, use `rake VERBOSE=true`.
 
  * The schema dumper is WAY TOO hacky.
 
+ * Savepoints are disabled, because there is
+   [currently](http://archives.postgresql.org/pgsql-hackers/2012-08/msg01094.php)
+   no way to identify a subtransaction belonging to the current transaction.
+
 
 ## Contributing
 

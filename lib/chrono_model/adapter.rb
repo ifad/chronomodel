@@ -309,6 +309,17 @@ module ChronoModel
       end
     end
 
+    # Disable savepoints support, as they break history keeping.
+    # http://archives.postgresql.org/pgsql-hackers/2012-08/msg01094.php
+    #
+    def supports_savepoints?
+      false
+    end
+
+    def create_savepoint; end
+    def rollback_to_savepoint; end
+    def release_savepoint; end
+
     private
       # Create the history table in the history schema
       def chrono_create_history_for(table)
@@ -364,7 +375,8 @@ module ChronoModel
 
         # SELECT - return only current data
         #
-        execute "CREATE OR REPLACE VIEW #{table} AS SELECT * FROM ONLY #{current}"
+        execute "DROP VIEW #{table}" if table_exists? table
+        execute "CREATE VIEW #{table} AS SELECT *, xmin AS __xid FROM ONLY #{current}"
 
         columns  = columns(table).map(&:name)
         sequence = serial_sequence(current, pk)                    # For INSERT
@@ -378,13 +390,13 @@ module ChronoModel
         #
         if sequence.present?
           execute <<-SQL
-            CREATE OR REPLACE RULE #{table}_ins AS ON INSERT TO #{table} DO INSTEAD (
+            CREATE RULE #{table}_ins AS ON INSERT TO #{table} DO INSTEAD (
 
               INSERT INTO #{current} ( #{fields} ) VALUES ( #{values} );
 
               INSERT INTO #{history} ( #{pk}, #{fields}, valid_from )
               VALUES ( currval('#{sequence}'), #{values}, timezone('UTC', now()) )
-              RETURNING #{pk}, #{fields}
+              RETURNING #{pk}, #{fields}, xmin
             )
           SQL
         else
@@ -392,7 +404,7 @@ module ChronoModel
           values_with_pk = "new.#{pk}, " << values
 
           execute <<-SQL
-            CREATE OR REPLACE RULE #{table}_ins AS ON INSERT TO #{table} DO INSTEAD (
+            CREATE RULE #{table}_ins AS ON INSERT TO #{table} DO INSTEAD (
 
               INSERT INTO #{current} ( #{fields_with_pk} ) VALUES ( #{values_with_pk} );
 
@@ -405,9 +417,27 @@ module ChronoModel
 
         # UPDATE - set the last history entry validity to now, save the current data
         # in a new history entry and update the temporal table with the new data.
+
+        # If this is the first statement of a transaction, inferred by the last
+        # transaction ID that updated the row, create a new row in the history.
+        #
+        # The current transaction ID is returned by txid_current() as a 64-bit
+        # signed integer, while the last transaction ID that changed a row is
+        # stored into a 32-bit unsigned integer in the __xid column. As XIDs
+        # wrap over time, txid_current() adds an "epoch" counter in the most
+        # significant bits (http://bit.ly/W2Srt7) of the int - thus here we
+        # remove it by and'ing with 2^32-1.
+        #
+        # XID are 32-bit unsigned integers, and by design cannot be casted nor
+        # compared to anything else, adding a CAST or an operator requires
+        # super-user privileges, so here we do a double-cast from varchar to
+        # int8, to finally compare it with the current XID. We're using 64bit
+        # integers as in PG there is no 32-bit unsigned data type.
         #
         execute <<-SQL
-          CREATE OR REPLACE RULE #{table}_upd AS ON UPDATE TO #{table} DO INSTEAD (
+          CREATE RULE #{table}_upd_first AS ON UPDATE TO #{table}
+          WHERE old.__xid::char(10)::int8 <> (txid_current() & (2^32-1)::int8)
+          DO INSTEAD (
 
             UPDATE #{history} SET valid_to = timezone('UTC', now())
             WHERE #{pk} = old.#{pk} AND valid_to = '9999-12-31';
@@ -420,11 +450,32 @@ module ChronoModel
           )
         SQL
 
-        # DELETE - save the current data in the history and eventually delete the data
-        # from the temporal table.
+        # Else, update the already present history row with new data. This logic
+        # makes possible to "squash" together changes made in a transaction in a
+        # single history row, assuring timestamps consistency.
         #
         execute <<-SQL
-          CREATE OR REPLACE RULE #{table}_del AS ON DELETE TO #{table} DO INSTEAD (
+          CREATE RULE #{table}_upd_next AS ON UPDATE TO #{table} DO INSTEAD (
+            UPDATE #{history} SET #{updates}
+            WHERE #{pk} = old.#{pk} AND valid_from = timezone('UTC', now());
+
+            UPDATE ONLY #{current} SET #{updates}
+            WHERE #{pk} = old.#{pk}
+          )
+        SQL
+
+        # DELETE - save the current data in the history and eventually delete the
+        # data from the temporal table.
+        # The first DELETE is required to remove history for records INSERTed and
+        # DELETEd in the same transaction.
+        #
+        execute <<-SQL
+          CREATE RULE #{table}_del AS ON DELETE TO #{table} DO INSTEAD (
+
+            DELETE FROM #{history}
+            WHERE #{pk} = old.#{pk}
+              AND valid_from = timezone('UTC', now())
+              AND valid_to   = '9999-12-31';
 
             UPDATE #{history} SET valid_to = timezone('UTC', now())
             WHERE #{pk} = old.#{pk} AND valid_to = '9999-12-31';
