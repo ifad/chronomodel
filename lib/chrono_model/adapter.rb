@@ -410,7 +410,7 @@ module ChronoModel
 
               INSERT INTO #{history} ( #{fields_with_pk}, valid_from )
               VALUES ( #{values_with_pk}, timezone('UTC', now()) )
-              RETURNING #{fields_with_pk}
+              RETURNING #{fields_with_pk}, xmin
             )
           SQL
         end
