@@ -24,7 +24,7 @@ create table history.countries (
   hid         serial primary key,
   valid_from  timestamp not null,
   valid_to    timestamp not null default '9999-12-31',
-  recorded_at timestamp not null default now(),
+  recorded_at timestamp not null default timezone('UTC', now()),
 
   constraint from_before_to check (valid_from < valid_to),
 
@@ -57,7 +57,7 @@ create index country_instance_history  on history.countries ( id, recorded_at )
 --
 -- SELECT - return only current data
 --
-create view public.countries as select * from only temporal.countries;
+create view public.countries as select *, xmin as __xid from only temporal.countries;
 
 -- INSERT - insert data both in the current data table and in the history table.
 -- Return data from the history table as the RETURNING clause must be the last
@@ -66,33 +66,52 @@ create rule countries_ins as on insert to public.countries do instead (
   insert into temporal.countries ( name ) values ( new.name );
 
   insert into history.countries ( id, name, valid_from )
-    values ( currval('temporal.countries_id_seq'), new.name, now() )
-    returning ( new.name )
+    values ( currval('temporal.countries_id_seq'), new.name, timezone('UTC', now()) )
+    returning ( id, new.name, xmin )
 );
 
 -- UPDATE - set the last history entry validity to now, save the current data in
 -- a new history entry and update the current table with the new data.
+-- In transactions, create the new history entry only on the first statement,
+-- and update the history instead on subsequent ones.
 --
-create rule countries_upd as on update to countries do instead (
+create rule countries_upd_first as on update to countries
+where old.__xid::char(10)::int8 <> (txid_current() & (2^32-1)::int8)
+do instead (
   update history.countries
-    set   valid_to = now()
-    where id       = old.id and valid_to = '9999-12-31';
+     set valid_to = timezone('UTC', now())
+   where id = old.id and valid_to = '9999-12-31';
 
   insert into history.countries ( id, name, valid_from ) 
-  values ( old.id, new.name, now() );
+  values ( old.id, new.name, timezone('UTC', now()) );
 
   update only temporal.countries
-    set name = new.name
-    where id = old.id
+     set name = new.name
+   where id = old.id
 );
+create rule countries_upd_next as on update to countries do instead (
+  update history.countries
+     set name = new.name
+   where id = old.id and valid_from = timezone('UTC', now())
+
+  update only temporal.countries
+     set name = new.name
+   where id = old.id
+)
 
 -- DELETE - save the current data in the history and eventually delete the data
--- from the current table.
+-- from the current table. Special case for records INSERTed and DELETEd in the
+-- same transaction - they won't appear at all in history.
 --
 create rule countries_del as on delete to countries do instead (
+  delete from history.countries
+   where id = old.id
+     and valid_from = timezone('UTC', now())
+     and valid_to   = '9999-12-31'
+
   update history.countries
     set   valid_to = now()
-    where id       = old.id and valid_to = '9999-12-31';
+    where id = old.id and valid_to = '9999-12-31';
 
   delete from only temporal.countries
   where temporal.countries.id = old.id
