@@ -282,13 +282,13 @@ module ChronoModel
       # Extend your model with the Utilities model if you want to
       # use it.
       #
-      def amend_history_period!(hid, from, to)
+      def amend_period!(hid, from, to)
         unless [from, to].all? {|ts| ts.respond_to?(:zone) && ts.zone == 'UTC'}
           raise 'Can amend history only with UTC timestamps'
         end
 
         connection.execute %[
-          UPDATE #{history_table_name}
+          UPDATE #{table_name}
              SET valid_from = #{connection.quote(from)},
                  valid_to   = #{connection.quote(to  )}
            WHERE hid = #{hid.to_i}
