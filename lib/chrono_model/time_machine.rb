@@ -199,7 +199,7 @@ module ChronoModel
       def of(object)
         now = 'LEAST(valid_to, now()::timestamp)'
         readonly.
-          select("#{table_name}.*, #{now} AS as_of_time").
+          select("#{table_name}.*, #{now} AS as_of_time"). # FIXME allow overriding the select list
           order("#{table_name}.recorded_at, hid").
           where(:id => object)
       end
