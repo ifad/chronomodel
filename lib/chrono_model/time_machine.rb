@@ -85,7 +85,7 @@ module ChronoModel
         # last one.
         #
         def succ
-          return nil if self.valid_from.year == 9999
+          return nil if self.valid_to.year == 9999
           self.class.where(:id => rid, :valid_from => valid_to_before_type_cast).first
         end
         alias :next :succ
