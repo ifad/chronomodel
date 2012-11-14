@@ -73,6 +73,41 @@ module ChronoModel
           utc_timestamp_from('recorded_at')
         end
 
+        # Returns the previous history entry, or nil if this
+        # is the first one.
+        #
+        def pred
+          return nil if self.valid_from.year.zero?
+          self.class.where(:id => rid, :valid_to => valid_from_before_type_cast).first
+        end
+
+        # Returns the next history entry, or nil if this is the
+        # last one.
+        #
+        def succ
+          return nil if self.valid_from.year == 9999
+          self.class.where(:id => rid, :valid_from => valid_to_before_type_cast).first
+        end
+        alias :next :succ
+
+        # Returns the first history entry
+        #
+        def first
+          self.class.where(:id => rid).order(:valid_from).first
+        end
+
+        # Returns the last history entry
+        #
+        def last
+          self.class.where(:id => rid).order(:valid_from).last
+        end
+
+        # Returns this history entry's current record
+        #
+        def record
+          self.class.superclass.find(rid)
+        end
+
         # Virtual attribute used to pass around the
         # current timestamp in association queries
         #

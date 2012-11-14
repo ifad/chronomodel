@@ -137,6 +137,55 @@ describe ChronoModel::TimeMachine do
     end
   end
 
+  describe '#pred' do
+    context 'on the first history entry' do
+      subject { foo.history.first.pred }
+      it { should be_nil }
+    end
+
+    context 'on the second history entry' do
+      subject { foo.history.second.pred }
+      it { should == foo.history.first }
+    end
+
+    context 'on the last history entry' do
+      subject { foo.history.last.pred }
+      it { should == foo.history[foo.history.size - 2] }
+    end
+  end
+
+  describe '#succ' do
+    context 'on the first history entry' do
+      subject { foo.history.first.succ }
+      it { should == foo.history.second }
+    end
+
+    context 'on the second history entry' do
+      subject { foo.history.second.succ }
+      it { should == foo.history.third }
+    end
+
+    context 'on the last history entry' do
+      subject { foo.history.last.succ }
+      it { should be_nil }
+    end
+  end
+
+  describe '#first' do
+    subject { foo.history.sample.first }
+    it { should == foo.history.first }
+  end
+
+  describe '#last' do
+    subject { foo.history.sample.last }
+    it { should == foo.history.last }
+  end
+
+  describe '#record' do
+    subject { foo.history.sample.record }
+    it { should == foo }
+  end
+
   describe '#historical?' do
     describe 'on plain records' do
       subject { foo.historical? }
