@@ -184,15 +184,16 @@ module ChronoModel
     # are arrays containing the current and previous attributevalues.
     #
     def last_changes
-      internals = %W( valid_from valid_to recorded_at hid as_of_time )
+      internals = %W( id hid valid_from valid_to recorded_at as_of_time )
 
-      pred = self.pred.try(:attributes)
+      pred = self.pred
       return unless pred
 
-      internals.each {|a| pred.delete(a)}
-
-      changes = self.clone.tap {|this| this.attributes = pred}.changes
-      internals.each {|a| changes.delete(a)}
+      changes = self.clone.tap do |this|
+        (attribute_names - internals).each do |attr|
+          this.public_send("#{attr}=", pred.public_send(attr))
+        end
+      end.changes
 
       return changes
     end
