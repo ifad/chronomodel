@@ -93,7 +93,9 @@ module ChronoTest::Helpers
         end
 
         class ::Baz < ActiveRecord::Base
-          belongs_to :baz
+          include ChronoModel::TimeGate
+
+          belongs_to :bar
         end
 
         class ::Defoo < ActiveRecord::Base

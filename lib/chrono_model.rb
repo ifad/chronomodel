@@ -3,6 +3,8 @@ require 'chrono_model/adapter'
 require 'chrono_model/compatibility'
 require 'chrono_model/patches'
 require 'chrono_model/time_machine'
+require 'chrono_model/time_gate'
+require 'chrono_model/utils'
 
 module ChronoModel
   class Error < ActiveRecord::ActiveRecordError #:nodoc:

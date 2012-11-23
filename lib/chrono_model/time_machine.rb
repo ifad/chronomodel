@@ -237,16 +237,19 @@ module ChronoModel
           where(:id => object)
       end
 
-
+      include(TS = Module.new do
       # Returns an Array of unique UTC timestamps for which at least an
       # history record exists. Takes temporal associations into account.
       #
-      def timestamps
+      def timestamps(record = nil)
         assocs = reflect_on_all_associations.select {|a|
           !a.options[:polymorphic] && [:belongs_to, :has_one].include?(a.macro) && a.klass.chrono?
         }
 
-        models = [self].concat(assocs.map {|a| a.klass.history})
+        models = []
+        models.push self if self.chrono?
+        models.concat(assocs.map {|a| a.klass.history})
+
         fields = models.inject([]) {|a,m| a.concat m.quoted_history_fields}
 
         relation = self.
@@ -254,9 +257,13 @@ module ChronoModel
           select("DISTINCT UNNEST(ARRAY[#{fields.join(',')}]) AS ts").
           order('ts')
 
-        relation = yield relation if block_given?
+        relation = relation.from(%["public".#{quoted_table_name}]) unless self.chrono?
+        relation = relation.where(:id => record) if record
 
         sql = "SELECT ts FROM ( #{relation.to_sql} ) foo WHERE ts IS NOT NULL AND ts < NOW()"
+        sql << " AND ts >= '#{record.history.first.valid_from}'" \
+          if record && record.class.chrono?
+
         sql.gsub! 'INNER JOIN', 'LEFT OUTER JOIN'
 
         connection.on_schema(Adapter::HISTORY_SCHEMA) do
@@ -265,6 +272,7 @@ module ChronoModel
           end
         end
       end
+      end)
 
       def quoted_history_fields
         @quoted_history_fields ||= [:valid_from, :valid_to].map do |field|
@@ -289,45 +297,6 @@ module ChronoModel
       end
     end
     ActiveRecord::Relation.instance_eval { include QueryMethods }
-
-    module Conversions
-      extend self
-
-      ISO_DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(\.\d+)?\z/
-
-      def string_to_utc_time(string)
-        if string =~ ISO_DATETIME
-          microsec = ($7.to_f * 1_000_000).to_i
-          Time.utc $1.to_i, $2.to_i, $3.to_i, $4.to_i, $5.to_i, $6.to_i, microsec
-        end
-      end
-
-      def time_to_utc_string(time)
-        [time.to_s(:db), sprintf('%06d', time.usec)].join '.'
-      end
-    end
-
-    module Utilities
-      # Amends the given history item setting a different period.
-      # Useful when migrating from legacy systems, but it is here
-      # as this is not a proper API.
-      #
-      # Extend your model with the Utilities model if you want to
-      # use it.
-      #
-      def amend_period!(hid, from, to)
-        unless [from, to].all? {|ts| ts.respond_to?(:zone) && ts.zone == 'UTC'}
-          raise 'Can amend history only with UTC timestamps'
-        end
-
-        connection.execute %[
-          UPDATE #{table_name}
-             SET valid_from = #{connection.quote(from)},
-                 valid_to   = #{connection.quote(to  )}
-           WHERE hid = #{hid.to_i}
-        ]
-      end
-    end
 
   end
 

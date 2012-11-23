@@ -31,6 +31,10 @@ describe ChronoModel::TimeMachine do
     ts_eval(bar) { update_attributes! :name => 'new bar' }
   }
 
+  let!(:baz) {
+    Baz.create :name => 'baz', :bar => bar
+  }
+
   # Specs start here
   #
   describe '#as_of' do
@@ -109,6 +113,23 @@ describe ChronoModel::TimeMachine do
       it { Defoo.unscoped.as_of(active.ts[1]).map(&:name).should == ['active 2'] }
       it { Defoo.unscoped.as_of(hidden.ts[0]).map(&:name).should == ['active 2', 'hidden 1'] }
       it { Defoo.unscoped.as_of(hidden.ts[1]).map(&:name).should == ['active 2', 'hidden 2'] }
+    end
+
+    describe 'proxies from non-temporal models to temporal ones' do
+      it { baz.as_of(bar.ts[0]).name.should == 'baz' }
+      it { baz.as_of(bar.ts[1]).name.should == 'baz' }
+      it { baz.as_of(bar.ts[2]).name.should == 'baz' }
+      it { baz.as_of(bar.ts[3]).name.should == 'baz' }
+
+      it { baz.as_of(bar.ts[0]).bar.name.should == 'bar' }
+      it { baz.as_of(bar.ts[1]).bar.name.should == 'foo bar' }
+      it { baz.as_of(bar.ts[2]).bar.name.should == 'bar bar' }
+      it { baz.as_of(bar.ts[3]).bar.name.should == 'new bar' }
+
+      it { baz.as_of(bar.ts[0]).bar.foo.name.should == 'foo bar' }
+      it { baz.as_of(bar.ts[1]).bar.foo.name.should == 'foo bar' }
+      it { baz.as_of(bar.ts[2]).bar.foo.name.should == 'new foo' }
+      it { baz.as_of(bar.ts[3]).bar.foo.name.should == 'new foo' }
     end
   end
 
@@ -268,6 +289,15 @@ describe ChronoModel::TimeMachine do
       describe 'returns timestamps of the record and its associations' do
         its(:size) { should == foo.ts.size + bar.ts.size }
         it { should == timestamps_from.call(foo, bar) }
+      end
+    end
+
+    describe 'on non-temporal records with a :belongs_to' do
+      subject { baz.history_timestamps }
+
+      describe 'returns timestamps of its temporal associations' do
+        its(:size) { should == bar.ts.size }
+        it { should == timestamps_from.call(bar) }
       end
     end
   end
