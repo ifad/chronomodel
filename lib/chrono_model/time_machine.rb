@@ -163,9 +163,7 @@ module ChronoModel
     # record. Takes temporal associations into account.
     #
     def history_timestamps
-      self.class.history.timestamps do |query|
-        query.where(:id => self)
-      end
+      self.class.history.timestamps(self)
     end
 
     def historical?
@@ -185,7 +183,7 @@ module ChronoModel
     end
 
     # Methods that make up the history interface of the companion History
-    # model build on each Model that includes TimeMachine
+    # model, automatically built for each Model that includes TimeMachine
     module HistoryMethods
       # Fetches as of +time+ records.
       #
@@ -203,9 +201,9 @@ module ChronoModel
             s.respond_to?(:call) ? s.call : s
           end)
 
-        scopes.each do |scope|
-          scope.order_values.each {|clause| as_of = as_of.order(clause.to_sql)}
-          scope.where_values.each {|clause| as_of = as_of.where(clause.to_sql)}
+        scopes.each do |s|
+          s.order_values.each {|clause| as_of = as_of.order(clause.to_sql)}
+          s.where_values.each {|clause| as_of = as_of.where(clause.to_sql)}
         end
 
         as_of.instance_variable_set(:@temporal, time)
@@ -226,7 +224,7 @@ module ChronoModel
       #
       def all
         readonly.
-          order("#{table_name}.recorded_at, hid").all
+          order("#{quoted_table_name}.recorded_at, hid").all
       end
 
       # Fetches the given +object+ history, sorted by history record time.
@@ -234,8 +232,8 @@ module ChronoModel
       def of(object)
         now = 'LEAST(valid_to, now()::timestamp)'
         readonly.
-          select("#{table_name}.*, #{now} AS as_of_time"). # FIXME allow overriding the select list
-          order("#{table_name}.recorded_at, hid").
+          select("#{quoted_table_name}.*, #{now} AS as_of_time"). # FIXME allow overriding the select list
+          order("#{quoted_table_name}.recorded_at, hid").
           where(:id => object)
       end
 
