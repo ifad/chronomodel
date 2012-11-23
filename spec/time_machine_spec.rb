@@ -320,6 +320,34 @@ describe ChronoModel::TimeMachine do
     end
   end
 
+  describe '#last_changes' do
+    context 'on plain records' do
+      context 'having history' do
+        subject { bar.last_changes }
+        it { should == {'name' => ['new bar', 'bar bar']} }
+      end
+
+      context 'without history' do
+        let(:record) { Bar.create!(:name => 'foreveralone') }
+        subject { record.last_changes }
+        it { should be_nil }
+        after { record.destroy.history.delete_all } # UGLY
+      end
+    end
+
+    context 'on history records' do
+      context 'at the beginning of the timeline' do
+        subject { bar.history.first.last_changes }
+        it { should be_nil }
+      end
+
+      context 'in the middle of the timeline' do
+        subject { bar.history.second.last_changes }
+        it { should == {'name' => ['foo bar', 'bar']} }
+      end
+    end
+  end
+
   describe '#pred' do
     context 'on records having history' do
       subject { bar.pred }

@@ -179,6 +179,24 @@ module ChronoModel
       history.order('valid_to DESC').offset(1).first
     end
 
+    # Returns the differences between this record and the previous history
+    # entry. The representation is an hash keyed by attribute whose values
+    # are arrays containing the current and previous attributevalues.
+    #
+    def last_changes
+      internals = %W( valid_from valid_to recorded_at hid as_of_time )
+
+      pred = self.pred.try(:attributes)
+      return unless pred
+
+      internals.each {|a| pred.delete(a)}
+
+      changes = self.clone.tap {|this| this.attributes = pred}.changes
+      internals.each {|a| changes.delete(a)}
+
+      return changes
+    end
+
     # Wraps AR::Base#attributes by removing the __xid internal attribute
     # used to squash together changes made in the same transaction.
     #
