@@ -291,32 +291,28 @@ module ChronoModel
         # Returns an Array of unique UTC timestamps for which at least an
         # history record exists. Takes temporal associations into account.
         #
-        def timestamps(record)
-          assocs = reflect_on_all_associations.map do |a|
-            next unless [:belongs_to, :has_one].include?(a.macro)
-            klass = a.options[:polymorphic] ?
-              record.public_send(a.foreign_type).constantize : a.klass
-            next unless klass.chrono?
-
-            [a.name, klass]
-          end.compact
+        def timestamps(record = nil)
+          assocs = reflect_on_all_associations.select {|a|
+            !a.options[:polymorphic] && [:belongs_to, :has_one].include?(a.macro) && a.klass.chrono?
+          }
 
           models = []
           models.push self if self.chrono?
-          models.concat(assocs.map {|a| a.last.history})
+          models.concat(assocs.map {|a| a.klass.history})
 
           fields = models.inject([]) {|a,m| a.concat m.quoted_history_fields}
 
           relation = self.
-            joins(*assocs.map(&:first)).
+            joins(*assocs.map(&:name)).
             select("DISTINCT UNNEST(ARRAY[#{fields.join(',')}]) AS ts").
             order('ts')
 
           relation = relation.from(%["public".#{quoted_table_name}]) unless self.chrono?
-          relation = relation.where(:id => record)
+          relation = relation.where(:id => record) if record
 
           sql = "SELECT ts FROM ( #{relation.to_sql} ) foo WHERE ts IS NOT NULL AND ts < NOW()"
-          sql << " AND ts >= '#{record.history.first.valid_from}'" if record.class.chrono?
+          sql << " AND ts >= '#{record.history.first.valid_from}'" \
+            if record && record.class.chrono?
 
           sql.gsub! 'INNER JOIN', 'LEFT OUTER JOIN'
 
