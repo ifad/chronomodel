@@ -10,8 +10,7 @@ module ChronoModel
       def as_of(time)
         time = Conversions.time_to_utc_string(time.utc) if time.kind_of? Time
         as_of = scoped.with(table_name,
-          select( # FIXME allow overriding of the select list
-            %[ #{quoted_table_name}.*, #{connection.quote(time)} AS "as_of_time"]))
+          select(%[ #{quoted_table_name}.*, #{connection.quote(time)} AS "as_of_time"]))
 
         as_of.instance_variable_set(:@temporal, time)
 

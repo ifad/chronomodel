@@ -227,14 +227,33 @@ module ChronoModel
           order("#{quoted_table_name}.recorded_at, hid").all
       end
 
-      # Fetches the given +object+ history, sorted by history record time.
+      # Fetches the given +object+ history, sorted by history record time
+      # by default. Always includes an "as_of_time" column that is either
+      # the valid_to timestamp or now() if history validity is maximum.
       #
       def of(object)
-        now = 'LEAST(valid_to, now()::timestamp)'
-        readonly.
-          select("#{quoted_table_name}.*, #{now} AS as_of_time"). # FIXME allow overriding the select list
-          order("#{quoted_table_name}.recorded_at, hid").
-          where(:id => object)
+        readonly.where(:id => object).extend(HistorySelect)
+      end
+
+      module HistorySelect #:nodoc:
+        Aggregates = %r{(?:(?:bit|bool)_(?:and|or)|(?:array_|string_|xml)agg|count|every|m(?:in|ax)|sum|stddev|var(?:_pop|_samp|iance)|corr|covar_|regr_)\w*\s*\(}
+
+        def build_arel
+          has_aggregate = select_values.any? do |v|
+            v.kind_of?(Arel::Nodes::Function) || # FIXME this is a bit ugly.
+            v.to_s =~ Aggregates
+          end
+
+          return super if has_aggregate
+
+          if order_values.blank?
+            self.order_values += ["#{quoted_table_name}.recorded_at, #{quoted_table_name}.hid"]
+          end
+
+          super.tap do |rel|
+            rel.project("LEAST(valid_to, now()::timestamp) AS as_of_time")
+          end
+        end
       end
 
       include(TS = Module.new do
