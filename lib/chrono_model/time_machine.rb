@@ -238,40 +238,40 @@ module ChronoModel
       end
 
       include(TS = Module.new do
-      # Returns an Array of unique UTC timestamps for which at least an
-      # history record exists. Takes temporal associations into account.
-      #
-      def timestamps(record = nil)
-        assocs = reflect_on_all_associations.select {|a|
-          !a.options[:polymorphic] && [:belongs_to, :has_one].include?(a.macro) && a.klass.chrono?
-        }
+        # Returns an Array of unique UTC timestamps for which at least an
+        # history record exists. Takes temporal associations into account.
+        #
+        def timestamps(record = nil)
+          assocs = reflect_on_all_associations.select {|a|
+            !a.options[:polymorphic] && [:belongs_to, :has_one].include?(a.macro) && a.klass.chrono?
+          }
 
-        models = []
-        models.push self if self.chrono?
-        models.concat(assocs.map {|a| a.klass.history})
+          models = []
+          models.push self if self.chrono?
+          models.concat(assocs.map {|a| a.klass.history})
 
-        fields = models.inject([]) {|a,m| a.concat m.quoted_history_fields}
+          fields = models.inject([]) {|a,m| a.concat m.quoted_history_fields}
 
-        relation = self.
-          joins(*assocs.map(&:name)).
-          select("DISTINCT UNNEST(ARRAY[#{fields.join(',')}]) AS ts").
-          order('ts')
+          relation = self.
+            joins(*assocs.map(&:name)).
+            select("DISTINCT UNNEST(ARRAY[#{fields.join(',')}]) AS ts").
+            order('ts')
 
-        relation = relation.from(%["public".#{quoted_table_name}]) unless self.chrono?
-        relation = relation.where(:id => record) if record
+          relation = relation.from(%["public".#{quoted_table_name}]) unless self.chrono?
+          relation = relation.where(:id => record) if record
 
-        sql = "SELECT ts FROM ( #{relation.to_sql} ) foo WHERE ts IS NOT NULL AND ts < NOW()"
-        sql << " AND ts >= '#{record.history.first.valid_from}'" \
-          if record && record.class.chrono?
+          sql = "SELECT ts FROM ( #{relation.to_sql} ) foo WHERE ts IS NOT NULL AND ts < NOW()"
+          sql << " AND ts >= '#{record.history.first.valid_from}'" \
+            if record && record.class.chrono?
 
-        sql.gsub! 'INNER JOIN', 'LEFT OUTER JOIN'
+          sql.gsub! 'INNER JOIN', 'LEFT OUTER JOIN'
 
-        connection.on_schema(Adapter::HISTORY_SCHEMA) do
-          connection.select_values(sql, "#{self.name} periods").map! do |ts|
-            Conversions.string_to_utc_time ts
+          connection.on_schema(Adapter::HISTORY_SCHEMA) do
+            connection.select_values(sql, "#{self.name} periods").map! do |ts|
+              Conversions.string_to_utc_time ts
+            end
           end
         end
-      end
       end)
 
       def quoted_history_fields
