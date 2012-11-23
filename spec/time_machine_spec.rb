@@ -320,6 +320,25 @@ describe ChronoModel::TimeMachine do
     end
   end
 
+  describe '#pred' do
+    context 'on records having history' do
+      subject { bar.pred }
+      its(:name) { should == 'bar bar' }
+    end
+
+    context 'when there is enough history' do
+      subject { bar.pred.pred.pred }
+      its(:name) { should == 'bar' }
+    end
+
+    context 'when no history is recorded' do
+      let(:record) { Bar.create!(:name => 'quuuux') }
+      subject { record.pred }
+      it { should be_nil }
+      after { record.destroy.history.delete_all }
+    end
+  end
+
   context do
     let!(:history) { foo.history.first }
     let!(:current) { foo }

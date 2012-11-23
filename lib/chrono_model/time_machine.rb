@@ -172,6 +172,13 @@ module ChronoModel
       self.kind_of? self.class.history
     end
 
+    # Returns the previous record in the history, or nil if this is the only
+    # recorded entry.
+    #
+    def pred
+      history.order('valid_to DESC').offset(1).first
+    end
+
     # Wraps AR::Base#attributes by removing the __xid internal attribute
     # used to squash together changes made in the same transaction.
     #
