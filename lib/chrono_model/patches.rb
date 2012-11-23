@@ -21,8 +21,12 @@ module ChronoModel
 
         ctes = {}
 
-        if reflection.klass.chrono?
-          ctes.update _chrono_ctes_for(reflection.klass)
+        klass = reflection.options[:polymorphic] ?
+          owner.public_send(reflection.foreign_type).constantize :
+          reflection.klass
+
+        if klass.chrono?
+          ctes.update _chrono_ctes_for(klass)
         end
 
         if respond_to?(:through_reflection) && through_reflection.klass.chrono?
