@@ -200,8 +200,8 @@ module ChronoModel
     # Wraps AR::Base#attributes by removing the __xid internal attribute
     # used to squash together changes made in the same transaction.
     #
-    def attributes(*)
-      super.tap {|x| x.delete('__xid')}
+    %w( attributes attribute_names ).each do |name|
+      define_method(name) { super().tap {|x| x.delete('__xid')} }
     end
 
     module ClassMethods
