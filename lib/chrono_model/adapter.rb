@@ -389,12 +389,11 @@ module ChronoModel
         execute "DROP VIEW #{table}" if table_exists? table
         execute "CREATE VIEW #{table} AS SELECT *, xmin AS __xid FROM ONLY #{current}"
 
-        columns  = columns(table).map{|c| quote_column_name(c.name)}
-        sequence = serial_sequence(current, pk)                    # For INSERT
-        updates  = columns.map {|c| "#{c} = new.#{c}"}.join(",\n") # For UPDATE
-
+        columns = columns(table).map{|c| quote_column_name(c.name)}
         columns.delete(quote_column_name(pk))
 
+        sequence = serial_sequence(current, pk)                    # For INSERT
+        updates  = columns.map {|c| "#{c} = new.#{c}"}.join(",\n") # For UPDATE
         fields, values = columns.join(', '), columns.map {|c| "new.#{c}"}.join(', ')
 
         # INSERT - inert data both in the temporal table and in the history one.
