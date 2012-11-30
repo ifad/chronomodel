@@ -28,7 +28,10 @@ module ChronoModel
       return super unless options[:temporal]
 
       if options[:id] == false
-        raise Error, "Temporal tables require a primary key."
+        logger.warn "WARNING - Temporal Temporal tables require a primary key."
+        logger.warn "WARNING - Creating a \"__chrono_id\" primary key to fulfill the requirement"
+
+        options[:id] = '__chrono_id'
       end
 
       # Create required schemas
@@ -87,6 +90,10 @@ module ChronoModel
           if !is_chrono?(table_name)
             # Add temporal features to this table
             #
+            if !primary_key(table_name)
+              execute "ALTER TABLE #{table_name} ADD __chrono_id SERIAL PRIMARY KEY"
+            end
+
             execute "ALTER TABLE #{table_name} SET SCHEMA #{TEMPORAL_SCHEMA}"
             _on_history_schema { chrono_create_history_for(table_name) }
             chrono_create_view_for(table_name)
@@ -122,6 +129,10 @@ module ChronoModel
 
             default_schema = select_value 'SELECT current_schema()'
             _on_temporal_schema do
+              if primary_key(table_name) == '__chrono_id'
+                execute "ALTER TABLE #{table_name} DROP __chrono_id"
+              end
+
               execute "ALTER TABLE #{table_name} SET SCHEMA #{default_schema}"
             end
 
