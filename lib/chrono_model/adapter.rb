@@ -396,16 +396,27 @@ module ChronoModel
         updates  = columns.map {|c| "#{c} = new.#{c}"}.join(",\n") # For UPDATE
         fields, values = columns.join(', '), columns.map {|c| "new.#{c}"}.join(', ')
 
-        # INSERT - inert data both in the temporal table and in the history one.
+        # INSERT - insert data both in the temporal table and in the history one.
+        #
+        # A separate sequence is used to keep the primary keys in the history
+        # in sync with the temporal table, instead of using currval(), because
+        # when using INSERT INTO .. SELECT, currval() returns the value of the
+        # last inserted row - while nextval() gets expanded by the rule system
+        # for each row to be inserted. Ref: GH Issue #4.
         #
         if sequence.present?
+          execute "DROP SEQUENCE IF EXISTS #{sequence}_history"
+
+          c, i = query("SELECT last_value, increment_by FROM #{sequence}").first
+          execute "CREATE SEQUENCE #{sequence}_history START WITH #{c} INCREMENT BY #{i}"
+
           execute <<-SQL
             CREATE RULE #{table}_ins AS ON INSERT TO #{table} DO INSTEAD (
 
               INSERT INTO #{current} ( #{fields} ) VALUES ( #{values} );
 
               INSERT INTO #{history} ( #{pk}, #{fields}, valid_from )
-              VALUES ( currval('#{sequence}'), #{values}, timezone('UTC', now()) )
+              VALUES ( nextval('#{sequence}_history'), #{values}, timezone('UTC', now()) )
               RETURNING #{pk}, #{fields}, xmin
             )
           SQL
