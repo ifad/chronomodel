@@ -405,10 +405,11 @@ module ChronoModel
         # for each row to be inserted. Ref: GH Issue #4.
         #
         if sequence.present?
-          execute "DROP SEQUENCE IF EXISTS #{sequence}_history"
+          history_sequence = sequence.sub(TEMPORAL_SCHEMA, HISTORY_SCHEMA)
+          execute "DROP SEQUENCE IF EXISTS #{history_sequence}"
 
           c, i = query("SELECT last_value, increment_by FROM #{sequence}").first
-          execute "CREATE SEQUENCE #{sequence}_history START WITH #{c} INCREMENT BY #{i}"
+          execute "CREATE SEQUENCE #{history_sequence} START WITH #{c} INCREMENT BY #{i}"
 
           execute <<-SQL
             CREATE RULE #{table}_ins AS ON INSERT TO #{table} DO INSTEAD (
@@ -416,7 +417,7 @@ module ChronoModel
               INSERT INTO #{current} ( #{fields} ) VALUES ( #{values} );
 
               INSERT INTO #{history} ( #{pk}, #{fields}, valid_from )
-              VALUES ( nextval('#{sequence}_history'), #{values}, timezone('UTC', now()) )
+              VALUES ( nextval('#{history_sequence}'), #{values}, timezone('UTC', now()) )
               RETURNING #{pk}, #{fields}, xmin
             )
           SQL

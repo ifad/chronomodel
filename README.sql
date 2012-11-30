@@ -62,11 +62,24 @@ create view public.countries as select *, xmin as __xid from only temporal.count
 -- INSERT - insert data both in the current data table and in the history table.
 -- Return data from the history table as the RETURNING clause must be the last
 -- one in the rule.
+--
+-- A separate sequence is used to keep the primary keys in the history in sync
+-- with the temporal table, instead of using currval(), because when using INSERT
+-- INTO .. SELECT, currval() returns the value of the last inserted row - while
+-- nextval() gets expanded by the rule system for each row to be inserted.
+--
+-- For this example, it is assumed that the countries_id_seq sequence is at the
+-- current value of "420" and it increments by "1".
+--
+-- Ref: GH Issue #4.
+--
 create rule countries_ins as on insert to public.countries do instead (
+  create sequence history.countries_id_seq start with 420 increment by 1;
+
   insert into temporal.countries ( name ) values ( new.name );
 
   insert into history.countries ( id, name, valid_from )
-    values ( currval('temporal.countries_id_seq'), new.name, timezone('UTC', now()) )
+    values ( nextval('history.countries_id_seq'), new.name, timezone('UTC', now()) )
     returning ( id, new.name, xmin )
 );
 
