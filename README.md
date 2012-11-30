@@ -15,7 +15,7 @@ The application model is backed by an updatable view that behaves exactly like a
 behind the scenes the database redirects the queries to concrete tables using
 [the rule system](http://www.postgresql.org/docs/9.0/static/rules-update.html).
 
-Current data is hold in a table in the `current` [schema](http://www.postgresql.org/docs/9.0/static/ddl-schemas.html),
+Current data is hold in a table in the `temporal` [schema](http://www.postgresql.org/docs/9.0/static/ddl-schemas.html),
 while history in hold in another table in the `history` schema. The latter
 [inherits](http://www.postgresql.org/docs/9.0/static/ddl-inherit.html) from the former, to get
 automated schema updates for free. Partitioning of history is even possible but not implemented
