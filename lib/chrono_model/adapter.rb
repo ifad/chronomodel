@@ -337,8 +337,8 @@ module ChronoModel
 
             CONSTRAINT #{table}_overlapping_times EXCLUDE USING gist (
               box(
-                point( extract( epoch FROM valid_from), id ),
-                point( extract( epoch FROM valid_to - INTERVAL '1 millisecond'), id )
+                point( extract( epoch FROM valid_from), #{p_pkey} ),
+                point( extract( epoch FROM valid_to - INTERVAL '1 millisecond'), #{p_pkey} )
               ) with &&
             )
           ) INHERITS ( #{parent} )
@@ -358,11 +358,11 @@ module ChronoModel
           # PG 9.0 requires multi-column indexes instead.
           #
           # Snapshot of a single entity at a specific point in time
-          execute "CREATE INDEX #{table}_instance_snapshot ON #{table} ( id, valid_from, valid_to )"
+          execute "CREATE INDEX #{table}_instance_snapshot ON #{table} ( #{p_pkey}, valid_from, valid_to )"
           # History update
-          execute "CREATE INDEX #{table}_instance_update   ON #{table} ( id, valid_to )"
+          execute "CREATE INDEX #{table}_instance_update   ON #{table} ( #{p_pkey}, valid_to )"
           # Single instance whole history
-          execute "CREATE INDEX #{table}_instance_history  ON #{table} ( id, recorded_at )"
+          execute "CREATE INDEX #{table}_instance_history  ON #{table} ( #{p_pkey}, recorded_at )"
         end
       end
 
