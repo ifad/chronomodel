@@ -227,7 +227,7 @@ module ChronoModel
         # Add default scopes back if we're passed nil or a
         # specific scope, because we're .unscopeing above.
         #
-        scopes = scope.present? ? [scope] : (
+        scopes = !scope.nil? ? [scope] : (
           superclass.default_scopes.map do |s|
             s.respond_to?(:call) ? s.call : s
           end)
