@@ -39,4 +39,51 @@ module ChronoModel
     end
   end
 
+  module Migrate
+    extend self
+
+    def upgrade_indexes!(base = ActiveRecord::Base)
+      use base
+
+      db.on_schema(Adapter::HISTORY_SCHEMA) do
+        db.tables.each do |table|
+          if db.is_chrono?(table)
+            upgrade_indexes_for(table)
+          end
+        end
+      end
+    end
+
+    private
+      attr_reader :db
+
+      def use(ar)
+        @db = ar.connection
+      end
+
+      def upgrade_indexes_for(table_name)
+        upgradeable =
+          %r{_snapshot$|_valid_(?:from|to)$|_recorded_at$|_instance_(?:update|history)$}
+
+        indexes_sql = %[
+          SELECT DISTINCT i.relname
+          FROM pg_class t
+          INNER JOIN pg_index d ON t.oid = d.indrelid
+          INNER JOIN pg_class i ON d.indexrelid = i.oid
+          WHERE i.relkind = 'i'
+          AND d.indisprimary = 'f'
+          AND t.relname = '#{table_name}'
+          AND i.relnamespace IN (SELECT oid FROM pg_namespace WHERE nspname = ANY(current_schemas(false)) )
+        ]
+
+        db.select_values(indexes_sql).each do |idx|
+          if idx =~ upgradeable
+            db.execute "DROP INDEX #{idx}"
+          end
+        end
+
+        db.send(:chrono_create_history_indexes_for, table_name)
+      end
+  end
+
 end

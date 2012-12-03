@@ -358,6 +358,14 @@ module ChronoModel
         # Inherited primary key
         execute "CREATE INDEX #{table}_inherit_pkey ON #{table} ( #{p_pkey} )"
 
+        chrono_create_history_indexes_for(table, p_pkey)
+      end
+
+      def chrono_create_history_indexes_for(table, p_pkey = nil)
+        # Duplicate because of Migrate.upgrade_indexes_for
+        # TODO remove me.
+        p_pkey ||= primary_key("#{TEMPORAL_SCHEMA}.#{table}")
+
         # Create spatial indexes for timestamp search. Conceptually identical
         # to the above EXCLUDE constraint but without the millisecond removal.
         #
