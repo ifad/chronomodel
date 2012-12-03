@@ -233,8 +233,8 @@ module ChronoModel
           end)
 
         scopes.each do |s|
-          s.order_values.each {|clause| as_of = as_of.order(clause.to_sql)}
-          s.where_values.each {|clause| as_of = as_of.where(clause.to_sql)}
+          s.order_values.each {|clause| as_of = as_of.order(clause)}
+          s.where_values.each {|clause| as_of = as_of.where(clause)}
         end
 
         as_of.instance_variable_set(:@temporal, time)
