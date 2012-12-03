@@ -346,10 +346,12 @@ module ChronoModel
       def build_arel
         super.tap do |arel|
 
-          # Extract joined tables and add temporal WITH if appropriate
-          arel.join_sources.map {|j| j.to_sql =~ /JOIN "(\w+)" ON/ && $1}.compact.each do |table|
+          # Extract joined tables and add emporal WITH if appropriate
+          arel.join_sources.map {|j|
+            j.to_sql =~ /JOIN "([\w-]+)"(?:\s+"([\w-]+)")? ON/ && [$1, $2]
+          }.compact.each do |table, alias_|
             next unless (model = TimeMachine.chrono_models[table])
-            with(table, model.history.at(@temporal))
+            with(alias_ || table, model.history.at(@temporal))
           end if @temporal
 
         end
