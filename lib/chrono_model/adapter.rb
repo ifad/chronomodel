@@ -348,8 +348,8 @@ module ChronoModel
 
             CONSTRAINT #{table}_overlapping_times EXCLUDE USING gist (
               box(
-                point( extract( epoch FROM valid_from), #{p_pkey} ),
-                point( extract( epoch FROM valid_to - INTERVAL '1 millisecond'), #{p_pkey} )
+                point( date_part( 'epoch', valid_from), #{p_pkey} ),
+                point( date_part( 'epoch', valid_to - INTERVAL '1 millisecond'), #{p_pkey} )
               ) with &&
             )
           ) INHERITS ( #{parent} )
@@ -357,24 +357,27 @@ module ChronoModel
 
         # Inherited primary key
         execute "CREATE INDEX #{table}_inherit_pkey ON #{table} ( #{p_pkey} )"
-        # Snapshot of all entities at a specific point in time
-        execute "CREATE INDEX #{table}_snapshot     ON #{table} ( valid_from, valid_to )"
 
-        if postgresql_version >= 90100
-          # PG 9.1 makes efficient use of single-column indexes
-          execute "CREATE INDEX #{table}_valid_from   ON #{table} ( valid_from )"
-          execute "CREATE INDEX #{table}_valid_to     ON #{table} ( valid_to )"
-          execute "CREATE INDEX #{table}_recorded_at  ON #{table} ( recorded_at )"
-        else
-          # PG 9.0 requires multi-column indexes instead.
-          #
-          # Snapshot of a single entity at a specific point in time
-          execute "CREATE INDEX #{table}_instance_snapshot ON #{table} ( #{p_pkey}, valid_from, valid_to )"
-          # History update
-          execute "CREATE INDEX #{table}_instance_update   ON #{table} ( #{p_pkey}, valid_to )"
-          # Single instance whole history
-          execute "CREATE INDEX #{table}_instance_history  ON #{table} ( #{p_pkey}, recorded_at )"
-        end
+        # Create spatial indexes for timestamp search. Conceptually identical
+        # to the above EXCLUDE constraint but without the millisecond removal.
+        #
+        # This index is used by TimeMachine.at to built the temporal WHERE
+        # clauses that fetch the state of the records at a single point in
+        # history.
+        #
+        execute <<-SQL
+          CREATE INDEX #{table}_snapshot ON #{table} USING gist (
+            box(
+              point( date_part( 'epoch', valid_from ), 0 ),
+              point( date_part( 'epoch', valid_to   ), 0 )
+            )
+          )
+        SQL
+
+        # History sorting
+        #
+        execute "CREATE INDEX #{table}_recorded_at ON #{table} ( recorded_at )"
+        execute "CREATE INDEX #{table}_instance_history  ON #{table} ( #{p_pkey}, recorded_at )"
       end
 
       # Create the public view and its rewrite rules

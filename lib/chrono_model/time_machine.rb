@@ -248,7 +248,16 @@ module ChronoModel
         from, to = quoted_history_fields
         unscoped.
           select("#{quoted_table_name}.*, '#{time}' AS as_of_time").
-          where("'#{time}' >= #{from} AND '#{time}' < #{to}")
+          where(%[
+            box(
+              point( date_part( 'epoch', '#{time}'::timestamp ), 0 ),
+              point( date_part( 'epoch', '#{time}'::timestamp ), 0 )
+            ) &&
+            box(
+              point( date_part( 'epoch', #{from} ), 0 ),
+              point( date_part( 'epoch', #{to}   ), 0 )
+            )
+          ])
       end
 
       # Returns the whole history as read only.

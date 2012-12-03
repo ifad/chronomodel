@@ -33,7 +33,7 @@ is implemented using
 (WITH queries) and a `WHERE date >= valid_from AND date < valid_to` clause, generated automatically
 by the provided `TimeMachine` module to be included in your models.
 
-Optimal temporal timestamps indexing is provided for both PostgreSQL 9.0 and 9.1 query planners.
+Optimal temporal timestamps indexing is provided using GiST spatial search.
 
 All timestamps are (forcibly) stored in the UTC time zone, bypassing the `AR::Base.config.default_timezone`
 setting.
