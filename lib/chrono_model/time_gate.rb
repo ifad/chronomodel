@@ -9,8 +9,12 @@ module ChronoModel
     module ClassMethods
       def as_of(time)
         time = Conversions.time_to_utc_string(time.utc) if time.kind_of? Time
-        as_of = scoped.with(table_name,
-          select(%[ #{quoted_table_name}.*, #{connection.quote(time)} AS "as_of_time"]))
+
+        virtual_table = select(%[
+          #{quoted_table_name}.*, #{connection.quote(time)} AS "as_of_time"]
+        ).to_sql
+
+        as_of = scoped.from("(#{virtual_table}) #{quoted_table_name}")
 
         as_of.instance_variable_set(:@temporal, time)
 

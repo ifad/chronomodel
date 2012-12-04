@@ -26,11 +26,4 @@ silence_warnings do
   # We need to override the "scoped" method on AR::Association for temporal
   # associations to work as well
   ActiveRecord::Associations::Association = ChronoModel::Patches::Association
-
-  # This implements correct WITH syntax on PostgreSQL
-  Arel::Visitors::PostgreSQL = ChronoModel::Patches::Visitor
-
-  # This adds .with support to ActiveRecord::Relation
-  ActiveRecord::Relation.instance_eval { include ChronoModel::Patches::QueryMethods }
-  ActiveRecord::Base.extend ChronoModel::Patches::Querying
 end

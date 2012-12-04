@@ -219,10 +219,7 @@ module ChronoModel
       # Fetches as of +time+ records.
       #
       def as_of(time, scope = nil)
-        time = Conversions.time_to_utc_string(time.utc) if time.kind_of? Time
-
-        as_of = superclass.unscoped.readonly.
-          with(superclass.table_name, at(time))
+        as_of = superclass.unscoped.readonly.from(virtual_table_at(time))
 
         # Add default scopes back if we're passed nil or a
         # specific scope, because we're .unscopeing above.
@@ -242,9 +239,18 @@ module ChronoModel
         return as_of
       end
 
+      def virtual_table_at(time, name = nil)
+        name = name ? connection.quote_table_name(name) :
+          superclass.quoted_table_name
+
+        "(#{at(time).to_sql}) #{name}"
+      end
+
       # Fetches history record at the given time
       #
       def at(time)
+        time = Conversions.time_to_utc_string(time.utc) if time.kind_of? Time
+
         from, to = quoted_history_fields
         unscoped.
           select("#{quoted_table_name}.*, '#{time}' AS as_of_time").
@@ -346,12 +352,13 @@ module ChronoModel
       def build_arel
         super.tap do |arel|
 
-          # Extract joined tables and add emporal WITH if appropriate
-          arel.join_sources.map {|j|
-            j.to_sql =~ /JOIN "([\w-]+)"(?:\s+"([\w-]+)")? ON/ && [$1, $2]
-          }.compact.each do |table, alias_|
-            next unless (model = TimeMachine.chrono_models[table])
-            with(alias_ || table, model.history.at(@temporal))
+          arel.join_sources.each do |join|
+            model = TimeMachine.chrono_models[join.left.table_name]
+            next unless model
+
+            join.left = Arel::Nodes::SqlLiteral.new(
+              model.history.virtual_table_at(@temporal, join.left.table_alias || join.left.table_name)
+            )
           end if @temporal
 
         end
