@@ -60,28 +60,38 @@ create index country_instance_history  on history.countries ( id, recorded_at )
 create view public.countries as select *, xmin as __xid from only temporal.countries;
 
 -- INSERT - insert data both in the current data table and in the history table.
--- Return data from the history table as the RETURNING clause must be the last
--- one in the rule.
 --
--- A separate sequence is used to keep the primary keys in the history in sync
--- with the temporal table, instead of using currval(), because when using INSERT
--- INTO .. SELECT, currval() returns the value of the last inserted row - while
--- nextval() gets expanded by the rule system for each row to be inserted.
+-- A trigger is required if there is a serial ID column, as rules by
+-- design cannot handle the following case:
 --
--- For this example, it is assumed that the countries_id_seq sequence is at the
--- current value of "420" and it increments by "1".
+--   * INSERT INTO ... SELECT: if using currval(), all the rows
+--     inserted in the history will have the same identity value;
+--
+--   * if using a separate sequence to solve the above case, it may go
+--     out of sync with the main one if an INSERT statement fails due
+--     to a table constraint (the first one is nextval()'ed but the
+--     nextval() on the history one never happens)
+--
+-- So, only for this case, we resort to an AFTER INSERT FOR EACH ROW trigger.
 --
 -- Ref: GH Issue #4.
 --
 create rule countries_ins as on insert to public.countries do instead (
-  create sequence history.countries_id_seq start with 420 increment by 1;
 
   insert into temporal.countries ( name ) values ( new.name );
-
-  insert into history.countries ( id, name, valid_from )
-    values ( nextval('history.countries_id_seq'), new.name, timezone('UTC', now()) )
-    returning ( id, new.name, xmin )
+  returning ( id, new.name, xmin )
 );
+
+create or replace function temporal.countries_ins() returns trigger as $$
+  begin
+    insert into history.countries ( id, name, valid_from )
+    values ( currval('temporal.countries_id_seq'), new.name, timezone('utc', now()) );
+    return null;
+  end;
+$$ language plpgsql;
+
+create trigger history_ins after insert on temporal.countries_ins()
+  for each row execute procedure temporal.countries_ins();
 
 -- UPDATE - set the last history entry validity to now, save the current data in
 -- a new history entry and update the current table with the new data.

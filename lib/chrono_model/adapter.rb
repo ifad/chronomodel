@@ -125,6 +125,7 @@ module ChronoModel
             # Remove temporal features from this table
             #
             execute "DROP VIEW #{table_name}"
+            _on_temporal_schema { execute "DROP FUNCTION IF EXISTS #{table_name}_ins() CASCADE" }
             _on_history_schema { execute "DROP TABLE #{table_name}" }
 
             default_schema = select_value 'SELECT current_schema()'
@@ -405,39 +406,49 @@ module ChronoModel
         columns = columns(table).map{|c| quote_column_name(c.name)}
         columns.delete(quote_column_name(pk))
 
-        sequence = serial_sequence(current, pk)                    # For INSERT
-        updates  = columns.map {|c| "#{c} = new.#{c}"}.join(",\n") # For UPDATE
+        updates = columns.map {|c| "#{c} = new.#{c}"}.join(",\n")
+
         fields, values = columns.join(', '), columns.map {|c| "new.#{c}"}.join(', ')
+        fields_with_pk, values_with_pk = "#{pk}, " << fields, "new.#{pk}, " << values
 
         # INSERT - insert data both in the temporal table and in the history one.
         #
-        # A separate sequence is used to keep the primary keys in the history
-        # in sync with the temporal table, instead of using currval(), because
-        # when using INSERT INTO .. SELECT, currval() returns the value of the
-        # last inserted row - while nextval() gets expanded by the rule system
-        # for each row to be inserted. Ref: GH Issue #4.
+        # A trigger is required if there is a serial ID column, as rules by
+        # design cannot handle the following case:
         #
-        if sequence.present?
-          history_sequence = sequence.sub(TEMPORAL_SCHEMA, HISTORY_SCHEMA)
-          execute "DROP SEQUENCE IF EXISTS #{history_sequence}"
-
-          c, i = query("SELECT last_value, increment_by FROM #{sequence}").first
-          execute "CREATE SEQUENCE #{history_sequence} START WITH #{c} INCREMENT BY #{i}"
-
+        #   * INSERT INTO ... SELECT: if using currval(), all the rows
+        #     inserted in the history will have the same identity value;
+        #
+        #   * if using a separate sequence to solve the above case, it may go
+        #     out of sync with the main one if an INSERT statement fails due
+        #     to a table constraint (the first one is nextval()'ed but the
+        #     nextval() on the history one never happens)
+        #
+        # So, only for this case, we resort to an AFTER INSERT FOR EACH ROW trigger.
+        #
+        # Ref: GH Issue #4.
+        #
+        if serial_sequence(current, pk).present?
           execute <<-SQL
             CREATE RULE #{table}_ins AS ON INSERT TO #{table} DO INSTEAD (
-
-              INSERT INTO #{current} ( #{fields} ) VALUES ( #{values} );
-
-              INSERT INTO #{history} ( #{pk}, #{fields}, valid_from )
-              VALUES ( nextval('#{history_sequence}'), #{values}, timezone('UTC', now()) )
+              INSERT INTO #{current} ( #{fields} ) VALUES ( #{values} )
               RETURNING #{pk}, #{fields}, xmin
-            )
+            );
+
+            CREATE OR REPLACE FUNCTION #{current}_ins() RETURNS TRIGGER AS $$
+              BEGIN
+                INSERT INTO #{history} ( #{fields_with_pk}, valid_from )
+                VALUES ( #{values_with_pk}, timezone('UTC', now()) );
+                RETURN NULL;
+              END;
+            $$ LANGUAGE plpgsql;
+
+            DROP TRIGGER IF EXISTS history_ins ON #{current};
+
+            CREATE TRIGGER history_ins AFTER INSERT ON #{current}
+              FOR EACH ROW EXECUTE PROCEDURE #{current}_ins();
           SQL
         else
-          fields_with_pk = "#{pk}, " << fields
-          values_with_pk = "new.#{pk}, " << values
-
           execute <<-SQL
             CREATE RULE #{table}_ins AS ON INSERT TO #{table} DO INSTEAD (
 
