@@ -59,7 +59,7 @@ describe ChronoModel::Adapter do
 
     def native.to_proc
       proc {|t|
-        t.string  :test
+        t.string  :test, :null => false
         t.integer :foo
         t.float   :bar
         t.text    :baz
@@ -392,6 +392,73 @@ describe ChronoModel::Adapter do
 
         should be_in_schema(:default)
       end
+    end
+  end
+
+
+  context 'INSERT multiple values' do
+    before :all do
+      adapter.create_table table, :temporal => true, &columns
+    end
+
+    after :all do
+      adapter.drop_table table
+    end
+
+    let(:current) { [ChronoModel::Adapter::TEMPORAL_SCHEMA, table].join('.') }
+    let(:history) { [ChronoModel::Adapter::HISTORY_SCHEMA,  table].join('.') }
+
+    def count(table)
+      adapter.select_value("SELECT COUNT(*) FROM ONLY #{table}").to_i
+    end
+
+    def ids(table)
+      adapter.select_values("SELECT id FROM ONLY #{table} ORDER BY id")
+    end
+
+    context 'when succeeding' do
+      def insert
+        adapter.execute <<-SQL
+          INSERT INTO #{table} (test, foo) VALUES
+            ('test1', 1),
+            ('test2', 2);
+        SQL
+      end
+
+      it { expect { insert }.to_not raise_error }
+      it { count(current).should == 2 }
+      it { count(history).should == 2 }
+    end
+
+    context 'when failing' do
+      def insert
+        adapter.execute <<-SQL
+          INSERT INTO #{table} (test, foo) VALUES
+            ('test3', 3),
+            (NULL,    0);
+        SQL
+      end
+
+      it { expect { insert }.to raise_error }
+      it { count(current).should == 2 } # Because the previous
+      it { count(history).should == 2 } # records are preserved
+    end
+
+    context 'after a failure' do
+      def insert
+        adapter.execute <<-SQL
+          INSERT INTO #{table} (test, foo) VALUES
+            ('test4', 3),
+            ('test5', 4);
+        SQL
+      end
+
+      it { expect { insert }.to_not raise_error }
+
+      it { count(current).should == 4 }
+      it { count(history).should == 4 }
+
+      it { ids(current).should == ids(history) }
     end
   end
 
