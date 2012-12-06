@@ -13,7 +13,9 @@ having to deal with it.
 
 The application model is backed by an updatable view that behaves exactly like a plain table, while
 behind the scenes the database redirects the queries to concrete tables using
-[the rule system](http://www.postgresql.org/docs/9.0/static/rules-update.html).
+[the rule system](http://www.postgresql.org/docs/9.0/static/rules-update.html) for most of the cases,
+and using an `AFTER FOR EACH ROW` trigger only for the `INSERT` case on tables
+having a `SERIAL` primary key.
 
 Current data is hold in a table in the `temporal` [schema](http://www.postgresql.org/docs/9.0/static/ddl-schemas.html),
 while history in hold in another table in the `history` schema. The latter
@@ -182,8 +184,8 @@ them in your output, use `rake VERBOSE=true`.
 
  * `.includes` still doesn't work, but it'll fixed soon.
 
- * The history queries are very verbose, they should be factored out in a
-   per-table stored procedure.
+ * The history queries are very verbose, they should be factored out using a
+   `FUNCTION`.
 
  * The migration statements extension is implemented using a Man-in-the-middle
    class that inherits from the PostgreSQL adapter, and that relies on some
@@ -202,9 +204,9 @@ them in your output, use `rake VERBOSE=true`.
    If it will be possible [to opt-out of the
    fence](http://archives.postgresql.org/pgsql-hackers/2012-10/msg00024.php)
    in the future, they will be probably be used again as they were [in the
-   past](https://github.com/ifad/chronomodel/commit/39ab32a), because the
-   resulting queries are much more readable, and do not inhibit using .from()
-   from ARel.
+   past](https://github.com/ifad/chronomodel/commit/18f4c4b), because the
+   resulting queries are much more readable, and do not inhibit using
+   `.from()` from ARel.
 
 
 ## Contributing
