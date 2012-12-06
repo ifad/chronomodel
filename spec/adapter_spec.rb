@@ -325,8 +325,8 @@ describe ChronoModel::Adapter do
       it { should include(['id', 'integer']) }
     end
 
-    with_temporal_table &assert
-    with_plain_table    &assert
+    with_temporal_table(&assert)
+    with_plain_table(   &assert)
   end
 
   describe '.primary_key' do
@@ -336,8 +336,8 @@ describe ChronoModel::Adapter do
       it { should == 'id' }
     end
 
-    with_temporal_table &assert
-    with_plain_table    &assert
+    with_temporal_table(&assert)
+    with_plain_table(   &assert)
   end
 
   describe '.indexes' do
@@ -353,8 +353,8 @@ describe ChronoModel::Adapter do
       it { subject.map(&:columns).should =~ [['foo'], ['bar', 'baz']] }
     end
 
-    with_temporal_table &assert
-    with_plain_table    &assert
+    with_temporal_table(&assert)
+    with_plain_table(   &assert)
   end
 
   describe '.on_schema' do
