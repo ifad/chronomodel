@@ -382,10 +382,12 @@ module ChronoModel
           )
         SQL
 
-        # History sorting
+        # History sorting and update / delete rules
         #
-        execute "CREATE INDEX #{table}_recorded_at ON #{table} ( recorded_at )"
-        execute "CREATE INDEX #{table}_instance_history  ON #{table} ( #{p_pkey}, recorded_at )"
+        execute "CREATE INDEX #{table}_valid_from       ON #{table} ( valid_from )"
+        execute "CREATE INDEX #{table}_valid_to         ON #{table} ( valid_to )"
+        execute "CREATE INDEX #{table}_recorded_at      ON #{table} ( recorded_at )"
+        execute "CREATE INDEX #{table}_instance_history ON #{table} ( #{p_pkey}, recorded_at )"
       end
 
       # Create the public view and its rewrite rules
