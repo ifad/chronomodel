@@ -30,8 +30,8 @@ create table history.countries (
 
   constraint overlapping_times exclude using gist (
     box(
-      point( extract( epoch from valid_from), id ),
-      point( extract( epoch from valid_to - interval '1 millisecond'), id )
+      point( date_part( 'epoch', valid_from), id ),
+      point( date_part( 'epoch', valid_to - interval '1 millisecond'), id )
     ) with &&
   )
 ) inherits ( temporal.countries );
@@ -39,17 +39,21 @@ create table history.countries (
 -- Inherited primary key
 create index country_inherit_pkey ON countries ( id )
 
--- Snapshot of all entities at a specific point in time
-create index country_snapshot          on history.countries ( valid_from, valid_to )
+-- Snapshot of data at a specific point in time
+create index country_snapshot          on history.countries USING gist (
+  box(
+    point( date_part( 'epoch', valid_from ), 0 ),
+    point( date_part( 'epoch', valid_to   ), 0 )
+  )
+)
 
--- Snapshot of a single entity at a specific point in time
-create index country_instance_snapshot on history.countries ( id, valid_from, valid_to )
-
--- History update
-create index country_instance_update   on history.countries ( id, valid_to )
+-- Used by the rules queries when UPDATE'ing and DELETE'ing
+create index country_valid_from       on history.countries ( valid_from )
+create index country_valid_to         on history.countries ( valid_from )
+create index country_recorded_at      on history.countries ( id, valid_to )
 
 -- Single instance whole history
-create index country_instance_history  on history.countries ( id, recorded_at )
+create index country_instance_history on history.countries ( id, recorded_at )
 
 
 -- The countries view, what the Rails' application ORM will actually CRUD on, and
