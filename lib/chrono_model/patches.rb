@@ -30,7 +30,11 @@ module ChronoModel
           through_reflection.klass.history
         end
 
-        return scoped.readonly.from(history.virtual_table_at(owner.as_of_time))
+        if history
+          scoped = scoped.readonly.from(history.virtual_table_at(owner.as_of_time))
+        end
+
+        return scoped
       end
 
       private
