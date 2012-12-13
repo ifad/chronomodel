@@ -213,9 +213,41 @@ module ChronoModel
       end
     end
 
+    module TimeQuery
+      def time_query(match, time, options)
+        from, to = options[:on]
+
+        time = Conversions.time_to_utc_string(time.utc) if time.kind_of?(Time)
+
+        time = time == :now ? 'now()' : "'#{time}'::timestamp"
+
+        operator = {
+          :at      => '&&',
+          :not     => '&&',
+          :before  => '<<',
+          :after   => '>>',
+        }.fetch(match)
+
+        query = %[
+          box(
+            point( date_part( 'epoch', #{from} ), 0 ),
+            point( date_part( 'epoch', #{to  } ), 0 )
+          ) #{operator}
+          box(
+            point( date_part( 'epoch', #{time} ), 0 ),
+            point( date_part( 'epoch', #{time} ), 0 )
+          )
+        ]
+
+        where(match == :not ? "NOT "<< query : query)
+      end
+    end
+
     # Methods that make up the history interface of the companion History
     # model, automatically built for each Model that includes TimeMachine
     module HistoryMethods
+      include TimeQuery
+
       # Fetches as of +time+ records.
       #
       def as_of(time, scope = nil)
@@ -249,21 +281,11 @@ module ChronoModel
       # Fetches history record at the given time
       #
       def at(time)
-        time = Conversions.time_to_utc_string(time.utc) if time.kind_of? Time
+        time = Conversions.time_to_utc_string(time.utc) if time.kind_of?(Time)
 
-        from, to = quoted_history_fields
         unscoped.
           select("#{quoted_table_name}.*, '#{time}' AS as_of_time").
-          where(%[
-            box(
-              point( date_part( 'epoch', '#{time}'::timestamp ), 0 ),
-              point( date_part( 'epoch', '#{time}'::timestamp ), 0 )
-            ) &&
-            box(
-              point( date_part( 'epoch', #{from} ), 0 ),
-              point( date_part( 'epoch', #{to}   ), 0 )
-            )
-          ])
+          time_query(:at, time, :on => quoted_history_fields)
       end
 
       # Returns the whole history as read only.
