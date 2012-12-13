@@ -214,6 +214,12 @@ module ChronoModel
     end
 
     module TimeQuery
+      OPERATORS = {
+        :at      => '&&',
+        :before  => '<<',
+        :after   => '>>',
+      }.freeze
+
       def time_query(match, time, options)
         from, to = options[:on]
 
@@ -221,26 +227,29 @@ module ChronoModel
 
         time = time == :now ? 'now()' : "'#{time}'::timestamp"
 
-        operator = {
-          :at      => '&&',
-          :not     => '&&',
-          :before  => '<<',
-          :after   => '>>',
-        }.fetch(match)
-
-        query = %[
-          box(
-            point( date_part( 'epoch', #{from} ), 0 ),
-            point( date_part( 'epoch', #{to  } ), 0 )
-          ) #{operator}
-          box(
-            point( date_part( 'epoch', #{time} ), 0 ),
-            point( date_part( 'epoch', #{time} ), 0 )
-          )
-        ]
-
-        where(match == :not ? "NOT "<< query : query)
+        if match == :not
+          where(%[
+            #{build_time_query(:before, time, from, to)} OR
+            #{build_time_query(:after,  time, from, to)}
+          ])
+        else
+          where(build_time_query(match, time, from, to))
+        end
       end
+
+      private
+        def build_time_query(match, time, from, to)
+          %[
+            box(
+              point( date_part( 'epoch', #{from} ), 0 ),
+              point( date_part( 'epoch', #{to  } ), 0 )
+            ) #{OPERATORS.fetch(match)}
+            box(
+              point( date_part( 'epoch', #{time} ), 0 ),
+              point( date_part( 'epoch', #{time} ), 0 )
+            )
+          ]
+        end
     end
 
     # Methods that make up the history interface of the companion History
