@@ -264,6 +264,138 @@ module ChronoModel
       end
     end
 
+    # Create spatial indexes for timestamp search. Conceptually identical
+    # to the EXCLUDE constraint in chrono_create_history_for, but without
+    # the millisecond skew.
+    #
+    # This index is used by +TimeMachine.at+, `.current` and `.past` to
+    # build the temporal WHERE clauses that fetch the state of records at
+    # a single point in time.
+    #
+    # Parameters:
+    #
+    #   `table`: the table where to create indexes on
+    #   `from` : the starting timestamp field
+    #   `to`   : the ending timestamp field
+    #
+    # Options:
+    #
+    #   `:name`: the index name prefix, defaults to
+    #            {table_name}_temporal_{snapshot / from_col / to_col}
+    #
+    def add_temporal_indexes(table, from, to, options = {})
+      snapshot_idx, from_idx, to_idx =
+        temporal_index_names(table, from, to, options)
+
+      chrono_alter_index(table, options) do
+        execute <<-SQL
+          CREATE INDEX #{snapshot_idx} ON #{table} USING gist (
+            box(
+              point( date_part( 'epoch', #{from} ), 0 ),
+              point( date_part( 'epoch', #{to  } ), 0 )
+            )
+          )
+        SQL
+
+        # Indexes used for precise history filtering, sorting and, in history
+        # tables, by UPDATE / DELETE rules
+        #
+        execute "CREATE INDEX #{from_idx} ON #{table} ( #{from} )"
+        execute "CREATE INDEX #{to_idx  } ON #{table} ( #{to  } )"
+      end
+    end
+
+    def remove_temporal_indexes(table, from, to, options = {})
+      indexes = temporal_index_names(table, from, to, options)
+
+      chrono_alter_index(table, options) do
+        indexes.each {|idx| execute "DROP INDEX #{idx}" }
+      end
+    end
+
+    def temporal_index_names(table, from, to, options)
+      prefix = options[:name].presence || "#{table}_temporal"
+
+      ["#{from}_and_#{to}", from, to].map do |suffix|
+        [prefix, 'on', suffix].join('_')
+      end
+    end
+
+
+    # Adds a CHECK constraint to the given +table+, to assure that
+    # the value contained in the +from+ field is, by default, less
+    # than the value contained in the +to+ field.
+    #
+    # The default `<` operator can be changed using the `:op` option.
+    #
+    def add_from_before_to_constraint(table, from, to, options = {})
+      operator = options[:op].presence || '<'
+      name = from_before_to_constraint_name(table, from, to)
+
+      chrono_alter_constraint(table, options) do
+        execute <<-SQL
+          ALTER TABLE #{table} ADD CONSTRAINT
+            #{name} CHECK (#{from} #{operator} #{to})
+        SQL
+      end
+    end
+
+    def remove_from_before_to_constraint(table, from, to, options = {})
+      name = from_before_to_constraint_name(table, from, to)
+
+      chrono_alter_constraint(table, options) do
+        execute <<-SQL
+          ALTER TABLE #{table} DROP CONSTRAINT #{name}
+        SQL
+      end
+    end
+
+    def from_before_to_constraint_name(table, from, to)
+      "#{table}_#{from}_before_#{to}"
+    end
+
+
+    # Adds an EXCLUDE constraint to the given table, to assure that
+    # no more than one record can occupy a definite segment on a
+    # timeline.
+    #
+    # The exclusion is implemented using a spatial gist index, that
+    # uses boxes under the hood. Different records are identified by
+    # default using the table's primary key - or you can specify your
+    # field (or composite field) using the `:id` option.
+    #
+    def add_timeline_consistency_constraint(table, from, to, options = {})
+      name = timeline_consistency_constraint_name(table)
+      id = options[:id] || primary_key(table)
+
+      chrono_alter_constraint(table, options) do
+        execute <<-SQL
+          ALTER TABLE #{table} ADD CONSTRAINT
+            #{name} EXCLUDE USING gist (
+              box(
+                point( date_part( 'epoch', #{from} ), #{id} ),
+                point( date_part( 'epoch', #{to  } - INTERVAL '1 msec' ), #{id} )
+              )
+              WITH &&
+            )
+        SQL
+      end
+    end
+
+    def remove_timeline_consistency_constraint(table, from, to, options = {})
+      name = timeline_consistency_constraint_name(table)
+      chrono_alter_constraint(table, options) do
+        execute <<-SQL
+          ALTER TABLE #{table} DROP CONSTRAINT #{name}
+        SQL
+      end
+    end
+
+    def timeline_consistency_constraint_name(table)
+      "#{table}_timeline_consistency"
+    end
+
+
     # Evaluates the given block in the given +schema+ search path.
     #
     # By default, nested call are allowed, to disable this feature
@@ -343,18 +475,15 @@ module ChronoModel
             hid         SERIAL PRIMARY KEY,
             valid_from  timestamp NOT NULL,
             valid_to    timestamp NOT NULL DEFAULT '9999-12-31',
-            recorded_at timestamp NOT NULL DEFAULT timezone('UTC', now()),
-
-            CONSTRAINT #{table}_from_before_to CHECK (valid_from < valid_to),
-
-            CONSTRAINT #{table}_overlapping_times EXCLUDE USING gist (
-              box(
-                point( date_part( 'epoch', valid_from), #{p_pkey} ),
-                point( date_part( 'epoch', valid_to - INTERVAL '1 millisecond'), #{p_pkey} )
-              ) with &&
-            )
+            recorded_at timestamp NOT NULL DEFAULT timezone('UTC', now())
           ) INHERITS ( #{parent} )
         SQL
+
+        add_from_before_to_constraint(table, :valid_from, :valid_to,
+          :on_current_schema => true)
+
+        add_timeline_consistency_constraint(table, :valid_from, :valid_to,
+          :id => p_pkey, :on_current_schema => true)
 
         # Inherited primary key
         execute "CREATE INDEX #{table}_inherit_pkey ON #{table} ( #{p_pkey} )"
@@ -367,26 +496,9 @@ module ChronoModel
         # TODO remove me.
         p_pkey ||= primary_key("#{TEMPORAL_SCHEMA}.#{table}")
 
-        # Create spatial indexes for timestamp search. Conceptually identical
-        # to the above EXCLUDE constraint but without the millisecond removal.
-        #
-        # This index is used by TimeMachine.at to built the temporal WHERE
-        # clauses that fetch the state of the records at a single point in
-        # history.
-        #
-        execute <<-SQL
-          CREATE INDEX #{table}_snapshot ON #{table} USING gist (
-            box(
-              point( date_part( 'epoch', valid_from ), 0 ),
-              point( date_part( 'epoch', valid_to   ), 0 )
-            )
-          )
-        SQL
+        add_temporal_indexes table, :valid_from, :valid_to,
+          :on_current_schema => true
 
-        # History sorting and update / delete rules
-        #
-        execute "CREATE INDEX #{table}_valid_from       ON #{table} ( valid_from )"
-        execute "CREATE INDEX #{table}_valid_to         ON #{table} ( valid_to )"
         execute "CREATE INDEX #{table}_recorded_at      ON #{table} ( recorded_at )"
         execute "CREATE INDEX #{table}_instance_history ON #{table} ( #{p_pkey}, recorded_at )"
       end
@@ -544,6 +656,31 @@ module ChronoModel
 
           # Recreate the rules
           chrono_create_view_for(table_name)
+        end
+      end
+
+      # Generic alteration of history tables, where changes have to be
+      # propagated both on the temporal table and the history one.
+      #
+      # Internally, the :on_current_schema bypasses the +is_chrono?+
+      # check, as some temporal indexes and constraints are created
+      # only on the history table, and the creation methods already
+      # run scoped into the correct schema.
+      #
+      def chrono_alter_index(table_name, options)
+        if is_chrono?(table_name) && !options[:on_current_schema]
+          _on_temporal_schema { yield }
+          _on_history_schema { yield }
+        else
+          yield
+        end
+      end
+
+      def chrono_alter_constraint(table_name, options)
+        if is_chrono?(table_name) && !options[:on_current_schema]
+          _on_temporal_schema { yield }
+        else
+          yield
         end
       end
 
