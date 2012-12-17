@@ -691,6 +691,14 @@ module ChronoModel
       def _on_history_schema(nesting = true, &block)
         on_schema(HISTORY_SCHEMA, nesting, &block)
       end
+
+      def translate_exception(exception, message)
+        if exception.message =~ /conflicting key value violates exclusion constraint/
+          ActiveRecord::RecordNotUnique.new(message, exception)
+        else
+          super
+        end
+      end
   end
 
 end
