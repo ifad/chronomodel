@@ -220,33 +220,40 @@ module ChronoModel
         :after   => '>>',
       }.freeze
 
-      def time_query(match, time, options)
-        from, to = options[:on]
+      def time_query(match, time_or_times, options)
+        from_f, to_f = options[:on]
 
-        time = Conversions.time_to_utc_string(time.utc) if time.kind_of?(Time)
-
-        time = time == :now ? 'now()' : "'#{time}'::timestamp"
+        from_t, to_t = if time_or_times.kind_of?(Array)
+          time_or_times.map! {|t| time_for_time_query(t)}
+        else
+          [time_for_time_query(time_or_times)]*2
+        end
 
         if match == :not
           where(%[
-            #{build_time_query(:before, time, from, to)} OR
-            #{build_time_query(:after,  time, from, to)}
+            #{build_time_query(:before, from_t, from_f, to_t, to_f)} OR
+            #{build_time_query(:after,  from_t, from_f, to_t, to_f)}
           ])
         else
-          where(build_time_query(match, time, from, to))
+          where(build_time_query(match, from_t, from_f, to_t, to_f))
         end
       end
 
       private
-        def build_time_query(match, time, from, to)
+        def time_for_time_query(t)
+          t = Conversions.time_to_utc_string(t.utc) if t.kind_of?(Time)
+          t == :now ? 'now()' : "'#{t}'::timestamp"
+        end
+
+        def build_time_query(match, from_t, from_f, to_t, to_f)
           %[
             box(
-              point( date_part( 'epoch', #{from} ), 0 ),
-              point( date_part( 'epoch', #{to  } ), 0 )
+              point( date_part( 'epoch', #{from_f} ), 0 ),
+              point( date_part( 'epoch', #{to_f  } ), 0 )
             ) #{OPERATORS.fetch(match)}
             box(
-              point( date_part( 'epoch', #{time} ), 0 ),
-              point( date_part( 'epoch', #{time} ), 0 )
+              point( date_part( 'epoch', #{from_t} ), 0 ),
+              point( date_part( 'epoch', #{to_t  } ), 0 )
             )
           ]
         end
