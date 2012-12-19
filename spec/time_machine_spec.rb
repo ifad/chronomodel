@@ -324,7 +324,7 @@ describe ChronoModel::TimeMachine do
     context 'on plain records' do
       context 'having history' do
         subject { bar.last_changes }
-        it { should == {'name' => ['new bar', 'bar bar']} }
+        it { should == {'name' => ['bar bar', 'new bar']} }
       end
 
       context 'without history' do
@@ -343,7 +343,7 @@ describe ChronoModel::TimeMachine do
 
       context 'in the middle of the timeline' do
         subject { bar.history.second.last_changes }
-        it { should == {'name' => ['foo bar', 'bar']} }
+        it { should == {'name' => ['bar', 'foo bar']} }
       end
     end
   end
