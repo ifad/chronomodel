@@ -193,9 +193,7 @@ module ChronoModel
     # the same format used by ActiveModel::Dirty.
     #
     def changes_against(ref)
-      internals = %W( id hid valid_from valid_to recorded_at as_of_time )
-
-      (attribute_names - internals).inject({}) do |changes, attr|
+      self.class.attribute_names_for_history_changes.inject({}) do |changes, attr|
         old, new = ref.public_send(attr), self.public_send(attr)
 
         changes.tap {|c| c[attr] = [old, new] if old != new }
@@ -214,6 +212,11 @@ module ChronoModel
       # it was +time+ ago.
       def as_of(time)
         history.as_of(time, current_scope)
+      end
+
+      def attribute_names_for_history_changes
+        @attribute_names_for_history_changes ||= attribute_names -
+          %w( id hid valid_from valid_to recorded_at as_of_time )
       end
     end
 
