@@ -348,6 +348,31 @@ describe ChronoModel::TimeMachine do
     end
   end
 
+  describe '#changes_against' do
+    context 'can compare records against history' do
+      it { bar.changes_against(bar.history.first).should ==
+             {'name' => ['bar', 'new bar']} }
+
+      it { bar.changes_against(bar.history.second).should ==
+             {'name' => ['foo bar', 'new bar']} }
+
+      it { bar.changes_against(bar.history.third).should ==
+             {'name' => ['bar bar', 'new bar']} }
+
+      it { bar.changes_against(bar.history.last).should == {} }
+    end
+
+    context 'can compare history against history' do
+      it { bar.history.first.changes_against(bar.history.third).should ==
+             {'name' => ['bar bar', 'bar']} }
+
+      it { bar.history.second.changes_against(bar.history.third).should ==
+             {'name' => ['bar bar', 'foo bar']} }
+
+      it { bar.history.third.changes_against(bar.history.third).should == {} }
+    end
+  end
+
   describe '#pred' do
     context 'on records having history' do
       subject { bar.pred }
