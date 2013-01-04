@@ -132,7 +132,8 @@ module ChronoModel
 
           if utc_hack
             def utc_timestamp_from(attr)
-              attributes[attr].utc + Time.now.utc_offset
+              offset = attributes[attr].utc_offset
+              attributes[attr].utc + offset
             end
           else
             def utc_timestamp_from(attr)
