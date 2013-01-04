@@ -10,7 +10,12 @@ describe ChronoModel::TimeMachine do
   describe '.chrono_models' do
     subject { ChronoModel::TimeMachine.chrono_models }
 
-    it { should == {'foos' => Foo::History, 'defoos' => Defoo::History, 'bars' => Bar::History} }
+    it { should == {
+      'foos'     => Foo::History,
+      'defoos'   => Defoo::History,
+      'bars'     => Bar::History,
+      'elements' => Element::History
+    } }
   end
 
 
@@ -173,6 +178,15 @@ describe ChronoModel::TimeMachine do
     describe 'allows a custom order list' do
       it { expect { foo.history.order('id') }.to_not raise_error }
       it { foo.history.order('id').to_sql.should =~ /order by id/i }
+    end
+
+    context 'with STI models' do
+      let!(:pub) {
+        pub = ts_eval { Publication.create! :title => 'wrong title' }
+        ts_eval(pub) { update_attributes! :title => 'correct title' }
+      }
+
+      it { pub.history.map(&:title).should == ['wrong title', 'correct title'] }
     end
   end
 

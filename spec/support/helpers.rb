@@ -69,6 +69,11 @@ module ChronoTest::Helpers
             t.string  :name
             t.boolean :active
           end
+
+          adapter.create_table 'elements', :temporal => true do |t|
+            t.string :title
+            t.string :type
+          end
         end
 
         after(:all) do
@@ -102,6 +107,14 @@ module ChronoTest::Helpers
           include ChronoModel::TimeMachine
 
           default_scope where(:active => true)
+        end
+
+        # STI case (https://github.com/ifad/chronomodel/issues/5)
+        class ::Element < ActiveRecord::Base
+          include ChronoModel::TimeMachine
+        end
+
+        class ::Publication < Element
         end
       }
 

@@ -18,6 +18,19 @@ module ChronoModel
 
       history = TimeMachine.define_history_model_for(self)
       TimeMachine.chrono_models[table_name] = history
+
+      # STI support. TODO: more thorough testing
+      #
+      def self.inherited(subclass)
+        super
+
+        # Do not smash stack: as the below method is defining a
+        # new anonymous class, without this check this leads to
+        # infinite recursion.
+        unless subclass.name.nil?
+          TimeMachine.define_inherited_history_model_for(subclass)
+        end
+      end
     end
 
     # Returns an Hash keyed by table name of ChronoModels
@@ -146,9 +159,32 @@ module ChronoModel
         define_method(:history) { history }
       end
 
+      history.singleton_class.instance_eval do
+        define_method(:sti_name) { model.sti_name }
+      end
+
       model.const_set :History, history
 
       return history
+    end
+
+    def self.define_inherited_history_model_for(subclass)
+      # Define history model for the subclass
+      history = Class.new(subclass.superclass.history)
+      history.table_name = subclass.superclass.history.table_name
+
+      # Override the STI name on the history subclass
+      history.singleton_class.instance_eval do
+        define_method(:sti_name) { subclass.sti_name }
+      end
+
+      # Return the subclass history via the .history method
+      subclass.singleton_class.instance_eval do
+        define_method(:history) { history }
+      end
+
+      # Define the History constant inside the subclass
+      subclass.const_set :History, history
     end
 
     # Returns a read-only representation of this record as it was +time+ ago.
