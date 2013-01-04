@@ -127,7 +127,10 @@ module ChronoModel
           # were stored in the local timezone - thus here we reset its
           # assumption. TODO: OPTIMIZE.
           #
-          if ActiveRecord::Base.default_timezone != :utc
+          utc_hack = ActiveRecord::Base.default_timezone != :utc ||
+            (defined?(Rails) && Rails.application.config.time_zone.downcase != 'utc')
+
+          if utc_hack
             def utc_timestamp_from(attr)
               attributes[attr].utc + Time.now.utc_offset
             end
