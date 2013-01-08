@@ -24,14 +24,24 @@ module ChronoModel
           owner.public_send(reflection.foreign_type).constantize :
           reflection.klass
 
-        history = if klass.chrono?
-          klass.history
+        if klass.chrono?
+          # For standard associations, replace the table name with the virtual
+          # as-of table name at the owner's as-of-time
+          #
+          scoped = scoped.readonly.from(klass.history.virtual_table_at(owner.as_of_time))
         elsif respond_to?(:through_reflection) && through_reflection.klass.chrono?
-          through_reflection.klass.history
-        end
 
-        if history
-          scoped = scoped.readonly.from(history.virtual_table_at(owner.as_of_time))
+          # For through associations, replace the joined table name instead.
+          #
+          scoped.join_sources.each do |join|
+            if join.left.name == through_reflection.klass.table_name
+              v_table = through_reflection.klass.history.virtual_table_at(
+                owner.as_of_time, join.left.table_alias || join.left.table_name)
+
+              join.left = Arel::Nodes::SqlLiteral.new(v_table)
+            end
+          end
+
         end
 
         return scoped
