@@ -202,8 +202,8 @@ module ChronoModel
     # Returns an Array of timestamps for which this instance has an history
     # record. Takes temporal associations into account.
     #
-    def history_timestamps
-      self.class.history.timestamps(self)
+    def history_timestamps(options = {})
+      self.class.history.timestamps(self, options)
     end
 
     # Returns a boolean indicating whether this record is an history entry.
@@ -391,10 +391,10 @@ module ChronoModel
         # Returns an Array of unique UTC timestamps for which at least an
         # history record exists. Takes temporal associations into account.
         #
-        def timestamps(record = nil)
-          assocs = reflect_on_all_associations.select {|a|
-            !a.options[:polymorphic] && [:belongs_to, :has_one].include?(a.macro) && a.klass.chrono?
-          }
+        def timestamps(record = nil, options = {})
+          assocs = options.key?(:on) ?
+            timestamps_user_associations(Array.wrap(options[:on])) :
+            timestamps_default_associations
 
           models = []
           models.push self if self.chrono?
@@ -422,6 +422,21 @@ module ChronoModel
             end
           end
         end
+
+        private
+          def timestamps_default_associations
+            reflect_on_all_associations.select do |a|
+              a.klass.chrono? && !a.options[:polymorphic] &&
+                [:belongs_to, :has_one].include?(a.macro)
+            end
+          end
+
+          def timestamps_user_associations(names)
+            names.map do |name|
+              reflect_on_association(name) or raise ArgumentError,
+                "No association found for name `#{name}'"
+            end
+          end
       end)
 
       def quoted_history_fields
