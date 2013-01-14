@@ -271,7 +271,7 @@ module ChronoModel
       end
 
       def has_timeline(options)
-        options.assert_valid_keys(:with, :simple)
+        options.assert_valid_keys(:with, :changes, :simple)
 
         history.instance_eval do
           @timeline_associations ||= []
@@ -280,6 +280,9 @@ module ChronoModel
           @timeline_associations.concat \
             timeline_user_associations(options[:with])
         end
+
+        attribute_names_for_history_changes.concat \
+          Array.wrap(options[:changes]) || timeline_associations.map(&:name)
       end
 
       delegate :timeline_associations, :to => :history
