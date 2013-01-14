@@ -392,8 +392,8 @@ module ChronoModel
         # history record exists. Takes temporal associations into account.
         #
         def timestamps(record = nil, options = {})
-          assocs = options.key?(:on) ?
-            timestamps_user_associations(Array.wrap(options[:on])) :
+          assocs = options.key?(:with) ?
+            timestamps_user_associations(Array.wrap(options[:with])) :
             timestamps_default_associations
 
           models = []

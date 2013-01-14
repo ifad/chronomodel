@@ -307,11 +307,16 @@ describe ChronoModel::TimeMachine do
     }
 
     describe 'on records having an :has_many relationship' do
-      subject { foo.history_timestamps }
-
-      describe 'returns timestamps of the record only' do
+      describe 'by default returns timestamps of the record only' do
+        subject { foo.history_timestamps }
         its(:size) { should == foo.ts.size }
         it { should == timestamps_from.call(foo) }
+      end
+
+      describe 'when asked, returns timestamps including the related objects' do
+        subject { foo.history_timestamps(:with => :bars) }
+        its(:size) { should == foo.ts.size + bar.ts.size }
+        it { should == timestamps_from.call(foo, *foo.bars) }
       end
     end
 
