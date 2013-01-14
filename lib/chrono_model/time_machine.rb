@@ -271,18 +271,11 @@ module ChronoModel
       end
 
       def has_timeline(options)
-        options.assert_valid_keys(:with, :changes, :simple)
-
-        history.instance_eval do
-          @timeline_associations ||= []
-          return if options[:simple]
-
-          @timeline_associations.concat \
-            timeline_user_associations(options[:with])
-        end
+        changes = options.delete(:changes)
+        history.has_timeline(options)
 
         attribute_names_for_history_changes.concat \
-          Array.wrap(options[:changes]) || timeline_associations.map(&:name)
+          Array.wrap(changes) || timeline_associations.map(&:name)
       end
 
       delegate :timeline_associations, :to => :history
@@ -415,7 +408,7 @@ module ChronoModel
         end
       end
 
-      include(TS = Module.new do
+      include(Timeline = Module.new do
         # Returns an Array of unique UTC timestamps for which at least an
         # history record exists. Takes temporal associations into account.
         #
@@ -423,12 +416,13 @@ module ChronoModel
           rid = record.respond_to?(:rid) ? record.rid : record.id if record
 
           assocs = options.key?(:with) ?
-            timeline_user_associations(options[:with]) :
-            timeline_associations
+            timeline_associations_from(options[:with]) : timeline_associations
 
           models = []
           models.push self if self.chrono?
           models.concat(assocs.map {|a| a.klass.history})
+
+          return [] if models.empty?
 
           fields = models.inject([]) {|a,m| a.concat m.quoted_history_fields}
 
@@ -468,15 +462,18 @@ module ChronoModel
           end
         end
 
-        def timeline_associations
-          @timeline_associations ||=
-            reflect_on_all_associations.select do |a|
-              [:belongs_to, :has_one].include?(a.macro) &&
-                !a.options[:polymorphic] && a.klass.chrono?
-            end
+        def has_timeline(options)
+          options.assert_valid_keys(:with)
+
+          timeline_associations.concat \
+            timeline_associations_from(options[:with])
         end
 
-        def timeline_user_associations(names)
+        def timeline_associations
+          @timeline_associations ||= []
+        end
+
+        def timeline_associations_from(names)
           Array.wrap(names).map do |name|
             reflect_on_association(name) or raise ArgumentError,
               "No association found for name `#{name}'"

@@ -320,7 +320,7 @@ describe ChronoModel::TimeMachine do
       end
     end
 
-    describe 'on records having a :belongs_to relationship' do
+    describe 'on records using has_timeline :with' do
       subject { bar.timeline.map!(&:to_f) }
 
       describe 'returns timestamps of the record and its associations' do
@@ -335,7 +335,7 @@ describe ChronoModel::TimeMachine do
       end
     end
 
-    describe 'on non-temporal records with a :belongs_to' do
+    describe 'on non-temporal records using has_timeline :with' do
       subject { baz.timeline.map!(&:to_f) }
 
       describe 'returns timestamps of its temporal associations' do

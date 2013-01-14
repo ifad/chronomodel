@@ -95,12 +95,16 @@ module ChronoTest::Helpers
 
           belongs_to :foo
           has_one :baz
+
+          has_timeline :with => :foo
         end
 
         class ::Baz < ActiveRecord::Base
           include ChronoModel::TimeGate
 
           belongs_to :bar
+
+          has_timeline :with => :bar
         end
 
         class ::Defoo < ActiveRecord::Base

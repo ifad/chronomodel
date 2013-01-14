@@ -21,7 +21,7 @@ module ChronoModel
         return as_of
       end
 
-      include TimeMachine::HistoryMethods::TS
+      include TimeMachine::HistoryMethods::Timeline
     end
 
     def as_of(time)
