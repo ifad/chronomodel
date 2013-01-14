@@ -74,7 +74,7 @@ module ChronoModel
         def pred
           return nil if self.valid_from.year.zero?
 
-          if self.class.timestamps_associations.empty?
+          if self.class.timeline_associations.empty?
             self.class.where(:id => rid, :valid_to => valid_from_before_type_cast).first
           else
             super(:id => rid, :before => valid_from)
@@ -87,7 +87,7 @@ module ChronoModel
         def succ
           return nil if self.valid_to.year == 9999
 
-          if self.class.timestamps_associations.empty?
+          if self.class.timeline_associations.empty?
             self.class.where(:id => rid, :valid_from => valid_to_before_type_cast).first
           else
             super(:id => rid, :after => valid_to)
@@ -161,8 +161,8 @@ module ChronoModel
     # Returns an Array of timestamps for which this instance has an history
     # record. Takes temporal associations into account.
     #
-    def history_timestamps(options = {})
-      self.class.history.timestamps(self, options)
+    def timeline(options = {})
+      self.class.history.timeline(self, options)
     end
 
     # Returns a boolean indicating whether this record is an history entry.
@@ -193,7 +193,7 @@ module ChronoModel
     # recorded entry.
     #
     def pred(options = {})
-      if self.class.timestamps_associations.empty?
+      if self.class.timeline_associations.empty?
         history.order('valid_to DESC').offset(1).first
       else
         return nil unless (ts = pred_timestamp(options))
@@ -206,7 +206,7 @@ module ChronoModel
     #
     def pred_timestamp(options = {})
       options[:before] ||= historical? ? as_of_time : Time.now
-      ts = history_timestamps(options.merge(:limit => 1, :reverse => true)).first
+      ts = timeline(options.merge(:limit => 1, :reverse => true)).first
       return nil if !historical? && ts == history.select(:valid_from).first.try(:valid_from)
       return ts
     end
@@ -214,7 +214,7 @@ module ChronoModel
     # Returns the next record in the history timeline.
     #
     def succ(options = {})
-      unless self.class.timestamps_associations.empty?
+      unless self.class.timeline_associations.empty?
         return nil unless (ts = succ_timestamp(options))
         self.class.as_of(ts).find(options[:id] || id)
       end
@@ -227,7 +227,7 @@ module ChronoModel
       return nil unless historical?
 
       options[:after] ||= as_of_time
-      history_timestamps(options.merge(:limit => 1, :reverse => false)).first
+      timeline(options.merge(:limit => 1, :reverse => false)).first
     end
 
     # Returns the differences between this entry and the previous history one.
@@ -274,15 +274,15 @@ module ChronoModel
         options.assert_valid_keys(:with, :simple)
 
         history.instance_eval do
-          @timestamps_associations ||= []
+          @timeline_associations ||= []
           return if options[:simple]
 
-          @timestamps_associations.concat \
-            timestamps_user_associations(options[:with])
+          @timeline_associations.concat \
+            timeline_user_associations(options[:with])
         end
       end
 
-      delegate :timestamps_associations, :to => :history
+      delegate :timeline_associations, :to => :history
     end
 
     module TimeQuery
@@ -416,12 +416,12 @@ module ChronoModel
         # Returns an Array of unique UTC timestamps for which at least an
         # history record exists. Takes temporal associations into account.
         #
-        def timestamps(record = nil, options = {})
+        def timeline(record = nil, options = {})
           rid = record.respond_to?(:rid) ? record.rid : record.id if record
 
           assocs = options.key?(:with) ?
-            timestamps_user_associations(options[:with]) :
-            timestamps_associations
+            timeline_user_associations(options[:with]) :
+            timeline_associations
 
           models = []
           models.push self if self.chrono?
@@ -463,15 +463,15 @@ module ChronoModel
           end
         end
 
-        def timestamps_associations
-          @timestamps_associations ||=
+        def timeline_associations
+          @timeline_associations ||=
             reflect_on_all_associations.select do |a|
               [:belongs_to, :has_one].include?(a.macro) &&
                 !a.options[:polymorphic] && a.klass.chrono?
             end
         end
 
-        def timestamps_user_associations(names)
+        def timeline_user_associations(names)
           Array.wrap(names).map do |name|
             reflect_on_association(name) or raise ArgumentError,
               "No association found for name `#{name}'"

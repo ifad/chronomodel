@@ -28,8 +28,8 @@ module ChronoModel
       self.class.as_of(time).where(:id => self.id).first!
     end
 
-    def history_timestamps
-      self.class.timestamps(self)
+    def timeline
+      self.class.timeline(self)
     end
   end
 

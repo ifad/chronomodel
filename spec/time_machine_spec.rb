@@ -299,7 +299,7 @@ describe ChronoModel::TimeMachine do
     end
   end
 
-  describe '#history_timestamps' do
+  describe '#timeline' do
     timestamps_from = lambda {|*records|
       records.map(&:history).flatten!.inject([]) {|ret, rec|
         ret.concat [rec.valid_from.to_f, rec.valid_to.to_f]
@@ -308,20 +308,20 @@ describe ChronoModel::TimeMachine do
 
     describe 'on records having an :has_many relationship' do
       describe 'by default returns timestamps of the record only' do
-        subject { foo.history_timestamps.map!(&:to_f) }
+        subject { foo.timeline.map!(&:to_f) }
         its(:size) { should == foo.ts.size }
         it { should == timestamps_from.call(foo) }
       end
 
       describe 'when asked, returns timestamps including the related objects' do
-        subject { foo.history_timestamps(:with => :bars).map!(&:to_f) }
+        subject { foo.timeline(:with => :bars).map!(&:to_f) }
         its(:size) { should == foo.ts.size + bar.ts.size }
         it { should == timestamps_from.call(foo, *foo.bars) }
       end
     end
 
     describe 'on records having a :belongs_to relationship' do
-      subject { bar.history_timestamps.map!(&:to_f) }
+      subject { bar.timeline.map!(&:to_f) }
 
       describe 'returns timestamps of the record and its associations' do
 
@@ -336,7 +336,7 @@ describe ChronoModel::TimeMachine do
     end
 
     describe 'on non-temporal records with a :belongs_to' do
-      subject { baz.history_timestamps.map!(&:to_f) }
+      subject { baz.timeline.map!(&:to_f) }
 
       describe 'returns timestamps of its temporal associations' do
         its(:size) { should == bar.ts.size }
