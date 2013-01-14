@@ -302,35 +302,41 @@ describe ChronoModel::TimeMachine do
   describe '#history_timestamps' do
     timestamps_from = lambda {|*records|
       records.map(&:history).flatten!.inject([]) {|ret, rec|
-        ret.concat [rec.valid_from, rec.valid_to]
+        ret.concat [rec.valid_from.to_f, rec.valid_to.to_f]
       }.sort.uniq[0..-2]
     }
 
     describe 'on records having an :has_many relationship' do
       describe 'by default returns timestamps of the record only' do
-        subject { foo.history_timestamps }
+        subject { foo.history_timestamps.map!(&:to_f) }
         its(:size) { should == foo.ts.size }
         it { should == timestamps_from.call(foo) }
       end
 
       describe 'when asked, returns timestamps including the related objects' do
-        subject { foo.history_timestamps(:with => :bars) }
+        subject { foo.history_timestamps(:with => :bars).map!(&:to_f) }
         its(:size) { should == foo.ts.size + bar.ts.size }
         it { should == timestamps_from.call(foo, *foo.bars) }
       end
     end
 
     describe 'on records having a :belongs_to relationship' do
-      subject { bar.history_timestamps }
+      subject { bar.history_timestamps.map!(&:to_f) }
 
       describe 'returns timestamps of the record and its associations' do
-        its(:size) { should == foo.ts.size + bar.ts.size }
-        it { should == timestamps_from.call(foo, bar) }
+
+        let!(:expected) do
+          bar_creation = bar.history.first.valid_from.to_f
+          timestamps_from.call(foo, bar).reject! {|ts| ts < bar_creation}
+        end
+
+        its(:size) { should == expected.size }
+        it { should == expected }
       end
     end
 
     describe 'on non-temporal records with a :belongs_to' do
-      subject { baz.history_timestamps }
+      subject { baz.history_timestamps.map!(&:to_f) }
 
       describe 'returns timestamps of its temporal associations' do
         its(:size) { should == bar.ts.size }
@@ -399,7 +405,7 @@ describe ChronoModel::TimeMachine do
     end
 
     context 'when there is enough history' do
-      subject { bar.pred.pred.pred }
+      subject { bar.pred.pred.pred.pred.pred }
       its(:name) { should == 'bar' }
     end
 
@@ -427,7 +433,8 @@ describe ChronoModel::TimeMachine do
 
         describe 'on current records' do
           subject { current.public_send(attr) }
-          it { expect { subject }.to raise_error(NoMethodError) }
+
+          it { should be_nil }
         end
       }
     }

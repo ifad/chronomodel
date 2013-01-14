@@ -68,30 +68,17 @@ module ChronoModel
           self.primary_key = old
         end
 
-        # SCD Type 2 validity from timestamp
-        #
-        def valid_from
-          utc_timestamp_from('valid_from')
-        end
-
-        # SCD Type 2 validity to timestamp
-        #
-        def valid_to
-          utc_timestamp_from('valid_to')
-        end
-
-        # History recording timestamp
-        #
-        def recorded_at
-          utc_timestamp_from('recorded_at')
-        end
-
         # Returns the previous history entry, or nil if this
         # is the first one.
         #
         def pred
           return nil if self.valid_from.year.zero?
-          self.class.where(:id => rid, :valid_to => valid_from_before_type_cast).first
+
+          if self.class.timestamps_associations.empty?
+            self.class.where(:id => rid, :valid_to => valid_from_before_type_cast).first
+          else
+            super(:id => rid, :before => valid_from)
+          end
         end
 
         # Returns the next history entry, or nil if this is the
@@ -99,7 +86,12 @@ module ChronoModel
         #
         def succ
           return nil if self.valid_to.year == 9999
-          self.class.where(:id => rid, :valid_from => valid_to_before_type_cast).first
+
+          if self.class.timestamps_associations.empty?
+            self.class.where(:id => rid, :valid_from => valid_to_before_type_cast).first
+          else
+            super(:id => rid, :after => valid_to)
+          end
         end
         alias :next :succ
 
@@ -120,39 +112,6 @@ module ChronoModel
         def record
           self.class.superclass.find(rid)
         end
-
-        # Virtual attribute used to pass around the
-        # current timestamp in association queries
-        #
-        def as_of_time
-          Conversions.string_to_utc_time attributes['as_of_time']
-        end
-
-        # Inhibit destroy of historical records
-        #
-        def destroy
-          raise ActiveRecord::ReadOnlyRecord, 'Cannot delete historical records'
-        end
-
-        private
-          # Hack around AR timezone support. These timestamps are recorded
-          # by the chrono rewrite rules in UTC, but AR reads them as they
-          # were stored in the local timezone - thus here we reset its
-          # assumption. TODO: OPTIMIZE.
-          #
-          utc_hack = ActiveRecord::Base.default_timezone != :utc ||
-            (defined?(Rails) && Rails.application.config.time_zone.downcase != 'utc')
-
-          if utc_hack
-            def utc_timestamp_from(attr)
-              offset = attributes[attr].utc_offset
-              attributes[attr].utc + offset
-            end
-          else
-            def utc_timestamp_from(attr)
-              attributes[attr]
-            end
-          end
       end
 
       model.singleton_class.instance_eval do
@@ -209,14 +168,66 @@ module ChronoModel
     # Returns a boolean indicating whether this record is an history entry.
     #
     def historical?
-      self.kind_of? self.class.history
+      self.attributes.key?('as_of_time') || self.kind_of?(self.class.history)
+    end
+
+    # Hack around AR timezone support. These timestamps are recorded
+    # by the chrono rewrite rules in UTC, but AR reads them as they
+    # were stored in the local timezone - thus here we bypass type
+    # casting to force creation of UTC timestamps.
+    #
+    %w( valid_from valid_to recorded_at as_of_time ).each do |attr|
+      define_method(attr) do
+        Conversions.string_to_utc_time attributes_before_type_cast[attr]
+      end
+    end
+
+    # Inhibit destroy of historical records
+    #
+    def destroy
+      raise ActiveRecord::ReadOnlyRecord, 'Cannot delete historical records' if historical?
+      super
     end
 
     # Returns the previous record in the history, or nil if this is the only
     # recorded entry.
     #
-    def pred
-      history.order('valid_to DESC').offset(1).first
+    def pred(options = {})
+      if self.class.timestamps_associations.empty?
+        history.order('valid_to DESC').offset(1).first
+      else
+        return nil unless (ts = pred_timestamp(options))
+        self.class.as_of(ts).find(options[:id] || id)
+      end
+    end
+
+    # Returns the previous timestamp in this record's timeline. Includes
+    # temporal associations.
+    #
+    def pred_timestamp(options = {})
+      options[:before] ||= historical? ? as_of_time : Time.now
+      ts = history_timestamps(options.merge(:limit => 1, :reverse => true)).first
+      return nil if !historical? && ts == history.select(:valid_from).first.try(:valid_from)
+      return ts
+    end
+
+    # Returns the next record in the history timeline.
+    #
+    def succ(options = {})
+      unless self.class.timestamps_associations.empty?
+        return nil unless (ts = succ_timestamp(options))
+        self.class.as_of(ts).find(options[:id] || id)
+      end
+    end
+
+    # Returns the next timestamp in this record's timeline. Includes temporal
+    # associations.
+    #
+    def succ_timestamp(options = {})
+      return nil unless historical?
+
+      options[:after] ||= as_of_time
+      history_timestamps(options.merge(:limit => 1, :reverse => false)).first
     end
 
     # Returns the differences between this entry and the previous history one.
@@ -258,6 +269,20 @@ module ChronoModel
         @attribute_names_for_history_changes ||= attribute_names -
           %w( id hid valid_from valid_to recorded_at as_of_time )
       end
+
+      def has_timeline(options)
+        options.assert_valid_keys(:with, :simple)
+
+        history.instance_eval do
+          @timestamps_associations ||= []
+          return if options[:simple]
+
+          @timestamps_associations.concat \
+            timestamps_user_associations(options[:with])
+        end
+      end
+
+      delegate :timestamps_associations, :to => :history
     end
 
     module TimeQuery
@@ -392,9 +417,11 @@ module ChronoModel
         # history record exists. Takes temporal associations into account.
         #
         def timestamps(record = nil, options = {})
+          rid = record.respond_to?(:rid) ? record.rid : record.id if record
+
           assocs = options.key?(:with) ?
-            timestamps_user_associations(Array.wrap(options[:with])) :
-            timestamps_default_associations
+            timestamps_user_associations(options[:with]) :
+            timestamps_associations
 
           models = []
           models.push self if self.chrono?
@@ -405,14 +432,27 @@ module ChronoModel
           relation = self.
             joins(*assocs.map(&:name)).
             select("DISTINCT UNNEST(ARRAY[#{fields.join(',')}]) AS ts").
-            order('ts')
+            order('ts ' << (options[:reverse] ? 'DESC' : 'ASC'))
 
           relation = relation.from(%["public".#{quoted_table_name}]) unless self.chrono?
-          relation = relation.where(:id => record) if record
+          relation = relation.where(:id => rid) if rid
 
-          sql = "SELECT ts FROM ( #{relation.to_sql} ) foo WHERE ts IS NOT NULL AND ts < NOW()"
-          sql << " AND ts >= '#{record.history.first.valid_from}'" \
-            if record && record.class.chrono?
+          sql = "SELECT ts FROM ( #{relation.to_sql} ) foo WHERE ts IS NOT NULL"
+
+          if !(options.key?(:before) || options.key?(:after))
+            sql << ' AND ts < NOW()'
+          elsif options.key?(:before)
+            sql << " AND ts < '#{Conversions.time_to_utc_string(options[:before])}'"
+          elsif options.key?(:after)
+            sql << " AND ts > '#{Conversions.time_to_utc_string(options[:after ])}'"
+          end
+
+          sql << %[
+            AND ts >= ( SELECT MIN(valid_from) FROM #{quoted_table_name} WHERE id = #{rid} )
+            AND ts <  ( SELECT MAX(valid_to  ) FROM #{quoted_table_name} WHERE id = #{rid} )
+          ] if rid && self.chrono?
+
+          sql << " LIMIT #{options[:limit].to_i}" if options.key?(:limit)
 
           sql.gsub! 'INNER JOIN', 'LEFT OUTER JOIN'
 
@@ -423,20 +463,20 @@ module ChronoModel
           end
         end
 
-        private
-          def timestamps_default_associations
+        def timestamps_associations
+          @timestamps_associations ||=
             reflect_on_all_associations.select do |a|
-              a.klass.chrono? && !a.options[:polymorphic] &&
-                [:belongs_to, :has_one].include?(a.macro)
+              [:belongs_to, :has_one].include?(a.macro) &&
+                !a.options[:polymorphic] && a.klass.chrono?
             end
-          end
+        end
 
-          def timestamps_user_associations(names)
-            names.map do |name|
-              reflect_on_association(name) or raise ArgumentError,
-                "No association found for name `#{name}'"
-            end
+        def timestamps_user_associations(names)
+          Array.wrap(names).map do |name|
+            reflect_on_association(name) or raise ArgumentError,
+              "No association found for name `#{name}'"
           end
+        end
       end)
 
       def quoted_history_fields
