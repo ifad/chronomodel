@@ -205,7 +205,7 @@ module ChronoModel
     # temporal associations.
     #
     def pred_timestamp(options = {})
-      options[:before] ||= historical? ? as_of_time : Time.now
+      options[:before] ||= as_of_time if historical?
       ts = timeline(options.merge(:limit => 1, :reverse => true)).first
       return nil if !historical? && ts == history.select(:valid_from).first.try(:valid_from)
       return ts
@@ -439,18 +439,20 @@ module ChronoModel
 
           sql = "SELECT ts FROM ( #{relation.to_sql} ) foo WHERE ts IS NOT NULL"
 
-          if !(options.key?(:before) || options.key?(:after))
-            sql << ' AND ts < NOW()'
-          elsif options.key?(:before)
+          if options.key?(:before)
             sql << " AND ts < '#{Conversions.time_to_utc_string(options[:before])}'"
-          elsif options.key?(:after)
+          end
+
+          if options.key?(:after)
             sql << " AND ts > '#{Conversions.time_to_utc_string(options[:after ])}'"
           end
 
-          sql << %[
-            AND ts >= ( SELECT MIN(valid_from) FROM #{quoted_table_name} WHERE id = #{rid} )
-            AND ts <  ( SELECT MAX(valid_to  ) FROM #{quoted_table_name} WHERE id = #{rid} )
-          ] if rid && self.chrono?
+          if rid
+            sql << (self.chrono? ? %[
+              AND ts >= ( SELECT MIN(valid_from) FROM #{quoted_table_name} WHERE id = #{rid} )
+              AND ts <  ( SELECT MAX(valid_to  ) FROM #{quoted_table_name} WHERE id = #{rid} )
+            ] : %[ AND ts < NOW() ])
+          end
 
           sql << " LIMIT #{options[:limit].to_i}" if options.key?(:limit)
 
