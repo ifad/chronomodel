@@ -197,7 +197,7 @@ module ChronoModel
         history.order('valid_to DESC').offset(1).first
       else
         return nil unless (ts = pred_timestamp(options))
-        self.class.as_of(ts).find(options[:id] || id)
+        self.class.as_of(ts).order('hid desc').find(options[:id] || id)
       end
     end
 
@@ -216,7 +216,7 @@ module ChronoModel
     def succ(options = {})
       unless self.class.timeline_associations.empty?
         return nil unless (ts = succ_timestamp(options))
-        self.class.as_of(ts).find(options[:id] || id)
+        self.class.as_of(ts).order('hid desc').find(options[:id] || id)
       end
     end
 
