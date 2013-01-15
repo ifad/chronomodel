@@ -312,7 +312,7 @@ module ChronoModel
       private
         def time_for_time_query(t)
           t = Conversions.time_to_utc_string(t.utc) if t.kind_of?(Time)
-          t == :now ? 'now()' : "'#{t}'::timestamp"
+          t == :now ? 'now()' : "#{connection.quote(t)}::timestamp"
         end
 
         def build_time_query(match, from_t, from_f, to_t, to_f)
@@ -370,7 +370,7 @@ module ChronoModel
         time = Conversions.time_to_utc_string(time.utc) if time.kind_of?(Time)
 
         unscoped.
-          select("#{quoted_table_name}.*, '#{time}' AS as_of_time").
+          select("#{quoted_table_name}.*, #{connection.quote(time)} AS as_of_time").
           time_query(:at, time, :on => quoted_history_fields)
       end
 
