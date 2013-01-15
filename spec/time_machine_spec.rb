@@ -300,34 +300,43 @@ describe ChronoModel::TimeMachine do
   end
 
   describe '#timeline' do
+    split = lambda {|ts| ts.map!{|t| [t.to_i, t.usec]} }
+
     timestamps_from = lambda {|*records|
-      records.map(&:history).flatten!.inject([]) {|ret, rec|
-        ret.concat [rec.valid_from.to_f, rec.valid_to.to_f]
+      ts = records.map(&:history).flatten!.inject([]) {|ret, rec|
+        ret.concat [
+          [rec.valid_from.to_i, rec.valid_from.usec + 2],
+          [rec.valid_to.to_i,   rec.valid_to.usec + 2]
+        ]
       }.sort.uniq[0..-2]
     }
 
     describe 'on records having an :has_many relationship' do
       describe 'by default returns timestamps of the record only' do
-        subject { foo.timeline.map!(&:to_f) }
+        subject { split.call(foo.timeline) }
         its(:size) { should == foo.ts.size }
         it { should == timestamps_from.call(foo) }
       end
 
       describe 'when asked, returns timestamps including the related objects' do
-        subject { foo.timeline(:with => :bars).map!(&:to_f) }
+        subject { split.call(foo.timeline(:with => :bars)) }
         its(:size) { should == foo.ts.size + bar.ts.size }
         it { should == timestamps_from.call(foo, *foo.bars) }
       end
     end
 
     describe 'on records using has_timeline :with' do
-      subject { bar.timeline.map!(&:to_f) }
+      subject { split.call(bar.timeline) }
 
       describe 'returns timestamps of the record and its associations' do
 
         let!(:expected) do
-          bar_creation = bar.history.first.valid_from.to_f
-          timestamps_from.call(foo, bar).reject! {|ts| ts < bar_creation}
+          creat = bar.history.first.valid_from
+          c_sec, c_usec = creat.to_i, creat.usec
+
+          timestamps_from.call(foo, bar).reject {|sec, usec|
+            sec < c_sec || ( sec == c_sec && usec < c_usec )
+          }
         end
 
         its(:size) { should == expected.size }
@@ -336,7 +345,7 @@ describe ChronoModel::TimeMachine do
     end
 
     describe 'on non-temporal records using has_timeline :with' do
-      subject { baz.timeline.map!(&:to_f) }
+      subject { split.call(baz.timeline) }
 
       describe 'returns timestamps of its temporal associations' do
         its(:size) { should == bar.ts.size }
@@ -405,7 +414,7 @@ describe ChronoModel::TimeMachine do
     end
 
     context 'when there is enough history' do
-      subject { bar.pred.pred.pred.pred.pred }
+      subject { bar.pred.pred.pred.pred }
       its(:name) { should == 'bar' }
     end
 

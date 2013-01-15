@@ -205,10 +205,12 @@ module ChronoModel
     # temporal associations.
     #
     def pred_timestamp(options = {})
-      options[:before] ||= as_of_time if historical?
-      ts = timeline(options.merge(:limit => 1, :reverse => true)).first
-      return nil if !historical? && ts == history.select(:valid_from).first.try(:valid_from)
-      return ts
+      if historical?
+        options[:before] ||= as_of_time
+        timeline(options.merge(:limit => 1, :reverse => true)).first
+      else
+        timeline(options.merge(:limit => 2, :reverse => true)).second
+      end
     end
 
     # Returns the next record in the history timeline.
@@ -425,6 +427,7 @@ module ChronoModel
           return [] if models.empty?
 
           fields = models.inject([]) {|a,m| a.concat m.quoted_history_fields}
+          fields.map! {|f| "#{f} + INTERVAL '2 usec'"}
 
           relation = self.
             joins(*assocs.map(&:name)).
