@@ -6,7 +6,7 @@ module ChronoTest
   extend self
 
   AR = ActiveRecord::Base
-  log = ENV['VERBOSE'].present? ? $stderr : 'spec/debug.log'.tap{|f| File.truncate(f, 0)}
+  log = ENV['VERBOSE'].present? ? $stderr : 'spec/debug.log'.tap{|f| File.open(f, "ab") { |ft| ft.truncate(0) }}
   AR.logger = ::Logger.new(log).tap do |l|
     l.level = 0
   end
