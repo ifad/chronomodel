@@ -249,7 +249,12 @@ module ChronoModel
       self.class.attribute_names_for_history_changes.inject({}) do |changes, attr|
         old, new = ref.public_send(attr), self.public_send(attr)
 
-        changes.tap {|c| c[attr] = [old, new] if old != new }
+        changes.tap do |c|
+          changed = old.respond_to?(:history_eql?) ?
+            !old.history_eql?(new) : old != new
+
+          c[attr] = [old, new] if changed
+        end
       end
     end
 
