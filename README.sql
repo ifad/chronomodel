@@ -37,10 +37,10 @@ create table history.countries (
 ) inherits ( temporal.countries );
 
 -- Inherited primary key
-create index country_inherit_pkey ON countries ( id )
+create index country_inherit_pkey on history.countries ( id )
 
 -- Snapshot of data at a specific point in time
-create index country_snapshot          on history.countries USING gist (
+create index country_snapshot on history.countries USING gist (
   box(
     point( date_part( 'epoch', valid_from ), 0 ),
     point( date_part( 'epoch', valid_to   ), 0 )
@@ -48,9 +48,9 @@ create index country_snapshot          on history.countries USING gist (
 )
 
 -- Used by the rules queries when UPDATE'ing and DELETE'ing
-create index country_valid_from       on history.countries ( valid_from )
-create index country_valid_to         on history.countries ( valid_from )
-create index country_recorded_at      on history.countries ( id, valid_to )
+create index country_valid_from  on history.countries ( valid_from )
+create index country_valid_to    on history.countries ( valid_from )
+create index country_recorded_at on history.countries ( id, valid_to )
 
 -- Single instance whole history
 create index country_instance_history on history.countries ( id, recorded_at )
