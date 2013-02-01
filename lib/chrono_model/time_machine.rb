@@ -274,10 +274,12 @@ module ChronoModel
 
       def has_timeline(options)
         changes = options.delete(:changes)
-        history.has_timeline(options)
+        assocs  = history.has_timeline(options)
 
-        attribute_names_for_history_changes.concat \
-          Array.wrap(changes) || timeline_associations.map(&:name)
+        attributes = changes.present? ?
+          Array.wrap(changes) : assocs.map(&:name)
+
+        attribute_names_for_history_changes.concat(attributes.map(&:to_s))
       end
 
       delegate :timeline_associations, :to => :history
@@ -468,8 +470,9 @@ module ChronoModel
         def has_timeline(options)
           options.assert_valid_keys(:with)
 
-          timeline_associations.concat \
-            timeline_associations_from(options[:with])
+          timeline_associations_from(options[:with]).tap do |assocs|
+            timeline_associations.concat assocs
+          end
         end
 
         def timeline_associations
