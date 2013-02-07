@@ -12,7 +12,7 @@ module ChronoModel
       end
 
       if table_exists? && !chrono?
-        raise Error, "#{table_name} is not a temporal table. " \
+        puts "WARNING: #{table_name} is not a temporal table. " \
           "Please use change_table :#{table_name}, :temporal => true"
       end
 
