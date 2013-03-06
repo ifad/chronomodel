@@ -432,10 +432,10 @@ module ChronoModel
     end
 
     TableCache = (Class.new(HashWithIndifferentAccess) do
-      def all         ; keys;                 ; end
-      def add!  table ; self[table] = true    ; end
-      def del!  table ; self[table] = nil     ; end
-      def fetch table ; self[table] ||= yield ; end
+      def all         ; keys;                      ; end
+      def add!  table ; self[table.to_s] = true    ; end
+      def del!  table ; self[table.to_s] = nil     ; end
+      def fetch table ; self[table.to_s] ||= yield ; end
     end).new
 
     # Returns true if the given name references a temporal table.
