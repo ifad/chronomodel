@@ -4,7 +4,7 @@ namespace :db do
   # Define PG environment utility methods
   task :pg_env => :environment do
     def pg_get_config
-      @_pg_config ||= ActiveRecord::Base.configurations.fetch(Rails.env).tap do |config|
+      ActiveRecord::Base.configurations.fetch(Rails.env).tap do |config|
         ENV['PGHOST']     = config['host'].to_s     if config.key?('host')
         ENV['PGPORT']     = config['port'].to_s     if config.key?('port')
         ENV['PGPASSWORD'] = config['password'].to_s if config.key?('password')
