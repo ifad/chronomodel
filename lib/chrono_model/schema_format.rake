@@ -17,7 +17,7 @@ namespace :db do
       argv = argv.compact.map(&:to_s)
 
       print "> \033[1m#{argv.join(' ')}\033[0m... "
-      logger.info "-- exec #{argv.join(' ')}"
+      logger.info "PG: exec #{argv.join(' ')}"
 
       stdout, stdout_w = IO.pipe
       stderr, stderr_w = IO.pipe
@@ -31,16 +31,22 @@ namespace :db do
       pid, status = Process.wait2
 
       puts "exit #{status.exitstatus}"
-      logger.info "-- exit #{status.exitstatus}"
+      logger.info "PG: exit #{status.exitstatus}"
 
       out, err = stdout.read.chomp, stderr.read.chomp
       stdout.close; stderr.close
 
-      logger.info "-- stdout"
-      logger.info out
+      if out.present?
+        logger.info "PG: -----8<----- stdout ----->8-----"
+        logger.info out
+        logger.info "PG: ----8<---- end stdout ---->8----"
+      end
 
-      logger.info "-- stderr"
-      logger.info err
+      if err.present?
+        logger.info "PG: -----8<----- stderr ----->8-----"
+        logger.info err
+        logger.info "PG: ----8<---- end stderr ---->8----"
+      end
     end
 
     def pg_make_dump(target, username, database, *options)
