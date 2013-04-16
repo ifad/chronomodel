@@ -12,11 +12,19 @@ namespace :db do
     end
 
     def pg_make_dump(target, username, database)
-      %x( pg_dump -f #{target} -U #{username} #{database} )
+      %(pg_dump -f #{target} -U #{username} #{database}).tap do |command|
+        puts "> \033[1m#{command}\033[0m... "
+        system command
+        puts 'done.'
+      end
     end
 
     def pg_load_dump(source, username, database, template = nil)
-      %x( psql -U "#{username}" -f #{source} #{database} #{template} )
+      %(psql -U "#{username}" -f #{source} #{database} #{template}).tap do |command|
+        puts "> \033[1m#{command}\033[0m... "
+        system command
+        puts 'done.'
+      end
     end
   end
 
