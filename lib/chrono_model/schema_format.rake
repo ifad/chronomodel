@@ -24,12 +24,14 @@ namespace :db do
     desc "desc 'Dump the database structure to db/structure.sql. Specify another file with DB_STRUCTURE=db/my_structure.sql"
     task :dump => :pg_env do
       target = ENV['DB_STRUCTURE'] || Rails.root.join('db', 'structure.sql')
+      schema = pg_get_config['schema_search_path'] || 'public'
 
-      pg_make_dump "#{target} -s -O", *pg_get_config.values_at('username', 'database')
+      pg_make_dump "#{target} -s -O -n #{schema} -n temporal -n history",
+        *pg_get_config.values_at('username', 'database')
 
       # Add migration information, after resetting the schema to the default one
       File.open(target, 'a') do |f|
-        f.puts "SET search_path = #{pg_get_config['schema_search_path'] || 'public'}, pg_catalog;"
+        f.puts "SET search_path = #{schema}, pg_catalog;"
         f.puts ActiveRecord::Base.connection.dump_schema_information
       end
     end
