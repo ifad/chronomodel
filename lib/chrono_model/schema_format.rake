@@ -4,10 +4,10 @@ namespace :db do
   # Define PG environment utility methods
   task :pg_env => :environment do
     def pg_get_config
-      ActiveRecord::Base.configurations.fetch(Rails.env).tap do |config|
-        ENV['PGHOST']     = config['host'].to_s     if config.key?('host')
-        ENV['PGPORT']     = config['port'].to_s     if config.key?('port')
-        ENV['PGPASSWORD'] = config['password'].to_s if config.key?('password')
+      ActiveRecord::Base.connection_pool.spec.config.tap do |config|
+        ENV['PGHOST']     = config[:host].to_s     if config.key?(:host)
+        ENV['PGPORT']     = config[:port].to_s     if config.key?(:port)
+        ENV['PGPASSWORD'] = config[:password].to_s if config.key?(:password)
       end
     end
 
@@ -56,9 +56,9 @@ namespace :db do
     desc "desc 'Dump the database structure to db/structure.sql. Specify another file with DB_STRUCTURE=db/my_structure.sql"
     task :dump => :pg_env do
       target = ENV['DB_STRUCTURE'] || Rails.root.join('db', 'structure.sql')
-      schema = pg_get_config['schema_search_path'] || 'public'
+      schema = pg_get_config[:schema_search_path] || 'public'
 
-      pg_make_dump target, *pg_get_config.values_at('username', 'database'),
+      pg_make_dump target, *pg_get_config.values_at(:username, :database),
         '-s', '-O', '-n', schema,
         '-n', ChronoModel::Adapter::TEMPORAL_SCHEMA,
         '-n', ChronoModel::Adapter::HISTORY_SCHEMA
@@ -77,7 +77,7 @@ namespace :db do
       #
       source = ENV['DB_STRUCTURE'] || Rails.root.join('db', 'structure.sql')
 
-      pg_load_dump source, *pg_get_config.values_at('username', 'database', 'template')
+      pg_load_dump source, *pg_get_config.values_at(:username, :database, :template)
     end
   end
 
@@ -86,7 +86,7 @@ namespace :db do
     task :dump => :pg_env do
       target = ENV['DUMP'] || Rails.root.join('db', "data.#{Time.now.to_f}.sql")
 
-      pg_make_dump target, *pg_get_config.values_at('username', 'database'), '-c'
+      pg_make_dump target, *pg_get_config.values_at(:username, :database), '-c'
     end
 
     desc "Load a dump of the database from ENV['DUMP']"
@@ -94,7 +94,7 @@ namespace :db do
       source = ENV['DUMP'].presence or
         raise ArgumentError, "Invoke as rake db:data:load DUMP=/path/to/data.sql"
 
-      pg_load_dump source, *pg_get_config.values_at('username', 'database')
+      pg_load_dump source, *pg_get_config.values_at(:username, :database)
     end
   end
 end
