@@ -11,20 +11,44 @@ namespace :db do
       end
     end
 
-    def pg_make_dump(target, username, database)
-      %(pg_dump -f #{target} -U #{username} #{database}).tap do |command|
-        puts "> \033[1m#{command}\033[0m... "
-        system command
-        puts 'done.'
-      end
+    def pg_exec(*argv)
+      logger = Rails.logger
+
+      argv = argv.compact.map(&:to_s)
+
+      print "> \033[1m#{argv.join(' ')}\033[0m... "
+      logger.info "-- exec #{argv.join(' ')}"
+
+      stdout, stdout_w = IO.pipe
+      stderr, stderr_w = IO.pipe
+      pid = fork {
+        stdout.close; STDOUT.reopen(stdout_w)
+        stderr.close; STDERR.reopen(stderr_w)
+
+        Kernel.exec *argv
+      }
+      stdout_w.close; stderr_w.close
+      pid, status = Process.wait2
+
+      puts "exit #{status.exitstatus}"
+      logger.info "-- exit #{status.exitstatus}"
+
+      out, err = stdout.read.chomp, stderr.read.chomp
+      stdout.close; stderr.close
+
+      logger.info "-- stdout"
+      logger.info out
+
+      logger.info "-- stderr"
+      logger.info err
     end
 
-    def pg_load_dump(source, username, database, template = nil)
-      %(psql -U "#{username}" -f #{source} #{database} #{template}).tap do |command|
-        puts "> \033[1m#{command}\033[0m... "
-        system command
-        puts 'done.'
-      end
+    def pg_make_dump(target, username, database, *options)
+      pg_exec 'pg_dump', '-f', target, '-U', username, database, *options
+    end
+
+    def pg_load_dump(source, username, database, *options)
+      pg_exec 'psql', '-U', username, '-f', source, database, *options
     end
   end
 
@@ -34,8 +58,10 @@ namespace :db do
       target = ENV['DB_STRUCTURE'] || Rails.root.join('db', 'structure.sql')
       schema = pg_get_config['schema_search_path'] || 'public'
 
-      pg_make_dump "#{target} -s -O -n #{schema} -n temporal -n history",
-        *pg_get_config.values_at('username', 'database')
+      pg_make_dump target, *pg_get_config.values_at('username', 'database'),
+        '-s', '-O', '-n', schema,
+        '-n', ChronoModel::Adapter::TEMPORAL_SCHEMA,
+        '-n', ChronoModel::Adapter::HISTORY_SCHEMA
 
       # Add migration information, after resetting the schema to the default one
       File.open(target, 'a') do |f|
@@ -51,7 +77,7 @@ namespace :db do
       #
       source = ENV['DB_STRUCTURE'] || Rails.root.join('db', 'structure.sql')
 
-      pg_load_dump source.to_s, *pg_get_config.values_at('username', 'database', 'template')
+      pg_load_dump source, *pg_get_config.values_at('username', 'database', 'template')
     end
   end
 
@@ -60,9 +86,7 @@ namespace :db do
     task :dump => :pg_env do
       target = ENV['DUMP'] || Rails.root.join('db', "data.#{Time.now.to_f}.sql")
 
-      print "** Dumping data to #{target}..."
-      pg_make_dump "#{target} -c", *pg_get_config.values_at('username', 'database')
-      puts 'done'
+      pg_make_dump target, *pg_get_config.values_at('username', 'database'), '-c'
     end
 
     desc "Load a dump of the database from ENV['DUMP']"
@@ -70,9 +94,7 @@ namespace :db do
       source = ENV['DUMP'].presence or
         raise ArgumentError, "Invoke as rake db:data:load DUMP=/path/to/data.sql"
 
-      print "** Restoring data from #{source}..."
       pg_load_dump source, *pg_get_config.values_at('username', 'database')
-      puts 'done'
     end
   end
 end
