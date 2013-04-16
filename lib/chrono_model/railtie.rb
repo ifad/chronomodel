@@ -5,6 +5,7 @@ module ChronoModel
     end
 
     rake_tasks do
+      load 'chrono_model/schema_format.rake'
 
       namespace :db do
         namespace :chrono do

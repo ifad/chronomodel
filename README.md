@@ -184,11 +184,11 @@ them in your output, use `rake VERBOSE=true`.
 
  * The rules and temporal indexes cannot be saved in schema.rb. The AR
    schema dumper is quite basic, and it isn't (currently) extensible.
-   As we're using many database-specific features, you'll better off with
-   the SQL schema dumper (`config.active_record.schema_format = :sql` in
-   `config/application.rb`). Be sure to add [these
-   files](https://gist.github.com/4548844) in your `lib/tasks` if you want
-   `rake db:setup` to work.
+   As we're using many database-specific features, Chronomodel forces the
+   usage of the `:sql` schema dumper, and included rake tasks override
+   `db:schema:dump` and `db:schema:load` to do `db:structure:dump` and
+   `db:structure:load`. Two helper tasks are also added, `db:data:dump`
+   and `db:data:load`.
 
  * `.includes` still doesn't work, but it'll fixed.
 
