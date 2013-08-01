@@ -94,8 +94,14 @@ describe ChronoModel::TimeMachine do
       it { bar.as_of(bar.ts[3]).foo.name.should == 'new foo' }
     end
 
-    it 'raises RecordNotFound when no history records are found' do
-      expect { foo.as_of(1.minute.ago) }.to raise_error
+    it 'doesn\'t raise RecordNotFound when no history records are found' do
+      expect { foo.as_of(1.minute.ago) }.to_not raise_error
+      foo.as_of(1.minute.ago).should be_nil
+    end
+
+
+    it 'raises ActiveRecord::RecordNotFound in the bang variant' do
+      expect { foo.as_of!(1.minute.ago) }.to raise_error(ActiveRecord::RecordNotFound)
     end
 
     describe 'it honors default_scopes' do

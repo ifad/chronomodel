@@ -147,10 +147,27 @@ module ChronoModel
     end
 
     # Returns a read-only representation of this record as it was +time+ ago.
+    # Returns nil if no record is found.
     #
     def as_of(time)
-      self.class.as_of(time).where(:id => self.id).first!
+      _as_of(time).first
     end
+
+    # Returns a read-only representation of this record as it was +time+ ago.
+    # Raises ActiveRecord::RecordNotFound if no record is found.
+    #
+    def as_of!(time)
+      _as_of(time).first!
+    end
+
+    # Delegates to +HistoryMethods.as_of+ to fetch this instance as it was on
+    # +time+. Used both by +as_of+ and +as_of!+ for performance reasons, to
+    # avoid a `rescue` (@lleirborras).
+    #
+    def _as_of(time)
+      self.class.as_of(time).where(:id => self.id)
+    end
+    protected :_as_of
 
     # Return the complete read-only history of this instance.
     #
