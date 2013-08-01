@@ -6,5 +6,9 @@ gemspec
 group :development do
   gem 'debugger'
   gem 'pry'
+end
+
+group :test do
   gem 'rspec'
+  gem 'rake'
 end

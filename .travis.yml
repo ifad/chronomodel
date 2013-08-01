@@ -5,6 +5,8 @@ rvm:
 services:
   - postgresql
 
+bundler_args: --without development
+
 before_script:
   - psql -c "CREATE DATABASE chronomodel;" -U postgres
 
