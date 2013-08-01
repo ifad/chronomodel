@@ -1,0 +1,11 @@
+rvm:
+  - 1.9.3
+  - 2.0.0
+
+services:
+  - postgresql
+
+before_script:
+  - psql -c "CREATE DATABASE chronomodel;" -U postgres
+
+script: bundle exec rake TEST_CONFIG=./spec/config.travis.yml
