@@ -46,7 +46,7 @@ describe ChronoModel::Adapter do
     end
   end
 
-  let(:table) { 'test_table' }
+  table 'test_table'
   subject { table }
 
   columns do
@@ -80,8 +80,7 @@ describe ChronoModel::Adapter do
   end
 
   describe '.rename_table' do
-    let(:table)   { 'test_table' }
-    let(:renamed) { 'foo_table'  }
+    renamed = 'foo_table'
     subject { renamed }
 
     context ':temporal => true' do

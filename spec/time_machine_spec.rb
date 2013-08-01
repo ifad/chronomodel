@@ -7,6 +7,25 @@ describe ChronoModel::TimeMachine do
   setup_schema!
   define_models!
 
+  # Set up two associated records, with intertwined updates
+  #
+  foo = ts_eval { Foo.create! :name => 'foo', :fooity => 1 }
+  ts_eval(foo) { update_attributes! :name => 'foo bar' }
+
+  #
+  bar = ts_eval { Bar.create! :name => 'bar', :foo => foo }
+  ts_eval(bar) { update_attributes! :name => 'foo bar' }
+
+  ts_eval(foo) { update_attributes! :name => 'new foo' }
+
+  ts_eval(bar) { update_attributes! :name => 'bar bar' }
+  ts_eval(bar) { update_attributes! :name => 'new bar' }
+
+  #
+  baz = Baz.create :name => 'baz', :bar => bar
+
+  # Specs start here
+  #
   describe '.chrono_models' do
     subject { ChronoModel::TimeMachine.chrono_models }
 
@@ -18,30 +37,6 @@ describe ChronoModel::TimeMachine do
     } }
   end
 
-
-  # Set up two associated records, with intertwined updates
-  #
-  let!(:foo) {
-    foo = ts_eval { Foo.create! :name => 'foo', :fooity => 1 }
-    ts_eval(foo) { update_attributes! :name => 'foo bar' }
-  }
-
-  let!(:bar) {
-    bar = ts_eval { Bar.create! :name => 'bar', :foo => foo }
-    ts_eval(bar) { update_attributes! :name => 'foo bar' }
-
-    ts_eval(foo) { update_attributes! :name => 'new foo' }
-
-    ts_eval(bar) { update_attributes! :name => 'bar bar' }
-    ts_eval(bar) { update_attributes! :name => 'new bar' }
-  }
-
-  let!(:baz) {
-    Baz.create :name => 'baz', :bar => bar
-  }
-
-  # Specs start here
-  #
   describe '#as_of' do
     describe 'accepts a Time instance' do
       it { foo.as_of(Time.now).name.should == 'new foo' }
@@ -105,15 +100,11 @@ describe ChronoModel::TimeMachine do
     end
 
     describe 'it honors default_scopes' do
-      let!(:active) {
-        active = ts_eval { Defoo.create! :name => 'active 1', :active => true }
-        ts_eval(active) { update_attributes! :name => 'active 2' }
-      }
+      active = ts_eval { Defoo.create! :name => 'active 1', :active => true }
+      ts_eval(active) { update_attributes! :name => 'active 2' }
 
-      let!(:hidden) {
-        hidden = ts_eval { Defoo.create! :name => 'hidden 1', :active => false }
-        ts_eval(hidden) { update_attributes! :name => 'hidden 2' }
-      }
+      hidden = ts_eval { Defoo.create! :name => 'hidden 1', :active => false }
+      ts_eval(hidden) { update_attributes! :name => 'hidden 2' }
 
       it { Defoo.as_of(active.ts[0]).map(&:name).should == ['active 1'] }
       it { Defoo.as_of(active.ts[1]).map(&:name).should == ['active 2'] }
@@ -187,10 +178,8 @@ describe ChronoModel::TimeMachine do
     end
 
     context 'with STI models' do
-      let!(:pub) {
-        pub = ts_eval { Publication.create! :title => 'wrong title' }
-        ts_eval(pub) { update_attributes! :title => 'correct title' }
-      }
+      pub = ts_eval { Publication.create! :title => 'wrong title' }
+      ts_eval(pub) { update_attributes! :title => 'correct title' }
 
       it { pub.history.map(&:title).should == ['wrong title', 'correct title'] }
     end
@@ -271,10 +260,14 @@ describe ChronoModel::TimeMachine do
     end
 
     describe 'on current records' do
-      let!(:rec) {
+      rec = nil
+      before(:all) do
         rec = ts_eval { Foo.create!(:name => 'alive foo', :fooity => 42) }
         ts_eval(rec) { update_attributes!(:name => 'dying foo') }
-      }
+      end
+      after(:all) do
+        rec.history.delete_all
+      end
 
       subject { rec.destroy }
 
@@ -461,8 +454,8 @@ describe ChronoModel::TimeMachine do
 
   # Class methods
   context do
-    let!(:foos) { Array.new(2) {|i| ts_eval { Foo.create! :name => "foo #{i}" } } }
-    let!(:bars) { Array.new(2) {|i| ts_eval { Bar.create! :name => "bar #{i}", :foo => foos[i] } } }
+    foos = Array.new(2) {|i| ts_eval { Foo.create! :name => "foo #{i}" } }
+    bars = Array.new(2) {|i| ts_eval { Bar.create! :name => "bar #{i}", :foo => foos[i] } }
 
     after(:all) { foos.each(&:destroy); bars.each(&:destroy) }
 
@@ -504,7 +497,7 @@ describe ChronoModel::TimeMachine do
 
     describe '.history' do
       let(:foo_history) {
-        ['foo', 'foo bar', 'new foo', 'alive foo', 'dying foo', 'foo 0', 'foo 1']
+        ['foo', 'foo bar', 'new foo', 'foo 0', 'foo 1']
       }
 
       let(:bar_history) {

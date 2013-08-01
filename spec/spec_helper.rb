@@ -16,7 +16,5 @@ RSpec.configure do |config|
   config.include(ChronoTest::Matchers::Column)
   config.include(ChronoTest::Matchers::Index)
 
-  config.before :suite do
-    ChronoTest.recreate_database!
-  end
+  ChronoTest.recreate_database!
 end

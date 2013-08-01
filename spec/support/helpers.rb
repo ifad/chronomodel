@@ -2,18 +2,17 @@ module ChronoTest::Helpers
 
   module Adapter
     def self.included(base)
-      base.let!(:adapter) { ChronoTest.connection }
       base.extend DSL
-    end
-
-    def columns
-      DSL.columns
+      base.instance_eval do
+        delegate :adapter, :to => ChronoTest
+        delegate :columns, :table, :to => DSL
+      end
     end
 
     module DSL
       def with_temporal_table(&block)
         context ':temporal => true' do
-          before(:all) { adapter.create_table(table, :temporal => true, &columns) }
+          before(:all) { adapter.create_table(table, :temporal => true, &DSL.columns) }
           after(:all)  { adapter.drop_table table }
 
           instance_eval(&block)
@@ -22,64 +21,59 @@ module ChronoTest::Helpers
 
       def with_plain_table(&block)
         context ':temporal => false' do
-          before(:all) { adapter.create_table(table, :temporal => false, &columns) }
+          before(:all) { adapter.create_table(table, :temporal => false, &DSL.columns) }
           after(:all)  { adapter.drop_table table }
 
           instance_eval(&block)
         end
       end
 
-      def columns(&block)
-        DSL.columns = block.call
+      def self.table(table = nil)
+        @table = table if table
+        @table
       end
 
-      class << self
-        attr_accessor :columns
+      def self.columns(&block)
+        @columns = block.call if block
+        @columns
       end
+      delegate :columns, :table, :to => self
     end
   end
 
   module TimeMachine
     def self.included(base)
-      base.let!(:adapter) { ChronoTest.connection }
       base.extend(DSL)
+      base.extend(self)
     end
 
     module DSL
       def setup_schema!
         # Set up database structure
         #
-        before(:all) do
-          adapter.create_table 'foos', :temporal => true do |t|
-            t.string     :name
-            t.integer    :fooity
-          end
-
-          adapter.create_table 'bars', :temporal => true do |t|
-            t.string     :name
-            t.references :foo
-          end
-
-          adapter.create_table 'bazs' do |t|
-            t.string     :name
-            t.references :bar
-          end
-
-          adapter.create_table 'defoos', :temporal => true do |t|
-            t.string  :name
-            t.boolean :active
-          end
-
-          adapter.create_table 'elements', :temporal => true do |t|
-            t.string :title
-            t.string :type
-          end
+        adapter.create_table 'foos', :temporal => true do |t|
+          t.string     :name
+          t.integer    :fooity
         end
 
-        after(:all) do
-          adapter.drop_table 'foos'
-          adapter.drop_table 'bars'
-          adapter.drop_table 'bazs'
+        adapter.create_table 'bars', :temporal => true do |t|
+          t.string     :name
+          t.references :foo
+        end
+
+        adapter.create_table 'bazs' do |t|
+          t.string     :name
+          t.references :bar
+        end
+
+        adapter.create_table 'defoos', :temporal => true do |t|
+          t.string  :name
+          t.boolean :active
+        end
+
+        adapter.create_table 'elements', :temporal => true do |t|
+          t.string :title
+          t.string :type
         end
       end
 
@@ -123,9 +117,12 @@ module ChronoTest::Helpers
       }
 
       def define_models!
-        before(:all) { Models.call }
+        Models.call
       end
 
+      def adapter
+        ChronoTest.connection
+      end
     end
 
     # If a context object is given, evaluates the given
@@ -144,7 +141,7 @@ module ChronoTest::Helpers
           define_method(:ts) { @_ts ||= [] }
         end unless obj.methods.include?(:ts)
 
-        now = adapter.select_value('select now()::timestamp')
+        now = ChronoTest.connection.select_value('select now()::timestamp')
         obj.ts.push(Time.parse(now))
       end
     end

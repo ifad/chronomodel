@@ -25,6 +25,7 @@ module ChronoTest
   def connection
     AR.connection
   end
+  alias :adapter :connection
 
   def recreate_database!
     database = config.fetch(:database)
