@@ -358,6 +358,11 @@ module ChronoModel
     module HistoryMethods
       include TimeQuery
 
+      # for identifying this class as the History subclass
+      def history?
+        true
+      end
+
       # Fetches as of +time+ records.
       #
       def as_of(time, scope = nil)
@@ -381,9 +386,25 @@ module ChronoModel
         return as_of
       end
 
+      def non_history_superclass(klass = self)
+        if klass.superclass.respond_to?(:history?) && klass.superclass.history?
+          non_history_superclass(klass.superclass)
+        else
+          klass.superclass
+        end
+      end
+
       def virtual_table_at(time, name = nil)
+
+        # Getting the correct quoted_table_name can be tricky when
+        # STI is involved. If Orange < Fruit, then Orange::History < Fruit::History
+        # (see define_inherited_history_model_for).
+        # This means that the superclass method returns Fruit::History, which
+        # will give us the wrong table name. What we actually want is the
+        # superclass of Fruit::History, which is Fruit. So, we use
+        # non_history_superclass instead. -npj
         name = name ? connection.quote_table_name(name) :
-          superclass.quoted_table_name
+          non_history_superclass.quoted_table_name
 
         "(#{at(time).to_sql}) #{name}"
       end
