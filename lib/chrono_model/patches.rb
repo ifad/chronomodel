@@ -38,7 +38,20 @@ module ChronoModel
               v_table = through_reflection.klass.history.virtual_table_at(
                 owner.as_of_time, join.left.table_alias || join.left.table_name)
 
-              join.left = Arel::Nodes::SqlLiteral.new(v_table)
+              # avoid problems in Rails when code down the line expects the
+              # join.left to respond to the following methods. we modify
+              # the instance of SqlLiteral to do just that.
+              table_name  = join.left.table_name
+              table_alias = join.left.table_alias
+              join.left   = Arel::Nodes::SqlLiteral.new(v_table)
+
+              class << join.left
+                attr_accessor :name, :table_name, :table_alias
+              end
+
+              join.left.name        = table_name
+              join.left.table_name  = table_name
+              join.left.table_alias = table_alias
             end
           end
 
