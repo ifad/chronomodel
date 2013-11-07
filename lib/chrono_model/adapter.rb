@@ -445,6 +445,10 @@ module ChronoModel
         _on_temporal_schema { table_exists?(table) } &&
         _on_history_schema { table_exists?(table) }
       end
+    # means that we could not change the search path to check for
+    # table existence
+    rescue PG::InvalidSchemaName
+      false
     end
 
     def chrono_create_schemas!
