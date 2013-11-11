@@ -2,11 +2,11 @@
 require File.expand_path('../lib/chrono_model/version', __FILE__)
 
 Gem::Specification.new do |gem|
-  gem.authors       = ["Marcello Barnaba"]
-  gem.email         = ["vjt@openssl.it"]
+  gem.authors       = ['Marcello Barnaba', 'Peter Joseph Brindisi']
+  gem.email         = ['vjt@openssl.it', 'p.brindisi@ifad.org']
   gem.description   = %q{Give your models as-of date temporal extensions. Built entirely for PostgreSQL >= 9.0}
   gem.summary       = %q{Temporal extensions (SCD Type II) for Active Record}
-  gem.homepage      = "http://github.com/ifad/chronomodel"
+  gem.homepage      = 'http://github.com/ifad/chronomodel'
 
   gem.executables   = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   gem.files         = `git ls-files`.split("\n")
