@@ -300,8 +300,8 @@ module ChronoModel
         # Indexes used for precise history filtering, sorting and, in history
         # tables, by UPDATE / DELETE rules
         #
-        execute "CREATE INDEX #{from_idx} ON #{table} ( #{from} )"
-        execute "CREATE INDEX #{to_idx  } ON #{table} ( #{to  } )"
+        execute "CREATE INDEX #{from_idx} ON #{table} ( (#{from}) )"
+        execute "CREATE INDEX #{to_idx  } ON #{table} ( (#{to  }) )"
       end
     end
 
@@ -316,11 +316,14 @@ module ChronoModel
     def temporal_index_names(table, from, to, options)
       prefix = options[:name].presence || "#{table}_temporal"
 
+      # When creating computed indexes (e.g. ends_on::timestamp + time
+      # '23:59:59'), remove everything following the field name.
+      from, to = [from, to].map {|s| s.to_s.sub(/\W.*/, '')}
+
       ["#{from}_and_#{to}", from, to].map do |suffix|
         [prefix, 'on', suffix].join('_')
       end
     end
-
 
     # Adds a CHECK constraint to the given +table+, to assure that
     # the value contained in the +from+ field is, by default, less
