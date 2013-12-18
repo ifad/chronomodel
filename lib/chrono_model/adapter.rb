@@ -448,13 +448,22 @@ module ChronoModel
         _on_temporal_schema { table_exists?(table) } &&
         _on_history_schema { table_exists?(table) }
       end
+
     rescue ActiveRecord::StatementInvalid => e
       # means that we could not change the search path to check for
       # table existence
-      if e.original_exception.is_a?(PG::InvalidSchemaName)
+      if is_exception_class?(e, PG::InvalidSchemaName, PG::InvalidParameterValue)
         return false
       else
         raise e
+      end
+    end
+
+    def is_exception_class?(e, *klasses)
+      if e.respond_to?(:original_exception)
+        klasses.any? { |k| e.is_a?(k) }
+      else
+        klasses.any? { |k| e.message =~ /#{k.name}/ }
       end
     end
 
