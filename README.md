@@ -205,11 +205,6 @@ them in your output, use `rake VERBOSE=true`.
  * The history queries are very verbose, they should be factored out using a
    `FUNCTION`.
 
- * The migration statements extension is implemented using a Man-in-the-middle
-   class that inherits from the PostgreSQL adapter, and that relies on some
-   private APIs. This should be made more maintainable, maybe by requiring
-   the use of `adapter: chronomodel` or `adapter: chrono_postgresql`.
-
  * The choice of using subqueries instead of [Common Table Expressions](http://www.postgresql.org/docs/9.3/static/queries-with.html)
    was dictated by the fact that CTEs [currently acts as an optimization
    fence](http://archives.postgresql.org/pgsql-hackers/2012-09/msg00700.php).
