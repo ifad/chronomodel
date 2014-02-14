@@ -6,6 +6,7 @@ gemspec
 group :development do
   gem 'debugger'
   gem 'pry'
+  gem 'hirb'
 
   gem(
     case RUBY_VERSION.to_f
