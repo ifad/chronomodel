@@ -564,7 +564,7 @@ module ChronoModel
               DELETE FROM ONLY #{current}
               WHERE #{pk} = old.#{pk};
 
-              RETURN NULL;
+              RETURN OLD;
             END;
           $$ LANGUAGE plpgsql;
 
