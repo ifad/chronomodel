@@ -525,11 +525,16 @@ module ChronoModel
             DECLARE _old record;
             DECLARE _new record;
             BEGIN
+              IF OLD IS NOT DISTINCT FROM NEW THEN
+                RETURN NULL;
+              END IF;
+
               _old := row(#{journal.map {|c| "OLD.#{c}" }.join(', ')});
               _new := row(#{journal.map {|c| "NEW.#{c}" }.join(', ')});
 
               IF _old IS NOT DISTINCT FROM _new THEN
-                RETURN NULL;
+                UPDATE ONLY #{current} SET #{updates} WHERE #{pk} = OLD.#{pk};
+                RETURN NEW;
               END IF;
 
               _now := timezone('UTC', now());
