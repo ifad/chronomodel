@@ -110,23 +110,23 @@ module ChronoTest::Matchers
 
     # ##################################################################
     # Checks that a table exists in the Public schema, is an updatable
-    # view and has an INSERT, UPDATE and DELETE rule.
+    # view and has an INSERT, UPDATE and DELETE triggers.
     #
     class HavePublicInterface < Base
       def matches?(table)
         super(table)
 
-        view_exists? && [ is_updatable?, has_rules? ].all?
+        view_exists? && [ is_updatable?, has_triggers? ].all?
       end
 
       def failure_message_for_should
         "expected #{table} ".tap do |message|
           message << [
-            ("to exist in the #{public_schema} schema" unless @existance  ),
-            ('to be an updatable view'                 unless @updatable  ),
-            ('to have an INSERT rule'                  unless @insert_rule),
-            ('to have an UPDATE rule'                  unless @update_rule),
-            ('to have a DELETE rule'                   unless @delete_rule)
+            ("to exist in the #{public_schema} schema" unless @existance     ),
+            ('to be an updatable view'                 unless @updatable     ),
+            ('to have an INSERT trigger'               unless @insert_trigger),
+            ('to have an UPDATE trigger'               unless @update_trigger),
+            ('to have a DELETE trigger'                unless @delete_trigger)
           ].compact.to_sentence
         end
       end
@@ -145,8 +145,8 @@ module ChronoTest::Matchers
           SQL
         end
 
-        def has_rules?
-          rules = select_values(<<-SQL, [ public_schema, table ], 'Check rules')
+        def has_triggers?
+          triggers = select_values(<<-SQL, [ public_schema, table ], 'Check triggers')
             SELECT t.tgname
               FROM pg_catalog.pg_trigger t, pg_catalog.pg_class c, pg_catalog.pg_namespace n
              WHERE t.tgrelid = c.relfilenode
@@ -155,11 +155,11 @@ module ChronoTest::Matchers
                AND c.relname = $2;
           SQL
 
-          @insert_rule = rules.include? 'chronomodel_insert'
-          @update_rule = rules.include? 'chronomodel_update'
-          @delete_rule = rules.include? 'chronomodel_delete'
+          @insert_trigger = triggers.include? 'chronomodel_insert'
+          @update_trigger = triggers.include? 'chronomodel_update'
+          @delete_trigger = triggers.include? 'chronomodel_delete'
 
-          @insert_rule && @update_rule && @delete_rule
+          @insert_trigger && @update_trigger && @delete_trigger
         end
     end
 

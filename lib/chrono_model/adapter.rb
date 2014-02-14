@@ -156,7 +156,7 @@ module ChronoModel
     end
 
     # If dropping a temporal table, drops it from the temporal schema
-    # adding the CASCADE option so to delete the history, view and rules.
+    # adding the CASCADE option so to delete the history, view and triggers.
     #
     def drop_table(table_name, *)
       return super unless is_chrono?(table_name)
@@ -196,7 +196,7 @@ module ChronoModel
     end
 
     # If adding a column to a temporal table, creates it in the table in
-    # the temporal schema and updates the view rules.
+    # the temporal schema and updates the triggers.
     #
     def add_column(table_name, *)
       return super unless is_chrono?(table_name)
@@ -205,13 +205,13 @@ module ChronoModel
         # Add the column to the temporal table
         _on_temporal_schema { super }
 
-        # Update the rules
+        # Update the triggers
         chrono_create_view_for(table_name)
       end
     end
 
     # If renaming a column of a temporal table, rename it in the table in
-    # the temporal schema and update the view rules.
+    # the temporal schema and update the triggers.
     #
     def rename_column(table_name, *)
       return super unless is_chrono?(table_name)
@@ -221,14 +221,14 @@ module ChronoModel
         _on_temporal_schema { super }
         super
 
-        # Update the rules
+        # Update the triggers
         chrono_create_view_for(table_name)
       end
     end
 
     # If removing a column from a temporal table, we are forced to drop the
     # view, then change the column from the table in the temporal schema and
-    # eventually recreate the rules.
+    # eventually recreate the triggers.
     #
     def change_column(table_name, *)
       return super unless is_chrono?(table_name)
@@ -251,7 +251,7 @@ module ChronoModel
 
     # If removing a column from a temporal table, we are forced to drop the
     # view, then drop the column from the table in the temporal schema and
-    # eventually recreate the rules.
+    # eventually recreate the triggers.
     #
     def remove_column(table_name, *)
       return super unless is_chrono?(table_name)
@@ -308,7 +308,7 @@ module ChronoModel
         SQL
 
         # Indexes used for precise history filtering, sorting and, in history
-        # tables, by UPDATE / DELETE rules
+        # tables, by UPDATE / DELETE triggers.
         #
         execute "CREATE INDEX #{from_idx} ON #{table} ( (#{from}) )"
         execute "CREATE INDEX #{to_idx  } ON #{table} ( (#{to  }) )"
@@ -655,7 +655,7 @@ module ChronoModel
 
           _on_temporal_schema { yield }
 
-          # Recreate the rules
+          # Recreate the triggers
           chrono_create_view_for(table_name)
         end
       end

@@ -47,7 +47,7 @@ create index country_snapshot on history.countries USING gist (
   )
 )
 
--- Used by the rules queries when UPDATE'ing and DELETE'ing
+-- Used by the trigger functions when UPDATE'ing and DELETE'ing
 create index country_valid_from  on history.countries ( valid_from )
 create index country_valid_to    on history.countries ( valid_from )
 create index country_recorded_at on history.countries ( id, valid_to )

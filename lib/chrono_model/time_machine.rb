@@ -184,9 +184,9 @@ module ChronoModel
     end
 
     # Hack around AR timezone support. These timestamps are recorded
-    # by the chrono rewrite rules in UTC, but AR reads them as they
-    # were stored in the local timezone - thus here we bypass type
-    # casting to force creation of UTC timestamps.
+    # by the chrono triggers in UTC, but AR reads them as they were
+    # stored in the local timezone - thus here we bypass type casting
+    # to force creation of UTC timestamps.
     #
     %w( valid_from valid_to recorded_at as_of_time ).each do |attr|
       define_method(attr) do
