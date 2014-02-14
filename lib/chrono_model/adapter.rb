@@ -483,17 +483,6 @@ module ChronoModel
       end
     end
 
-    # Disable savepoints support, as they break history keeping.
-    # http://archives.postgresql.org/pgsql-hackers/2012-08/msg01094.php
-    #
-    def supports_savepoints?
-      false
-    end
-
-    def create_savepoint; end
-    def rollback_to_savepoint; end
-    def release_savepoint; end
-
     private
       # Create the history table in the history schema
       def chrono_create_history_for(table)

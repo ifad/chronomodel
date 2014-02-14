@@ -210,10 +210,6 @@ them in your output, use `rake VERBOSE=true`.
    private APIs. This should be made more maintainable, maybe by requiring
    the use of `adapter: chronomodel` or `adapter: chrono_postgresql`.
 
- * Savepoints are disabled, because there is
-   [currently](http://archives.postgresql.org/pgsql-hackers/2012-08/msg01094.php)
-   no way to identify a subtransaction belonging to the current transaction.
-
  * The choice of using subqueries instead of [Common Table Expressions](http://www.postgresql.org/docs/9.3/static/queries-with.html)
    was dictated by the fact that CTEs [currently acts as an optimization
    fence](http://archives.postgresql.org/pgsql-hackers/2012-09/msg00700.php).
