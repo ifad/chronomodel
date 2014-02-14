@@ -1,12 +1,13 @@
 # ChronoModel
 
 A temporal database system on PostgreSQL using
+[views](http://www.postgresql.org/docs/9.3/static/sql-createview.html),
 [table inheritance](http://www.postgresql.org/docs/9.3/static/ddl-inherit.html) and
-[the rule system](http://www.postgresql.org/docs/9.3/static/rules-update.html).
+[INSTEAD OF triggers](http://www.postgresql.org/docs/9.3/static/sql-createtrigger.html)
 
 This is a data structure for a
 [Slowly-Changing Dimension Type 2](http://en.wikipedia.org/wiki/Slowly_changing_dimension#Type_2)
-temporal database, implemented using only [PostgreSQL](http://www.postgresql.org) >= 9.3 features.
+temporal database, implemented using [PostgreSQL](http://www.postgresql.org) &gt;= 9.3 features.
 
 [![Build Status](https://travis-ci.org/ifad/chronomodel.png?branch=master)](https://travis-ci.org/ifad/chronomodel)
 [![Dependency Status](https://gemnasium.com/ifad/chronomodel.png)](https://gemnasium.com/ifad/chronomodel)
@@ -17,9 +18,7 @@ having to deal with it.
 
 The application model is backed by an updatable view that behaves exactly like a plain table, while
 behind the scenes the database redirects the queries to concrete tables using
-[the rule system](http://www.postgresql.org/docs/9.3/static/rules-update.html) for most of the cases,
-and using an `AFTER FOR EACH ROW` trigger only for the `INSERT` case on tables
-having a `SERIAL` primary key.
+[triggers](http://www.postgresql.org/docs/9.3/static/trigger-definition.html).
 
 Current data is hold in a table in the `temporal` [schema](http://www.postgresql.org/docs/9.3/static/ddl-schemas.html),
 while history in hold in another table in the `history` schema. The latter
@@ -30,7 +29,7 @@ yet.
 The updatable view is created in the default `public` schema, making it visible to Active Record.
 
 All Active Record schema migration statements are decorated with code that handles the temporal
-structure by e.g. keeping the view rules in sync or dropping/recreating it when required by your
+structure by e.g. keeping the triggers in sync or dropping/recreating it when required by your
 migrations.
 
 Data extraction at a single point in time and even `JOIN`s between temporal and non-temporal data
@@ -88,11 +87,11 @@ That'll create the _current_, its _history_ child table and the _public_ view.
 Every other housekeeping of the temporal structure is handled behind the scenes
 by the other schema statements. E.g.:
 
- * `rename_table`  - renames tables, views, sequences, indexes and rules
+ * `rename_table`  - renames tables, views, sequences, indexes and triggers
  * `drop_table`    - drops the temporal table and all dependant objects
- * `add_column`    - adds the column to the current table and updates rules
- * `rename_column` - renames the current table column and updates the rules
- * `remove_column` - removes the current table column and updates the rules
+ * `add_column`    - adds the column to the current table and updates triggers
+ * `rename_column` - renames the current table column and updates the triggers
+ * `remove_column` - removes the current table column and updates the triggers
  * `add_index`     - creates the index in the history table as well
  * `remove_index`  - removes the index from the history table as well
 
@@ -193,7 +192,7 @@ them in your output, use `rake VERBOSE=true`.
 
 ## Caveats
 
- * The rules and temporal indexes cannot be saved in schema.rb. The AR
+ * The triggers and temporal indexes cannot be saved in schema.rb. The AR
    schema dumper is quite basic, and it isn't (currently) extensible.
    As we're using many database-specific features, Chronomodel forces the
    usage of the `:sql` schema dumper, and included rake tasks override
@@ -201,7 +200,7 @@ them in your output, use `rake VERBOSE=true`.
    `db:structure:load`. Two helper tasks are also added, `db:data:dump`
    and `db:data:load`.
 
- * `.includes` still doesn't work, but it'll fixed.
+ * `.includes` is quirky when using `.as_of`.
 
  * The history queries are very verbose, they should be factored out using a
    `FUNCTION`.

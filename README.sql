@@ -61,87 +61,88 @@ create index country_instance_history on history.countries ( id, recorded_at )
 --
 -- SELECT - return only current data
 --
-create view public.countries as select *, xmin as __xid from only temporal.countries;
+create view public.countries as select * from only temporal.countries;
 
--- INSERT - insert data both in the current data table and in the history table.
+-- INSERT - insert data both in the current data table and in the history one.
 --
--- A trigger is required if there is a serial ID column, as rules by
--- design cannot handle the following case:
---
---   * INSERT INTO ... SELECT: if using currval(), all the rows
---     inserted in the history will have the same identity value;
---
---   * if using a separate sequence to solve the above case, it may go
---     out of sync with the main one if an INSERT statement fails due
---     to a table constraint (the first one is nextval()'ed but the
---     nextval() on the history one never happens)
---
--- So, only for this case, we resort to an AFTER INSERT FOR EACH ROW trigger.
---
--- Ref: GH Issue #4.
---
-create rule countries_ins as on insert to public.countries do instead (
-
-  insert into temporal.countries ( name ) values ( new.name );
-  returning ( id, new.name, xmin )
-);
-
-create or replace function temporal.countries_ins() returns trigger as $$
+create or replace function public.chronomodel_countries_insert() returns trigger as $$
   begin
+    insert into temporal.countries ( name, valid_from )
+    values ( new.name )
+    returning id into new.id;
+
     insert into history.countries ( id, name, valid_from )
-    values ( currval('temporal.countries_id_seq'), new.name, timezone('utc', now()) );
+    values ( new.id, new.name, timezone('utc', now()) );
+
+    return new;
+  end;
+$$ language plpgsql;
+
+create trigger chronomodel_insert instead of insert on public.countries
+  for each row execute procedure public.chronomodel_countries_insert();
+
+-- UPDATE - set the last history entry validity to now, save the current data
+-- in a new history entry and update the temporal table with the new data.
+--
+-- If a row in the history with the current ID and current timestamp already
+-- exists, update it with new data. This logic makes possible to "squash"
+-- together changes made in a transaction in a single history row.
+--
+create function chronomodel_countries_update() returns trigger as $$
+  declare _now timestamp;
+  declare _hid integer;
+  begin
+    _now := timezone('utc', now());
+    _hid := null;
+
+    select hid into _hid from history.countries
+    where id = old.id and valid_from = _now;
+
+    if _hid is not null then
+      update history.countries set name = new.name where hid = _hid;
+    else
+      update history.countries set valid_to = _now
+      where id = old.id and valid_to = '9999-12-31';
+
+      insert into history.countries ( id, name, valid_from )
+      values ( old.id, new.values, _now );
+    end if;
+
+    update only temporal.countries set name = new.name where id = old.id;
+
+    return new;
+  end;
+$$ language plpgsql;
+
+create trigger chronomodel_update instead of update on countries
+  for each row execute procedure chronomodel_countries_update();
+
+-- DELETE - save the current data in the history and eventually delete the
+-- data from the temporal table.
+-- The first DELETE is required to remove history for records INSERTed and
+-- DELETEd in the same transaction.
+--
+create or replace function chronomodel_countries_delete() returns trigger as $$
+  declare _now timestamp;
+  begin
+    _now := timezone('utc', now());
+
+    delete from history.countries
+    where id = old.id
+      and valid_from = _now
+      and valid_to   = '9999-12-31';
+
+    update history.countries set valid_to = _now
+    where id = old.id and valid_to = '9999-12-31';
+
+    delete from only temporal.countries
+    where temporal.id = old.id;
+
     return null;
   end;
 $$ language plpgsql;
 
-create trigger history_ins after insert on temporal.countries_ins()
-  for each row execute procedure temporal.countries_ins();
-
--- UPDATE - set the last history entry validity to now, save the current data in
--- a new history entry and update the current table with the new data.
--- In transactions, create the new history entry only on the first statement,
--- and update the history instead on subsequent ones.
---
-create rule countries_upd_first as on update to countries
-where old.__xid::char(10)::int8 <> (txid_current() & (2^32-1)::int8)
-do instead (
-  update history.countries
-     set valid_to = timezone('UTC', now())
-   where id = old.id and valid_to = '9999-12-31';
-
-  insert into history.countries ( id, name, valid_from ) 
-  values ( old.id, new.name, timezone('UTC', now()) );
-
-  update only temporal.countries
-     set name = new.name
-   where id = old.id
-);
-create rule countries_upd_next as on update to countries do instead (
-  update history.countries
-     set name = new.name
-   where id = old.id and valid_from = timezone('UTC', now())
-
-  update only temporal.countries
-     set name = new.name
-   where id = old.id
-)
-
--- DELETE - save the current data in the history and eventually delete the data
--- from the current table. Special case for records INSERTed and DELETEd in the
--- same transaction - they won't appear at all in history.
---
-create rule countries_del as on delete to countries do instead (
-  delete from history.countries
-   where id = old.id
-     and valid_from = timezone('UTC', now())
-     and valid_to   = '9999-12-31'
-
-  update history.countries
-    set   valid_to = now()
-    where id = old.id and valid_to = '9999-12-31';
-
-  delete from only temporal.countries
-  where temporal.countries.id = old.id
-);
+create trigger chronomodel_delete instead of delete on countries
+  for each row execute procedure chronomodel_countries_delete();
 
 -- EOF

@@ -147,17 +147,17 @@ module ChronoTest::Matchers
 
         def has_rules?
           rules = select_values(<<-SQL, [ public_schema, table ], 'Check rules')
-            SELECT UNNEST(REGEXP_MATCHES(
-                definition, 'ON (INSERT|UPDATE|DELETE) TO #{table} DO INSTEAD'
-              ))
-             FROM pg_catalog.pg_rules
-            WHERE schemaname = $1
-              AND tablename  = $2
+            SELECT t.tgname
+              FROM pg_catalog.pg_trigger t, pg_catalog.pg_class c, pg_catalog.pg_namespace n
+             WHERE t.tgrelid = c.relfilenode
+               AND n.oid = c.relnamespace
+               AND n.nspname = $1
+               AND c.relname = $2;
           SQL
 
-          @insert_rule = rules.include? 'INSERT'
-          @update_rule = rules.include? 'UPDATE'
-          @delete_rule = rules.include? 'DELETE'
+          @insert_rule = rules.include? 'chronomodel_insert'
+          @update_rule = rules.include? 'chronomodel_update'
+          @delete_rule = rules.include? 'chronomodel_delete'
 
           @insert_rule && @update_rule && @delete_rule
         end

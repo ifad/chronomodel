@@ -533,7 +533,7 @@ module ChronoModel
         execute "CREATE INDEX #{table}_instance_history ON #{table} ( #{p_pkey}, recorded_at )"
       end
 
-      # Create the public view and its rewrite rules
+      # Create the public view and its INSTEAD OF triggers
       #
       def chrono_create_view_for(table)
         pk      = primary_key(table)
@@ -543,7 +543,7 @@ module ChronoModel
         # SELECT - return only current data
         #
         execute "DROP VIEW #{table}" if table_exists? table
-        execute "CREATE VIEW #{table} AS SELECT *, xmin AS __xid FROM ONLY #{current}"
+        execute "CREATE VIEW #{table} AS SELECT * FROM ONLY #{current}"
 
         columns = columns(table).map{|c| quote_column_name(c.name)}
         columns.delete(quote_column_name(pk))
@@ -551,105 +551,65 @@ module ChronoModel
         updates = columns.map {|c| "#{c} = new.#{c}"}.join(",\n")
 
         fields, values = columns.join(', '), columns.map {|c| "new.#{c}"}.join(', ')
-        fields_with_pk, values_with_pk = "#{pk}, " << fields, "new.#{pk}, " << values
 
         # INSERT - insert data both in the temporal table and in the history one.
         #
-        # A trigger is required if there is a serial ID column, as rules by
-        # design cannot handle the following case:
-        #
-        #   * INSERT INTO ... SELECT: if using currval(), all the rows
-        #     inserted in the history will have the same identity value;
-        #
-        #   * if using a separate sequence to solve the above case, it may go
-        #     out of sync with the main one if an INSERT statement fails due
-        #     to a table constraint (the first one is nextval()'ed but the
-        #     nextval() on the history one never happens)
-        #
-        # So, only for this case, we resort to an AFTER INSERT FOR EACH ROW trigger.
-        #
-        # Ref: GH Issue #4.
-        #
-        if serial_sequence(current, pk).present?
-          execute <<-SQL
-            CREATE RULE #{table}_ins AS ON INSERT TO #{table} DO INSTEAD (
+        execute <<-SQL
+          CREATE OR REPLACE FUNCTION chronomodel_#{table}_insert() RETURNS TRIGGER AS $$
+            DECLARE _now timestamp;
+            BEGIN
               INSERT INTO #{current} ( #{fields} ) VALUES ( #{values} )
-              RETURNING #{pk}, #{fields}, xmin
-            );
+              RETURNING #{pk} INTO NEW.id;
 
-            CREATE OR REPLACE FUNCTION #{current}_ins() RETURNS TRIGGER AS $$
-              BEGIN
-                INSERT INTO #{history} ( #{fields_with_pk}, valid_from )
-                VALUES ( #{values_with_pk}, timezone('UTC', now()) );
-                RETURN NULL;
-              END;
-            $$ LANGUAGE plpgsql;
+              INSERT INTO #{history} ( #{pk}, #{fields}, valid_from )
+              VALUES ( NEW.id, #{values}, timezone('UTC', now()) );
 
-            DROP TRIGGER IF EXISTS history_ins ON #{current};
+              RETURN NEW;
+            END;
+          $$ LANGUAGE plpgsql;
 
-            CREATE TRIGGER history_ins AFTER INSERT ON #{current}
-              FOR EACH ROW EXECUTE PROCEDURE #{current}_ins();
-          SQL
-        else
-          execute <<-SQL
-            CREATE RULE #{table}_ins AS ON INSERT TO #{table} DO INSTEAD (
+          DROP TRIGGER IF EXISTS chronomodel_insert ON #{table};
 
-              INSERT INTO #{current} ( #{fields_with_pk} ) VALUES ( #{values_with_pk} );
-
-              INSERT INTO #{history} ( #{fields_with_pk}, valid_from )
-              VALUES ( #{values_with_pk}, timezone('UTC', now()) )
-              RETURNING #{fields_with_pk}, xmin
-            )
-          SQL
-        end
+          CREATE TRIGGER chronomodel_insert INSTEAD OF INSERT ON #{table}
+            FOR EACH ROW EXECUTE PROCEDURE chronomodel_#{table}_insert();
+        SQL
 
         # UPDATE - set the last history entry validity to now, save the current data
         # in a new history entry and update the temporal table with the new data.
-
-        # If this is the first statement of a transaction, inferred by the last
-        # transaction ID that updated the row, create a new row in the history.
         #
-        # The current transaction ID is returned by txid_current() as a 64-bit
-        # signed integer, while the last transaction ID that changed a row is
-        # stored into a 32-bit unsigned integer in the __xid column. As XIDs
-        # wrap over time, txid_current() adds an "epoch" counter in the most
-        # significant bits (http://bit.ly/W2Srt7) of the int - thus here we
-        # remove it by and'ing with 2^32-1.
-        #
-        # XID are 32-bit unsigned integers, and by design cannot be casted nor
-        # compared to anything else, adding a CAST or an operator requires
-        # super-user privileges, so here we do a double-cast from varchar to
-        # int8, to finally compare it with the current XID. We're using 64bit
-        # integers as in PG there is no 32-bit unsigned data type.
+        # If a row in the history with the current ID and current timestamp already
+        # exists, update it with new data. This logic makes possible to "squash"
+        # together changes made in a transaction in a single history row.
         #
         execute <<-SQL
-          CREATE RULE #{table}_upd_first AS ON UPDATE TO #{table}
-          WHERE old.__xid::char(10)::int8 <> (txid_current() & (2^32-1)::int8)
-          DO INSTEAD (
+          CREATE OR REPLACE FUNCTION chronomodel_#{table}_update() RETURNS TRIGGER AS $$
+            DECLARE _now timestamp;
+            DECLARE _hid integer;
+            BEGIN
+              _now := timezone('UTC', now());
+              _hid := NULL;
+              SELECT hid INTO _hid FROM #{history} WHERE #{pk} = old.#{pk} AND valid_from = _now;
 
-            UPDATE #{history} SET valid_to = timezone('UTC', now())
-            WHERE #{pk} = old.#{pk} AND valid_to = '9999-12-31';
+              IF _hid IS NOT NULL THEN
+                UPDATE #{history} SET #{updates} WHERE hid = _hid;
+              ELSE
+                UPDATE #{history} SET valid_to = _now
+                WHERE #{pk} = old.#{pk} AND valid_to = '9999-12-31';
 
-            INSERT INTO #{history} ( #{pk}, #{fields}, valid_from )
-            VALUES ( old.#{pk}, #{values}, timezone('UTC', now()) );
+                INSERT INTO #{history} ( #{pk}, #{fields}, valid_from )
+                VALUES ( old.#{pk}, #{values}, _now );
+              END IF;
 
-            UPDATE ONLY #{current} SET #{updates}
-            WHERE #{pk} = old.#{pk}
-          )
-        SQL
+              UPDATE ONLY #{current} SET #{updates} WHERE #{pk} = old.#{pk};
 
-        # Else, update the already present history row with new data. This logic
-        # makes possible to "squash" together changes made in a transaction in a
-        # single history row, assuring timestamps consistency.
-        #
-        execute <<-SQL
-          CREATE RULE #{table}_upd_next AS ON UPDATE TO #{table} DO INSTEAD (
-            UPDATE #{history} SET #{updates}
-            WHERE #{pk} = old.#{pk} AND valid_from = timezone('UTC', now());
+              RETURN NEW;
+            END;
+          $$ LANGUAGE plpgsql;
 
-            UPDATE ONLY #{current} SET #{updates}
-            WHERE #{pk} = old.#{pk}
-          )
+          DROP TRIGGER IF EXISTS chronomodel_update ON #{table};
+
+          CREATE TRIGGER chronomodel_update INSTEAD OF UPDATE ON #{table}
+            FOR EACH ROW EXECUTE PROCEDURE chronomodel_#{table}_update();
         SQL
 
         # DELETE - save the current data in the history and eventually delete the
@@ -658,19 +618,30 @@ module ChronoModel
         # DELETEd in the same transaction.
         #
         execute <<-SQL
-          CREATE RULE #{table}_del AS ON DELETE TO #{table} DO INSTEAD (
+          CREATE OR REPLACE FUNCTION chronomodel_#{table}_delete() RETURNS TRIGGER AS $$
+            DECLARE _now timestamp;
+            BEGIN
+              _now := timezone('UTC', now());
 
-            DELETE FROM #{history}
-            WHERE #{pk} = old.#{pk}
-              AND valid_from = timezone('UTC', now())
-              AND valid_to   = '9999-12-31';
+              DELETE FROM #{history}
+              WHERE #{pk} = old.#{pk}
+                AND valid_from = _now
+                AND valid_to   = '9999-12-31';
 
-            UPDATE #{history} SET valid_to = timezone('UTC', now())
-            WHERE #{pk} = old.#{pk} AND valid_to = '9999-12-31';
+              UPDATE #{history} SET valid_to = _now
+              WHERE #{pk} = old.#{pk} AND valid_to = '9999-12-31';
 
-            DELETE FROM ONLY #{current}
-            WHERE #{current}.#{pk} = old.#{pk}
-          )
+              DELETE FROM ONLY #{current}
+              WHERE #{pk} = old.#{pk};
+
+              RETURN NULL;
+            END;
+          $$ LANGUAGE plpgsql;
+
+          DROP TRIGGER IF EXISTS chronomodel_delete ON #{table};
+
+          CREATE TRIGGER chronomodel_delete INSTEAD OF DELETE ON #{table}
+            FOR EACH ROW EXECUTE PROCEDURE chronomodel_#{table}_delete();
         SQL
       end
 
