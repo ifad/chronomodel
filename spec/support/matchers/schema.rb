@@ -10,6 +10,10 @@ module ChronoTest::Matchers
         @expected = '"$user", public' if @expected == :default
       end
 
+      def description
+        'be in schema'
+      end
+
       def failure_message_for_should
         "expected to be in schema #@expected, but was in #@current"
       end

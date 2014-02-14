@@ -35,6 +35,10 @@ module ChronoTest::Matchers
         relation_exists? :in => public_schema
       end
 
+      def description
+        'be in the public schema'
+      end
+
       def failure_message_for_should
         "expected #{table} to exist in the #{public_schema} schema"
       end
@@ -53,6 +57,10 @@ module ChronoTest::Matchers
         super(table)
 
         relation_exists? :in => temporal_schema
+      end
+
+      def description
+        'be in the temporal schema'
       end
 
       def failure_message_for_should
@@ -74,6 +82,10 @@ module ChronoTest::Matchers
         super(table)
 
         table_exists? && inherits_from_temporal?
+      end
+
+      def description
+        'be in history schema'
       end
 
       def failure_message_for_should
@@ -117,6 +129,10 @@ module ChronoTest::Matchers
         super(table)
 
         view_exists? && [ is_updatable?, has_triggers? ].all?
+      end
+
+      def description
+        'be an updatable view'
       end
 
       def failure_message_for_should

@@ -10,6 +10,10 @@ module ChronoTest::Matchers
         @schema  = schema
       end
 
+      def description
+        'have index'
+      end
+
       def matches?(table)
         super(table)
 

@@ -7,6 +7,10 @@ module ChronoTest::Matchers
         @schema  = schema
       end
 
+      def description
+        'have columns'
+      end
+
       def matches?(table)
         super(table)
 
