@@ -180,6 +180,8 @@ them in your output, use `rake VERBOSE=true`.
 
 ## Caveats
 
+ * There is no upgrade path from v0.5 (PG 9.0-compatible) to v0.6 and up (9.3-only).
+
  * The triggers and temporal indexes cannot be saved in schema.rb. The AR
    schema dumper is quite basic, and it isn't (currently) extensible.
    As we're using many database-specific features, Chronomodel forces the
