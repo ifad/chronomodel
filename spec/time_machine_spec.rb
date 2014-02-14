@@ -24,6 +24,18 @@ describe ChronoModel::TimeMachine do
   #
   baz = Baz.create :name => 'baz', :bar => bar
 
+  describe '.chrono?' do
+    context 'on a temporal model' do
+      subject { Foo }
+      it { should be_chrono }
+    end
+
+    context 'on a plain model' do
+      subject { Plain }
+      it { should_not be_chrono }
+    end
+  end
+
   # Specs start here
   #
   describe '.chrono_models' do

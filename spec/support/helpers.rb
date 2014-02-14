@@ -75,6 +75,10 @@ module ChronoTest::Helpers
           t.string :title
           t.string :type
         end
+
+        adapter.create_table 'plains' do |t|
+          t.string :foo
+        end
       end
 
       Models = lambda {
@@ -113,6 +117,9 @@ module ChronoTest::Helpers
         end
 
         class ::Publication < Element
+        end
+
+        class ::Plain < ActiveRecord::Base
         end
       }
 

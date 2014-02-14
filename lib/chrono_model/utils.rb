@@ -19,11 +19,7 @@ module ChronoModel
 
   module Utilities
     # Amends the given history item setting a different period.
-    # Useful when migrating from legacy systems, but it is here
-    # as this is not a proper API.
-    #
-    # Extend your model with the Utilities model if you want to
-    # use it.
+    # Useful when migrating from legacy systems.
     #
     def amend_period!(hid, from, to)
       unless [from, to].all? {|ts| ts.respond_to?(:zone) && ts.zone == 'UTC'}
@@ -37,7 +33,16 @@ module ChronoModel
          WHERE "hid" = #{hid.to_i}
       ]
     end
+
+    # Returns true if this model is backed by a temporal table,
+    # false otherwise.
+    #
+    def chrono?
+      connection.is_chrono?(table_name)
+    end
   end
+
+  ActiveRecord::Base.extend Utilities
 
   module Migrate
     extend self
