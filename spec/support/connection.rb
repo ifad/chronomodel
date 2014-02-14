@@ -29,14 +29,11 @@ module ChronoTest
 
   def recreate_database!
     database = config.fetch(:database)
-    connect! config.merge(:database => 'postgres')
-
-    unless AR.supports_chrono?
-      raise 'Your postgresql version is not supported. >= 9.0 is required.'
-    end
+    connect! config.merge(:database => :postgres)
 
     connection.drop_database   database
     connection.create_database database
+    connect! config
 
   ensure
     connect!
@@ -46,7 +43,7 @@ module ChronoTest
   def config
     @config ||= YAML.load(config_file.read).tap do |conf|
       conf.symbolize_keys!
-      conf.update(:adapter => 'postgresql')
+      conf.update(:adapter => 'chronomodel')
 
       def conf.to_s
         'pgsql://%s:%s@%s/%s' % [

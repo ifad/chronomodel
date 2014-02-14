@@ -36,12 +36,12 @@ describe ChronoModel::Adapter do
     it { should be_a_kind_of(ChronoModel::Adapter) }
 
     context do
-      before { adapter.stub(:postgresql_version => 90000) }
+      before { adapter.stub(:postgresql_version => 90300) }
       it { should be_chrono_supported }
     end
 
     context do
-      before { adapter.stub(:postgresql_version => 80400) }
+      before { adapter.stub(:postgresql_version => 90000) }
       it { should_not be_chrono_supported }
     end
   end

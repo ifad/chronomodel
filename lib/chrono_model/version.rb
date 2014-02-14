@@ -1,3 +1,3 @@
 module ChronoModel
-  VERSION = "0.5.4.pre1"
+  VERSION = "0.6.0.alpha"
 end

@@ -1,12 +1,12 @@
 # ChronoModel
 
 A temporal database system on PostgreSQL using
-[table inheritance](http://www.postgresql.org/docs/9.0/static/ddl-inherit.html) and
-[the rule system](http://www.postgresql.org/docs/9.0/static/rules-update.html).
+[table inheritance](http://www.postgresql.org/docs/9.3/static/ddl-inherit.html) and
+[the rule system](http://www.postgresql.org/docs/9.3/static/rules-update.html).
 
 This is a data structure for a
 [Slowly-Changing Dimension Type 2](http://en.wikipedia.org/wiki/Slowly_changing_dimension#Type_2)
-temporal database, implemented using only [PostgreSQL](http://www.postgresql.org) >= 9.0 features.
+temporal database, implemented using only [PostgreSQL](http://www.postgresql.org) >= 9.3 features.
 
 [![Build Status](https://travis-ci.org/ifad/chronomodel.png?branch=master)](https://travis-ci.org/ifad/chronomodel)
 [![Dependency Status](https://gemnasium.com/ifad/chronomodel.png)](https://gemnasium.com/ifad/chronomodel)
@@ -17,13 +17,13 @@ having to deal with it.
 
 The application model is backed by an updatable view that behaves exactly like a plain table, while
 behind the scenes the database redirects the queries to concrete tables using
-[the rule system](http://www.postgresql.org/docs/9.0/static/rules-update.html) for most of the cases,
+[the rule system](http://www.postgresql.org/docs/9.3/static/rules-update.html) for most of the cases,
 and using an `AFTER FOR EACH ROW` trigger only for the `INSERT` case on tables
 having a `SERIAL` primary key.
 
-Current data is hold in a table in the `temporal` [schema](http://www.postgresql.org/docs/9.0/static/ddl-schemas.html),
+Current data is hold in a table in the `temporal` [schema](http://www.postgresql.org/docs/9.3/static/ddl-schemas.html),
 while history in hold in another table in the `history` schema. The latter
-[inherits](http://www.postgresql.org/docs/9.0/static/ddl-inherit.html) from the former, to get
+[inherits](http://www.postgresql.org/docs/9.3/static/ddl-inherit.html) from the former, to get
 automated schema updates for free. Partitioning of history is even possible but not implemented
 yet.
 
@@ -51,7 +51,7 @@ defining this temporal schema for a single table.
 
 * Ruby &gt;= 1.9.2
 * Active Record &gt;= 3.2
-* PostgreSQL &gt;= 9.0
+* PostgreSQL &gt;= 9.3
 
 
 ## Installation
@@ -64,6 +64,13 @@ And then execute:
 
     $ bundle
 
+## Configuration
+
+Configure your `config/database.yml` to use the `chronomodel` adapter:
+
+    development:
+      adapter: chronomodel
+      username: ...
 
 ## Schema creation
 
@@ -208,7 +215,7 @@ them in your output, use `rake VERBOSE=true`.
    [currently](http://archives.postgresql.org/pgsql-hackers/2012-08/msg01094.php)
    no way to identify a subtransaction belonging to the current transaction.
 
- * The choice of using subqueries instead of [Common Table Expressions](http://www.postgresql.org/docs/9.0/static/queries-with.html)
+ * The choice of using subqueries instead of [Common Table Expressions](http://www.postgresql.org/docs/9.3/static/queries-with.html)
    was dictated by the fact that CTEs [currently acts as an optimization
    fence](http://archives.postgresql.org/pgsql-hackers/2012-09/msg00700.php).
    If it will be possible [to opt-out of the

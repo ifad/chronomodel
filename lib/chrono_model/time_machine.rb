@@ -6,11 +6,6 @@ module ChronoModel
     extend ActiveSupport::Concern
 
     included do
-      unless supports_chrono?
-        raise Error, "Your database server is not supported by ChronoModel. "\
-          "Currently, only PostgreSQL >= 9.0 is supported."
-      end
-
       if table_exists? && !chrono?
         puts "WARNING: #{table_name} is not a temporal table. " \
           "Please use change_table :#{table_name}, :temporal => true"

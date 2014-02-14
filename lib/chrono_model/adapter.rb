@@ -14,10 +14,12 @@ module ChronoModel
     # The schema holding historical data
     HISTORY_SCHEMA  = 'history'
 
-    # Chronomodel is supported starting with PostgreSQL >= 9.0
+    # Returns true whether the connection adapter supports our
+    # implementation of temporal tables. Currently, Chronomodel
+    # is supported starting with PostgreSQL 9.3.
     #
     def chrono_supported?
-      postgresql_version >= 90000
+      postgresql_version >= 90300
     end
 
     # Creates the given table, possibly creating the temporal schema
