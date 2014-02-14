@@ -508,6 +508,8 @@ module ChronoModel
         # UPDATE - set the last history entry validity to now, save the current data
         # in a new history entry and update the temporal table with the new data.
         #
+        # If there are no changes, this trigger suppresses redundant updates.
+        #
         # If a row in the history with the current ID and current timestamp already
         # exists, update it with new data. This logic makes possible to "squash"
         # together changes made in a transaction in a single history row.
@@ -517,6 +519,10 @@ module ChronoModel
             DECLARE _now timestamp;
             DECLARE _hid integer;
             BEGIN
+              IF OLD IS NOT DISTINCT FROM NEW THEN
+                RETURN NULL;
+              END IF;
+
               _now := timezone('UTC', now());
               _hid := NULL;
 

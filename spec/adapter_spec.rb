@@ -396,6 +396,17 @@ describe ChronoModel::Adapter do
   end
 
 
+  let(:current) { [ChronoModel::Adapter::TEMPORAL_SCHEMA, table].join('.') }
+  let(:history) { [ChronoModel::Adapter::HISTORY_SCHEMA,  table].join('.') }
+
+  def count(table)
+    adapter.select_value("SELECT COUNT(*) FROM ONLY #{table}").to_i
+  end
+
+  def ids(table)
+    adapter.select_values("SELECT id FROM ONLY #{table} ORDER BY id")
+  end
+
   context 'INSERT multiple values' do
     before :all do
       adapter.create_table table, :temporal => true, &columns
@@ -403,17 +414,6 @@ describe ChronoModel::Adapter do
 
     after :all do
       adapter.drop_table table
-    end
-
-    let(:current) { [ChronoModel::Adapter::TEMPORAL_SCHEMA, table].join('.') }
-    let(:history) { [ChronoModel::Adapter::HISTORY_SCHEMA,  table].join('.') }
-
-    def count(table)
-      adapter.select_value("SELECT COUNT(*) FROM ONLY #{table}").to_i
-    end
-
-    def ids(table)
-      adapter.select_values("SELECT id FROM ONLY #{table} ORDER BY id")
     end
 
     context 'when succeeding' do
@@ -460,6 +460,33 @@ describe ChronoModel::Adapter do
 
       it { ids(current).should == ids(history) }
     end
+  end
+
+  context 'redundant UPDATEs' do
+
+    before :all do
+      adapter.create_table table, :temporal => true, &columns
+
+      adapter.execute <<-SQL
+        INSERT INTO #{table} (test, foo) VALUES ('test1', 1);
+      SQL
+
+      adapter.execute <<-SQL
+        UPDATE #{table} SET test = 'test2';
+      SQL
+
+      adapter.execute <<-SQL
+        UPDATE #{table} SET test = 'test2';
+      SQL
+    end
+
+    after :all do
+      adapter.drop_table table
+    end
+
+    it { count(current).should == 1 }
+    it { count(history).should == 2 }
+
   end
 
 end
