@@ -484,6 +484,10 @@ module ChronoModel
 
         fields, values = columns.join(', '), columns.map {|c| "new.#{c}"}.join(', ')
 
+        # Columns to be journaled. By default everything except updated_at (GH #7)
+        #
+        journal = columns - [ quote_column_name('updated_at') ]
+
         # INSERT - insert data both in the temporal table and in the history one.
         #
         execute <<-SQL
@@ -518,8 +522,13 @@ module ChronoModel
           CREATE OR REPLACE FUNCTION chronomodel_#{table}_update() RETURNS TRIGGER AS $$
             DECLARE _now timestamp;
             DECLARE _hid integer;
+            DECLARE _old record;
+            DECLARE _new record;
             BEGIN
-              IF OLD IS NOT DISTINCT FROM NEW THEN
+              _old := row(#{journal.map {|c| "OLD.#{c}" }.join(', ')});
+              _new := row(#{journal.map {|c| "NEW.#{c}" }.join(', ')});
+
+              IF _old IS NOT DISTINCT FROM _new THEN
                 RETURN NULL;
               END IF;
 

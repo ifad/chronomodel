@@ -489,4 +489,38 @@ describe ChronoModel::Adapter do
 
   end
 
+  context 'updates on non-journaled fields' do
+    before :all do
+      adapter.create_table table, :temporal => true do |t|
+        t.string 'test'
+        t.timestamps
+      end
+
+      adapter.execute <<-SQL
+        INSERT INTO #{table} (test, created_at, updated_at) VALUES ('test', now(), now());
+      SQL
+
+      adapter.execute <<-SQL
+        UPDATE #{table} SET test = 'test2', updated_at = now();
+      SQL
+
+      2.times do
+        adapter.execute <<-SQL # Redundant update with only updated_at change
+          UPDATE #{table} SET test = 'test2', updated_at = now();
+        SQL
+
+        adapter.execute <<-SQL
+          UPDATE #{table} SET updated_at = now();
+        SQL
+      end
+    end
+
+    after :all do
+      adapter.drop_table table
+    end
+
+    it { count(current).should == 1 }
+    it { count(history).should == 2 }
+  end
+
 end
