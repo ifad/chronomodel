@@ -17,4 +17,5 @@ Gem::Specification.new do |gem|
 
   gem.add_dependency "activerecord", "~> 3.2"
   gem.add_dependency "pg"
+  gem.add_dependency "multi_json"
 end

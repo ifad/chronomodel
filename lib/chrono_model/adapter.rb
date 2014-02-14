@@ -51,7 +51,7 @@ module ChronoModel
         _on_temporal_schema { super }
         _on_history_schema { chrono_create_history_for(table_name) }
 
-        chrono_create_view_for(table_name)
+        chrono_create_view_for(table_name, options)
 
         TableCache.add! table_name
       end
@@ -106,7 +106,7 @@ module ChronoModel
 
             execute "ALTER TABLE #{table_name} SET SCHEMA #{TEMPORAL_SCHEMA}"
             _on_history_schema { chrono_create_history_for(table_name) }
-            chrono_create_view_for(table_name)
+            chrono_create_view_for(table_name, options)
 
             TableCache.add! table_name
 
@@ -433,6 +433,28 @@ module ChronoModel
     end
 
     private
+      def chrono_metadata_for(table)
+        comment = select_value %[
+          SELECT obj_description(c.oid)
+            FROM pg_catalog.pg_class c,
+                 pg_catalog.pg_namespace n
+           WHERE c.relname = 'foos'
+             AND c.relkind = 'v'
+             AND c.relnamespace = n.oid
+             AND n.nspname = 'public'
+        ] || '{}'
+
+        MultiJson.load(comment)
+      end
+
+      def chrono_metadata_set(table, metadata)
+        comment = MultiJson.dump(metadata)
+
+        execute %[
+          COMMENT ON VIEW public.#{table} IS #{quote(comment)}
+        ]
+      end
+
       # Create the history table in the history schema
       def chrono_create_history_for(table)
         parent = "#{TEMPORAL_SCHEMA}.#{table}"
@@ -467,15 +489,19 @@ module ChronoModel
 
       # Create the public view and its INSTEAD OF triggers
       #
-      def chrono_create_view_for(table)
+      def chrono_create_view_for(table, options = nil)
         pk      = primary_key(table)
         current = [TEMPORAL_SCHEMA, table].join('.')
         history = [HISTORY_SCHEMA,  table].join('.')
+
+        options ||= chrono_metadata_for(table)
 
         # SELECT - return only current data
         #
         execute "DROP VIEW #{table}" if table_exists? table
         execute "CREATE VIEW #{table} AS SELECT * FROM ONLY #{current}"
+
+        chrono_metadata_set(table, options.merge(:chronomodel => VERSION))
 
         columns = columns(table).map{|c| quote_column_name(c.name)}
         columns.delete(quote_column_name(pk))
@@ -486,7 +512,20 @@ module ChronoModel
 
         # Columns to be journaled. By default everything except updated_at (GH #7)
         #
-        journal = columns - [ quote_column_name('updated_at') ]
+        journal = if options[:journal]
+          options[:journal].map {|col| quote_column_name(col)}
+
+        elsif options[:no_journal]
+          columns - options[:no_journal].map {|col| quote_column_name(col)}
+
+        elsif options[:full_journal]
+          columns
+
+        else
+          columns - [ quote_column_name('updated_at') ]
+        end
+
+        journal &= columns
 
         # INSERT - insert data both in the temporal table and in the history one.
         #

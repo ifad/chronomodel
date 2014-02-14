@@ -523,4 +523,38 @@ describe ChronoModel::Adapter do
     it { count(history).should == 2 }
   end
 
+  context 'selective journaled fields' do
+    before :all do
+      adapter.create_table table, :temporal => true, :journal => %w( foo ) do |t|
+        t.string 'foo'
+        t.string 'bar'
+      end
+
+      adapter.execute <<-SQL
+        INSERT INTO #{table} (foo, bar) VALUES ('test foo', 'test bar');
+      SQL
+
+      adapter.execute <<-SQL
+        UPDATE #{table} SET foo = 'test foo', bar = 'no history';
+      SQL
+
+      2.times do
+        adapter.execute <<-SQL
+          UPDATE #{table} SET bar = 'really no history';
+        SQL
+      end
+    end
+
+    after :all do
+      adapter.drop_table table
+    end
+
+    it { count(current).should == 1 }
+    it { count(history).should == 1 }
+
+    it 'preserves options upon column change'
+    it 'changes option upon table change'
+
+  end
+
 end

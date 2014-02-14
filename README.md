@@ -112,6 +112,30 @@ with the `:validity` option:
     change_table :your_table, :temporal => true, :copy_data => true, :validity => '1977-01-01'
 
 
+## Selective Journaling
+
+Since v0.6.0, by default UPDATEs only to the `updated_at` field are not recorded in the history.
+
+You can also choose which fields are to be journaled, passing the following options to `create_table`:
+
+  * `:journal => %w( fld1 fld2 .. .. )` - record changes in the history only when changing specified fields
+  * `:no_journal => %w( fld1 fld2 .. )` - do not record changes to the specified fields
+  * `:full_journal => true`             - record changes to *all* fields, including `updated_at`.
+
+These options are stored in the [COMMENT](http://www.postgresql.org/docs/9.3/static/sql-comment.html) area
+of the public view, alongside with the ChronoModel version that created them. This is visible in `psql` if
+you issue a `\d+`. Example after a test run:
+
+    chronomodel=# \d+
+                                                           List of relations
+     Schema |     Name      |   Type   |    Owner    |    Size    |                           Description
+    --------+---------------+----------+-------------+------------+-----------------------------------------------------------------
+     public | bars          | view     | chronomodel | 0 bytes    | {"temporal":true,"chronomodel":"0.6.0.alpha"}
+     public | foos          | view     | chronomodel | 0 bytes    | {"temporal":true,"chronomodel":"0.6.0.alpha"}
+     public | plains        | table    | chronomodel | 0 bytes    |
+     public | test_table    | view     | chronomodel | 0 bytes    | {"temporal":true,"journal":["foo"],"chronomodel":"0.6.0.alpha"}
+
+
 ## Data querying
 
 A model backed by a temporal view will behave like any other model backed by a
