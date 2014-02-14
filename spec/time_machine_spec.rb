@@ -315,11 +315,10 @@ describe ChronoModel::TimeMachine do
 
     timestamps_from = lambda {|*records|
       ts = records.map(&:history).flatten!.inject([]) {|ret, rec|
-        ret.concat [
-          [rec.valid_from.to_i, rec.valid_from.usec + 2],
-          [rec.valid_to.to_i,   rec.valid_to.usec + 2]
-        ]
-      }.sort.uniq[0..-2]
+        ret.push [rec.valid_from.to_i, rec.valid_from.usec] if rec.valid_from
+        ret.push [rec.valid_to  .to_i, rec.valid_to  .usec] if rec.valid_to
+        ret
+      }.sort.uniq
     }
 
     describe 'on records having an :has_many relationship' do

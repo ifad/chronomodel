@@ -120,10 +120,9 @@ module ChronoModel
               execute %[
                 INSERT INTO #{HISTORY_SCHEMA}.#{table_name}
                 SELECT *,
-                  nextval('#{seq}')               AS hid,
-                  timestamp '#{from}'             AS valid_from,
-                  timestamp '9999-12-31 00:00:00' AS valid_to,
-                  timezone('UTC', now())          AS recorded_at
+                  nextval('#{seq}')        AS hid,
+                  tsrange('#{from}', NULL) AS validity,
+                  timezone('UTC', now())   AS recorded_at
                 FROM #{TEMPORAL_SCHEMA}.#{table_name}
               ]
             end
@@ -274,9 +273,7 @@ module ChronoModel
       end
     end
 
-    # Create spatial indexes for timestamp search. Conceptually identical
-    # to the EXCLUDE constraint in chrono_create_history_for, but without
-    # the millisecond skew.
+    # Create spatial indexes for timestamp search.
     #
     # This index is used by +TimeMachine.at+, `.current` and `.past` to
     # build the temporal WHERE clauses that fetch the state of records at
@@ -285,86 +282,48 @@ module ChronoModel
     # Parameters:
     #
     #   `table`: the table where to create indexes on
-    #   `from` : the starting timestamp field
-    #   `to`   : the ending timestamp field
+    #   `range`: the tsrange field
     #
     # Options:
     #
     #   `:name`: the index name prefix, defaults to
-    #            {table_name}_temporal_{snapshot / from_col / to_col}
+    #            index_{table}_temporal_on_{range / lower_range / upper_range}
     #
-    def add_temporal_indexes(table, from, to, options = {})
-      snapshot_idx, from_idx, to_idx =
-        temporal_index_names(table, from, to, options)
+    def add_temporal_indexes(table, range, options = {})
+      range_idx, lower_idx, upper_idx =
+        temporal_index_names(table, range, options)
 
       chrono_alter_index(table, options) do
         execute <<-SQL
-          CREATE INDEX #{snapshot_idx} ON #{table} USING gist (
-            box(
-              point( date_part( 'epoch', #{from} ), 0 ),
-              point( date_part( 'epoch', #{to  } ), 0 )
-            )
-          )
+          CREATE INDEX #{range_idx} ON #{table} USING gist ( #{range} )
         SQL
 
         # Indexes used for precise history filtering, sorting and, in history
         # tables, by UPDATE / DELETE triggers.
         #
-        execute "CREATE INDEX #{from_idx} ON #{table} ( (#{from}) )"
-        execute "CREATE INDEX #{to_idx  } ON #{table} ( (#{to  }) )"
+        execute "CREATE INDEX #{lower_idx} ON #{table} ( lower(#{range}) )"
+        execute "CREATE INDEX #{upper_idx} ON #{table} ( upper(#{range}) )"
       end
     end
 
-    def remove_temporal_indexes(table, from, to, options = {})
-      indexes = temporal_index_names(table, from, to, options)
+    def remove_temporal_indexes(table, range, options = {})
+      indexes = temporal_index_names(table, range, options)
 
       chrono_alter_index(table, options) do
         indexes.each {|idx| execute "DROP INDEX #{idx}" }
       end
     end
 
-    def temporal_index_names(table, from, to, options)
-      prefix = options[:name].presence || "#{table}_temporal"
+    def temporal_index_names(table, range, options)
+      prefix = options[:name].presence || "index_#{table}_temporal"
 
       # When creating computed indexes (e.g. ends_on::timestamp + time
       # '23:59:59'), remove everything following the field name.
-      from, to = [from, to].map {|s| s.to_s.sub(/\W.*/, '')}
+      range = range.to_s.sub(/\W.*/, '')
 
-      ["#{from}_and_#{to}", from, to].map do |suffix|
+      [range, "lower_#{range}", "upper_#{range}"].map do |suffix|
         [prefix, 'on', suffix].join('_')
       end
-    end
-
-    # Adds a CHECK constraint to the given +table+, to assure that
-    # the value contained in the +from+ field is, by default, less
-    # than the value contained in the +to+ field.
-    #
-    # The default `<` operator can be changed using the `:op` option.
-    #
-    def add_from_before_to_constraint(table, from, to, options = {})
-      operator = options[:op].presence || '<'
-      name = from_before_to_constraint_name(table, from, to)
-
-      chrono_alter_constraint(table, options) do
-        execute <<-SQL
-          ALTER TABLE #{table} ADD CONSTRAINT
-            #{name} CHECK (#{from} #{operator} #{to})
-        SQL
-      end
-    end
-
-    def remove_from_before_to_constraint(table, from, to, options = {})
-      name = from_before_to_constraint_name(table, from, to)
-
-      chrono_alter_constraint(table, options) do
-        execute <<-SQL
-          ALTER TABLE #{table} DROP CONSTRAINT #{name}
-        SQL
-      end
-    end
-
-    def from_before_to_constraint_name(table, from, to)
-      "#{table}_#{from}_before_#{to}"
     end
 
 
@@ -372,31 +331,21 @@ module ChronoModel
     # no more than one record can occupy a definite segment on a
     # timeline.
     #
-    # The exclusion is implemented using a spatial gist index, that
-    # uses boxes under the hood. Different records are identified by
-    # default using the table's primary key - or you can specify your
-    # field (or composite field) using the `:id` option.
-    #
-    def add_timeline_consistency_constraint(table, from, to, options = {})
+    def add_timeline_consistency_constraint(table, range, options = {})
       name = timeline_consistency_constraint_name(table)
-      id = options[:id] || primary_key(table)
+      id   = options[:id] || primary_key(table)
 
       chrono_alter_constraint(table, options) do
         execute <<-SQL
-          ALTER TABLE #{table} ADD CONSTRAINT
-            #{name} EXCLUDE USING gist (
-              box(
-                point( date_part( 'epoch', #{from} ), #{id} ),
-                point( date_part( 'epoch', #{to  } - INTERVAL '1 msec' ), #{id} )
-              )
-              WITH &&
-            )
+          ALTER TABLE #{table} ADD CONSTRAINT #{name}
+            EXCLUDE USING gist ( #{id} WITH =, #{range} WITH && )
         SQL
       end
     end
 
-    def remove_timeline_consistency_constraint(table, from, to, options = {})
+    def remove_timeline_consistency_constraint(table, options = {})
       name = timeline_consistency_constraint_name(table)
+
       chrono_alter_constraint(table, options) do
         execute <<-SQL
           ALTER TABLE #{table} DROP CONSTRAINT #{name}
@@ -492,17 +441,12 @@ module ChronoModel
         execute <<-SQL
           CREATE TABLE #{table} (
             hid         SERIAL PRIMARY KEY,
-            valid_from  timestamp NOT NULL,
-            valid_to    timestamp NOT NULL DEFAULT '9999-12-31',
+            validity    tsrange NOT NULL,
             recorded_at timestamp NOT NULL DEFAULT timezone('UTC', now())
           ) INHERITS ( #{parent} )
         SQL
 
-        add_from_before_to_constraint(table, :valid_from, :valid_to,
-          :on_current_schema => true)
-
-        add_timeline_consistency_constraint(table, :valid_from, :valid_to,
-          :id => p_pkey, :on_current_schema => true)
+        add_timeline_consistency_constraint(table, :validity, :on_current_schema => true)
 
         # Inherited primary key
         execute "CREATE INDEX #{table}_inherit_pkey ON #{table} ( #{p_pkey} )"
@@ -515,8 +459,7 @@ module ChronoModel
         # TODO remove me.
         p_pkey ||= primary_key("#{TEMPORAL_SCHEMA}.#{table}")
 
-        add_temporal_indexes table, :valid_from, :valid_to,
-          :on_current_schema => true
+        add_temporal_indexes table, :validity, :on_current_schema => true
 
         execute "CREATE INDEX #{table}_recorded_at      ON #{table} ( recorded_at )"
         execute "CREATE INDEX #{table}_instance_history ON #{table} ( #{p_pkey}, recorded_at )"
@@ -545,13 +488,12 @@ module ChronoModel
         #
         execute <<-SQL
           CREATE OR REPLACE FUNCTION chronomodel_#{table}_insert() RETURNS TRIGGER AS $$
-            DECLARE _now timestamp;
             BEGIN
               INSERT INTO #{current} ( #{fields} ) VALUES ( #{values} )
               RETURNING #{pk} INTO NEW.#{pk};
 
-              INSERT INTO #{history} ( #{pk}, #{fields}, valid_from )
-              VALUES ( NEW.#{pk}, #{values}, timezone('UTC', now()) );
+              INSERT INTO #{history} ( #{pk}, #{fields}, validity )
+              VALUES ( NEW.#{pk}, #{values}, tsrange(timezone('UTC', now()), NULL) );
 
               RETURN NEW;
             END;
@@ -577,19 +519,20 @@ module ChronoModel
             BEGIN
               _now := timezone('UTC', now());
               _hid := NULL;
-              SELECT hid INTO _hid FROM #{history} WHERE #{pk} = old.#{pk} AND valid_from = _now;
+
+              SELECT hid INTO _hid FROM #{history} WHERE #{pk} = OLD.#{pk} AND lower(validity) = _now;
 
               IF _hid IS NOT NULL THEN
                 UPDATE #{history} SET #{updates} WHERE hid = _hid;
               ELSE
-                UPDATE #{history} SET valid_to = _now
-                WHERE #{pk} = old.#{pk} AND valid_to = '9999-12-31';
+                UPDATE #{history} SET validity = tsrange(lower(validity), _now)
+                WHERE #{pk} = OLD.#{pk} AND upper_inf(validity);
 
-                INSERT INTO #{history} ( #{pk}, #{fields}, valid_from )
-                VALUES ( old.#{pk}, #{values}, _now );
+                INSERT INTO #{history} ( #{pk}, #{fields}, validity )
+                VALUES ( OLD.#{pk}, #{values}, tsrange(_now, NULL) );
               END IF;
 
-              UPDATE ONLY #{current} SET #{updates} WHERE #{pk} = old.#{pk};
+              UPDATE ONLY #{current} SET #{updates} WHERE #{pk} = OLD.#{pk};
 
               RETURN NEW;
             END;
@@ -613,12 +556,10 @@ module ChronoModel
               _now := timezone('UTC', now());
 
               DELETE FROM #{history}
-              WHERE #{pk} = old.#{pk}
-                AND valid_from = _now
-                AND valid_to   = '9999-12-31';
+              WHERE #{pk} = old.#{pk} AND validity = tsrange(_now, NULL);
 
-              UPDATE #{history} SET valid_to = _now
-              WHERE #{pk} = old.#{pk} AND valid_to = '9999-12-31';
+              UPDATE #{history} SET validity = tsrange(lower(validity), _now)
+              WHERE #{pk} = old.#{pk} AND upper_inf(validity);
 
               DELETE FROM ONLY #{current}
               WHERE #{pk} = old.#{pk};

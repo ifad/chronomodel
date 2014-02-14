@@ -67,10 +67,10 @@ module ChronoModel
         # is the first one.
         #
         def pred
-          return nil if self.valid_from.year.zero?
+          return if self.valid_from.nil?
 
           if self.class.timeline_associations.empty?
-            self.class.where(:id => rid, :valid_to => valid_from_before_type_cast).first
+            self.class.where('id = ? AND upper(validity) = ?', rid, valid_from_before_type_cast).first
           else
             super(:id => rid, :before => valid_from)
           end
@@ -80,10 +80,10 @@ module ChronoModel
         # last one.
         #
         def succ
-          return nil if self.valid_to.year == 9999
+          return if self.valid_to.nil?
 
           if self.class.timeline_associations.empty?
-            self.class.where(:id => rid, :valid_from => valid_to_before_type_cast).first
+            self.class.where('id = ? AND lower(validity) = ?', rid, valid_to_before_type_cast).first
           else
             super(:id => rid, :after => valid_to)
           end
@@ -93,13 +93,13 @@ module ChronoModel
         # Returns the first history entry
         #
         def first
-          self.class.where(:id => rid).order(:valid_from).first
+          self.class.where(:id => rid).order('lower(validity)').first
         end
 
         # Returns the last history entry
         #
         def last
-          self.class.where(:id => rid).order(:valid_from).last
+          self.class.where(:id => rid).order('lower(validity)').last
         end
 
         # Returns this history entry's current record
@@ -107,6 +107,35 @@ module ChronoModel
         def record
           self.class.superclass.find(rid)
         end
+
+        def valid_from
+          if ts = valid_from_before_type_cast
+            Time.parse [ts, 'Z'].join
+          end
+        end
+
+        def valid_to
+          if ts = valid_to_before_type_cast
+            Time.parse [ts, 'Z'].join
+          end
+        end
+
+        def validity
+          [valid_from, valid_to]
+        end
+
+        def valid_from_before_type_cast
+          parse_range(:validity).first
+        end
+
+        def valid_to_before_type_cast
+          parse_range(:validity).last
+        end
+
+        protected
+          def parse_range(name)
+            self[name].scan(/(?:"(.+)")?,(?:"(.+)")?/).flatten
+          end
       end
 
       model.singleton_class.instance_eval do
@@ -206,7 +235,7 @@ module ChronoModel
     #
     def pred(options = {})
       if self.class.timeline_associations.empty?
-        history.order('valid_to DESC').offset(1).first
+        history.order('upper(validity) DESC').offset(1).first
       else
         return nil unless (ts = pred_timestamp(options))
         self.class.as_of(ts).order('hid desc').find(options[:id] || id)
@@ -270,13 +299,6 @@ module ChronoModel
       end
     end
 
-    # Wraps AR::Base#attributes by removing the __xid internal attribute
-    # used to squash together changes made in the same transaction.
-    #
-    %w( attributes attribute_names ).each do |name|
-      define_method(name) { super().tap {|x| x.delete('__xid')} }
-    end
-
     module ClassMethods
       # Returns an ActiveRecord::Relation on the history of this model as
       # it was +time+ ago.
@@ -286,7 +308,7 @@ module ChronoModel
 
       def attribute_names_for_history_changes
         @attribute_names_for_history_changes ||= attribute_names -
-          %w( id hid valid_from valid_to recorded_at as_of_time )
+          %w( id hid validity recorded_at as_of_time )
       end
 
       def has_timeline(options)
@@ -304,47 +326,44 @@ module ChronoModel
 
     module TimeQuery
       OPERATORS = {
-        :at      => '&&',
-        :before  => '<<',
-        :after   => '>>',
+        :at       => '<@',
+        :at_range => '&&',
+        :before   => '<<',
+        :after    => '>>',
       }.freeze
 
-      def time_query(match, time_or_times, options)
-        from_f, to_f = options[:on]
+      def time_query(match, time, options)
+        range = options[:on]
 
-        from_t, to_t = if time_or_times.kind_of?(Array)
-          time_or_times.map! {|t| time_for_time_query(t)}
+        time = if time.kind_of?(Array)
+          time.map! {|t| time_for_time_query(t)}
         else
-          [time_for_time_query(time_or_times)]*2
+          time_for_time_query(time)
         end
 
         if match == :not
           where(%[
-            #{build_time_query(:before, from_t, from_f, to_t, to_f)} OR
-            #{build_time_query(:after,  from_t, from_f, to_t, to_f)}
+            #{build_time_query(:before, time, range)} OR
+            #{build_time_query(:after,  time, range)}
           ])
         else
-          where(build_time_query(match, from_t, from_f, to_t, to_f))
+          where(build_time_query(match, time, range))
         end
       end
 
       private
         def time_for_time_query(t)
           t = Conversions.time_to_utc_string(t.utc) if t.kind_of?(Time)
-          t == :now ? 'now()' : "#{connection.quote(t)}::timestamp"
+          t == :now ? "timezone('UTC', now())" : "#{connection.quote(t)}::timestamp"
         end
 
-        def build_time_query(match, from_t, from_f, to_t, to_f)
-          %[
-            box(
-              point( date_part( 'epoch', #{from_f} ), 0 ),
-              point( date_part( 'epoch', #{to_f  } ), 0 )
-            ) #{OPERATORS.fetch(match)}
-            box(
-              point( date_part( 'epoch', #{from_t} ), 0 ),
-              point( date_part( 'epoch', #{to_t  } ), 0 )
-            )
-          ]
+        def build_time_query(match, time, range)
+          if time.kind_of?(Array)
+            match = :at_range if match == :at
+            %[ tsrange(#{time.first}, #{time.last}) #{OPERATORS.fetch(match)} #{range} ]
+          else
+            %[ #{time} #{OPERATORS.fetch(match)} #{range} ]
+          end
         end
     end
 
@@ -410,7 +429,7 @@ module ChronoModel
 
         unscoped.
           select("#{quoted_table_name}.*, #{connection.quote(time)} AS as_of_time").
-          time_query(:at, time, :on => quoted_history_fields)
+          time_query(:at, time, :on => :validity)
       end
 
       # Returns the whole history as read only.
@@ -422,7 +441,8 @@ module ChronoModel
 
       # Fetches the given +object+ history, sorted by history record time
       # by default. Always includes an "as_of_time" column that is either
-      # the valid_to timestamp or now() if history validity is maximum.
+      # the upper bound of the validity range or now() if history validity
+      # is maximum.
       #
       def of(object)
         readonly.where(:id => object).extend(HistorySelect)
@@ -444,7 +464,7 @@ module ChronoModel
           end
 
           super.tap do |rel|
-            rel.project("LEAST(valid_to, now()::timestamp) AS as_of_time")
+            rel.project("LEAST(upper(validity), timezone('UTC', now())) AS as_of_time")
           end
         end
       end
@@ -466,7 +486,6 @@ module ChronoModel
           return [] if models.empty?
 
           fields = models.inject([]) {|a,m| a.concat m.quoted_history_fields}
-          fields.map! {|f| "#{f} + INTERVAL '2 usec'"}
 
           relation = self.
             joins(*assocs.map(&:name)).
@@ -486,11 +505,10 @@ module ChronoModel
             sql << " AND ts > '#{Conversions.time_to_utc_string(options[:after ])}'"
           end
 
-          if rid
-            sql << (self.chrono? ? %[
-              AND ts >= ( SELECT MIN(valid_from) FROM #{quoted_table_name} WHERE id = #{rid} )
-              AND ts <  ( SELECT MAX(valid_to  ) FROM #{quoted_table_name} WHERE id = #{rid} )
-            ] : %[ AND ts < NOW() ])
+          if rid && !options[:with]
+            sql << (self.chrono? ? %{
+              AND ts <@ ( SELECT tsrange(min(lower(validity)), max(upper(validity)), '[]') FROM #{quoted_table_name} WHERE id = #{rid} )
+            } : %[ AND ts < NOW() ])
           end
 
           sql << " LIMIT #{options[:limit].to_i}" if options.key?(:limit)
@@ -525,10 +543,13 @@ module ChronoModel
       end)
 
       def quoted_history_fields
-        @quoted_history_fields ||= [:valid_from, :valid_to].map do |field|
-          [connection.quote_table_name(table_name),
-           connection.quote_column_name(field)
-          ].join('.')
+        @quoted_history_fields ||= begin
+          validity =
+            [connection.quote_table_name(table_name),
+             connection.quote_column_name('validity')
+            ].join('.')
+
+          [:lower, :upper].map! {|func| "#{func}(#{validity})"}
         end
       end
     end

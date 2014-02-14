@@ -49,6 +49,8 @@ module ChronoTest::Helpers
 
     module DSL
       def setup_schema!
+        adapter.execute 'CREATE EXTENSION btree_gist'
+
         # Set up database structure
         #
         adapter.create_table 'foos', :temporal => true do |t|

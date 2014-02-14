@@ -72,8 +72,7 @@ module ChronoTest::Matchers
     class HaveHistoryExtraColumns < HaveColumns
       def initialize
         super([
-          ['valid_from',  'timestamp without time zone'],
-          ['valid_to',    'timestamp without time zone'],
+          ['validity',    'tsrange'],
           ['recorded_at', 'timestamp without time zone'],
           ['hid',         'integer']
         ], history_schema)

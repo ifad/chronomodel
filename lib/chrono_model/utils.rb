@@ -28,8 +28,7 @@ module ChronoModel
 
       connection.execute %[
         UPDATE #{quoted_table_name}
-           SET "valid_from" = #{connection.quote(from)},
-               "valid_to"   = #{connection.quote(to  )}
+           SET "validity" = tsrange(#{connection.quote(from)}, #{connection.quote(to)})
          WHERE "hid" = #{hid.to_i}
       ]
     end

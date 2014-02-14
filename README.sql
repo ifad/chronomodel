@@ -20,37 +20,24 @@ create table temporal.countries (
 -- http://www.postgresql.org/docs/9.0/static/ddl-inherit.html#DDL-INHERIT-CAVEATS
 --
 create table history.countries (
-
   hid         serial primary key,
-  valid_from  timestamp not null,
-  valid_to    timestamp not null default '9999-12-31',
+  validity    tsrange,
   recorded_at timestamp not null default timezone('UTC', now()),
 
-  constraint from_before_to check (valid_from < valid_to),
+  constraint overlapping_times exclude using gist ( id with =, validity with && )
 
-  constraint overlapping_times exclude using gist (
-    box(
-      point( date_part( 'epoch', valid_from), id ),
-      point( date_part( 'epoch', valid_to - interval '1 millisecond'), id )
-    ) with &&
-  )
 ) inherits ( temporal.countries );
 
 -- Inherited primary key
-create index country_inherit_pkey on history.countries ( id )
+create index country_inherit_pkey on history.countries ( id );
 
 -- Snapshot of data at a specific point in time
-create index country_snapshot on history.countries USING gist (
-  box(
-    point( date_part( 'epoch', valid_from ), 0 ),
-    point( date_part( 'epoch', valid_to   ), 0 )
-  )
-)
+create index country_snapshot on history.countries USING gist ( validity );
 
 -- Used by the trigger functions when UPDATE'ing and DELETE'ing
-create index country_valid_from  on history.countries ( valid_from )
-create index country_valid_to    on history.countries ( valid_from )
-create index country_recorded_at on history.countries ( id, valid_to )
+create index country_lower_validity on history.countries ( lower(validity) )
+create index country_upper_validity on history.countries ( upper(validity) )
+create index country_recorded_at    on history.countries ( id, valid_to )
 
 -- Single instance whole history
 create index country_instance_history on history.countries ( id, recorded_at )
@@ -71,8 +58,8 @@ create or replace function public.chronomodel_countries_insert() returns trigger
     values ( new.name )
     returning id into new.id;
 
-    insert into history.countries ( id, name, valid_from )
-    values ( new.id, new.name, timezone('utc', now()) );
+    insert into history.countries ( id, name, validity )
+    values ( new.id, new.name, tsrange(timezone('utc', now()), null) );
 
     return new;
   end;
@@ -95,17 +82,16 @@ create function chronomodel_countries_update() returns trigger as $$
     _now := timezone('utc', now());
     _hid := null;
 
-    select hid into _hid from history.countries
-    where id = old.id and valid_from = _now;
+    select hid into _hid from history.countries where id = old.id and lower(validity) = _now;
 
     if _hid is not null then
       update history.countries set name = new.name where hid = _hid;
     else
-      update history.countries set valid_to = _now
-      where id = old.id and valid_to = '9999-12-31';
+      update history.countries set validity = tsrange(lower(validity), _now)
+      where id = old.id and upper_inf(validity);
 
-      insert into history.countries ( id, name, valid_from )
-      values ( old.id, new.values, _now );
+      insert into history.countries ( id, name, validity )
+      values ( old.id, new.values, tsrange(_now, null) );
     end if;
 
     update only temporal.countries set name = new.name where id = old.id;
@@ -128,12 +114,10 @@ create or replace function chronomodel_countries_delete() returns trigger as $$
     _now := timezone('utc', now());
 
     delete from history.countries
-    where id = old.id
-      and valid_from = _now
-      and valid_to   = '9999-12-31';
+    where id = old.id and validity = tsrange(_now, null);
 
     update history.countries set valid_to = _now
-    where id = old.id and valid_to = '9999-12-31';
+    where id = old.id and upper_inf(validity);
 
     delete from only temporal.countries
     where temporal.id = old.id;
