@@ -548,10 +548,10 @@ module ChronoModel
             DECLARE _now timestamp;
             BEGIN
               INSERT INTO #{current} ( #{fields} ) VALUES ( #{values} )
-              RETURNING #{pk} INTO NEW.id;
+              RETURNING #{pk} INTO NEW.#{pk};
 
               INSERT INTO #{history} ( #{pk}, #{fields}, valid_from )
-              VALUES ( NEW.id, #{values}, timezone('UTC', now()) );
+              VALUES ( NEW.#{pk}, #{values}, timezone('UTC', now()) );
 
               RETURN NEW;
             END;
