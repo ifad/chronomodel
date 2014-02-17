@@ -46,7 +46,7 @@ module ChronoModel
           hid
         end
 
-        # Referenced record ID
+        # Referenced record ID.
         #
         def rid
           attributes[self.class.primary_key]
@@ -70,9 +70,9 @@ module ChronoModel
           return if self.valid_from.nil?
 
           if self.class.timeline_associations.empty?
-            self.class.where('id = ? AND upper(validity) = ?', rid, valid_from_before_type_cast).first
+            self.class.where('id = ? AND upper(validity) = ?', rid, valid_from).first
           else
-            super(:id => rid, :before => valid_from)
+            super(:id => rid, :before => valid_from, :table => self.class.superclass.quoted_table_name)
           end
         end
 
@@ -83,9 +83,9 @@ module ChronoModel
           return if self.valid_to.nil?
 
           if self.class.timeline_associations.empty?
-            self.class.where('id = ? AND lower(validity) = ?', rid, valid_to_before_type_cast).first
+            self.class.where('id = ? AND lower(validity) = ?', rid, valid_to).first
           else
-            super(:id => rid, :after => valid_to)
+            super(:id => rid, :after => valid_to, :table => self.class.superclass.quoted_table_name)
           end
         end
         alias :next :succ
@@ -109,33 +109,12 @@ module ChronoModel
         end
 
         def valid_from
-          if ts = valid_from_before_type_cast
-            Time.parse [ts, 'Z'].join
-          end
+          validity.first
         end
 
         def valid_to
-          if ts = valid_to_before_type_cast
-            Time.parse [ts, 'Z'].join
-          end
+          validity.last
         end
-
-        def validity
-          [valid_from, valid_to]
-        end
-
-        def valid_from_before_type_cast
-          parse_range(:validity).first
-        end
-
-        def valid_to_before_type_cast
-          parse_range(:validity).last
-        end
-
-        protected
-          def parse_range(name)
-            self[name].scan(/(?:"(.+)")?,(?:"(.+)")?/).flatten
-          end
       end
 
       model.singleton_class.instance_eval do
@@ -238,7 +217,7 @@ module ChronoModel
         history.order('upper(validity) DESC').offset(1).first
       else
         return nil unless (ts = pred_timestamp(options))
-        self.class.as_of(ts).order('hid desc').find(options[:id] || id)
+        self.class.as_of(ts).order(%[ #{options[:table] || self.class.quoted_table_name}."hid" DESC ]).find(options[:id] || id)
       end
     end
 
@@ -259,7 +238,7 @@ module ChronoModel
     def succ(options = {})
       unless self.class.timeline_associations.empty?
         return nil unless (ts = succ_timestamp(options))
-        self.class.as_of(ts).order('hid desc').find(options[:id] || id)
+        self.class.as_of(ts).order(%[ #{options[:table] || self.class.quoted_table_name}."hid" DESC ]).find(options[:id] || id)
       end
     end
 
@@ -428,15 +407,20 @@ module ChronoModel
         time = Conversions.time_to_utc_string(time.utc) if time.kind_of?(Time)
 
         unscoped.
-          select("#{quoted_table_name}.*, #{connection.quote(time)} AS as_of_time").
+          select("#{quoted_table_name}.*, #{connection.quote(time)}::timestamp AS as_of_time").
           time_query(:at, time, :on => :validity)
       end
 
       # Returns the whole history as read only.
       #
       def all
-        readonly.
-          order("#{quoted_table_name}.recorded_at, hid").all
+        super.readonly
+      end
+
+      # Returns the history sorted by recorded_at
+      #
+      def sorted
+        all.order(%[ #{quoted_table_name}."recorded_at", #{quoted_table_name}."hid" ])
       end
 
       # Fetches the given +object+ history, sorted by history record time
@@ -460,7 +444,7 @@ module ChronoModel
           return super if has_aggregate
 
           if order_values.blank?
-            self.order_values += ["#{quoted_table_name}.recorded_at, #{quoted_table_name}.hid"]
+            self.order_values += [ %[#{quoted_table_name}."recorded_at", #{quoted_table_name}."hid"] ]
           end
 
           super.tap do |rel|
@@ -488,8 +472,13 @@ module ChronoModel
           fields = models.inject([]) {|a,m| a.concat m.quoted_history_fields}
 
           relation = self.
-            joins(*assocs.map(&:name)).
-            select("DISTINCT UNNEST(ARRAY[#{fields.join(',')}]) AS ts").
+            select("DISTINCT UNNEST(ARRAY[#{fields.join(',')}]) AS ts")
+
+          if assocs.present?
+            relation = relation.joins(*assocs.map(&:name))
+          end
+
+          relation = relation.
             order('ts ' << (options[:reverse] ? 'DESC' : 'ASC'))
 
           relation = relation.from(%["public".#{quoted_table_name}]) unless self.chrono?

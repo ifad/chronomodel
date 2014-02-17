@@ -1,6 +1,5 @@
 require 'pathname'
 require 'active_record'
-require 'active_support/core_ext/logger'
 
 module ChronoTest
   extend self

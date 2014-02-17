@@ -1,28 +1,27 @@
 require 'chrono_model'
 
 module ActiveRecord
-  class Base
+  module ConnectionHandling
 
     # Install the new adapter in ActiveRecord. This approach is required because
     # the PG adapter defines +add_column+ itself, thus making impossible to use
     # super() in overridden Module methods.
     #
-    def self.chronomodel_connection(config) # :nodoc:
-      config = config.symbolize_keys
-      host     = config[:host]
-      port     = config[:port] || 5432
-      username = config[:username].to_s if config[:username]
-      password = config[:password].to_s if config[:password]
+    def chronomodel_connection(config) # :nodoc:
+      conn_params = config.symbolize_keys
 
-      if config.key?(:database)
-        database = config[:database]
-      else
-        raise ArgumentError, "No database specified. Missing argument: database."
-      end
+      conn_params.delete_if { |_, v| v.nil? }
+
+      # Map ActiveRecords param names to PGs.
+      conn_params[:user] = conn_params.delete(:username) if conn_params[:username]
+      conn_params[:dbname] = conn_params.delete(:database) if conn_params[:database]
+
+      # Forward only valid config params to PGconn.connect.
+      conn_params.keep_if { |k, _| VALID_CONN_PARAMS.include?(k) }
 
       # The postgres drivers don't allow the creation of an unconnected PGconn object,
       # so just pass a nil connection object for the time being.
-      adapter = ChronoModel::Adapter.new(nil, logger, [host, port, nil, nil, database, username, password], config)
+      adapter = ChronoModel::Adapter.new(nil, logger, conn_params, config)
 
       unless adapter.chrono_supported?
         raise ChronoModel::Error, "Your database server is not supported by ChronoModel. "\
@@ -32,7 +31,9 @@ module ActiveRecord
       return adapter
     end
 
-    ChronoModelAdapter = ::ChronoModel::Adapter
+    module Connectionadapters
+      ChronoModelAdapter = ::ChronoModel::Adapter
+    end
 
   end
 end

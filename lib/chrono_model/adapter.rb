@@ -17,6 +17,9 @@ module ChronoModel
     # This adapter name, for identifiaction purposes.
     ADAPTER_NAME = 'ChronoModel'
 
+    # This is the data type used for the SCD2 validity
+    RANGE_TYPE = 'tsrange'
+
     # Returns true whether the connection adapter supports our
     # implementation of temporal tables. Currently, Chronomodel
     # is supported starting with PostgreSQL 9.3.
@@ -393,7 +396,7 @@ module ChronoModel
       @_on_schema_nesting -= 1
     end
 
-    TableCache = (Class.new(HashWithIndifferentAccess) do
+    TableCache = (Class.new(Hash) do
       def all         ; keys;                      ; end
       def add!  table ; self[table.to_s] = true    ; end
       def del!  table ; self[table.to_s] = nil     ; end
@@ -426,23 +429,61 @@ module ChronoModel
       end
     end
 
+    # HACK: Redefine tsrange parsing support, as it is broken currently.
+    #
+    # This self-made API is here because currently AR4 does not support
+    # open-ended ranges. The reasons are poor support in Ruby:
+    #
+    #   https://bugs.ruby-lang.org/issues/6864
+    #
+    # and an instable interface in Active Record:
+    #
+    #   https://github.com/rails/rails/issues/13793
+    #   https://github.com/rails/rails/issues/14010
+    #
+    # so, for now, we are implementing our own.
+    #
+    class TSRange < OID::Type
+      def extract_bounds(value)
+        from, to = value[1..-2].split(',')
+        {
+          from:          (value[1] == ',' || from == '-infinity') ? nil : from[1..-2],
+          to:            (value[-2] == ',' || to == 'infinity') ? nil : to[1..-2],
+          #exclude_start: (value[0] == '('),
+          #exclude_end:   (value[-1] == ')')
+        }
+      end
+
+      def type_cast(value)
+        extracted = extract_bounds(value)
+
+        from = Conversions.string_to_utc_time extracted[:from]
+        to   = Conversions.string_to_utc_time extracted[:to  ]
+
+        [from, to]
+      end
+    end
+
     def chrono_create_schemas!
       [TEMPORAL_SCHEMA, HISTORY_SCHEMA].each do |schema|
         execute "CREATE SCHEMA #{schema}" unless schema_exists?(schema)
       end
+
+      OID::TYPE_MAP[3908] = TSRange.new
     end
 
     private
+
       def chrono_metadata_for(table)
-        comment = select_value %[
+        comment = select_value(%[
           SELECT obj_description(c.oid)
             FROM pg_catalog.pg_class c,
                  pg_catalog.pg_namespace n
-           WHERE c.relname = 'foos'
+           WHERE c.relname = #{quote(table)}
              AND c.relkind = 'v'
              AND c.relnamespace = n.oid
              AND n.nspname = 'public'
-        ] || '{}'
+        ]) || '{}'
 
         MultiJson.load(comment)
       end
@@ -463,7 +504,7 @@ module ChronoModel
         execute <<-SQL
           CREATE TABLE #{table} (
             hid         SERIAL PRIMARY KEY,
-            validity    tsrange NOT NULL,
+            validity    #{RANGE_TYPE} NOT NULL,
             recorded_at timestamp NOT NULL DEFAULT timezone('UTC', now())
           ) INHERITS ( #{parent} )
         SQL

@@ -1,6 +1,6 @@
 module ChronoModel
   class Railtie < ::Rails::Railtie
-    initializer :chrono_create_schemas do
+    initializer :chrono_initialize do
       ActiveRecord::Base.connection.chrono_create_schemas!
     end
 
@@ -9,13 +9,13 @@ module ChronoModel
 
       namespace :db do
         namespace :chrono do
-          task :create_schemas do
+          task :model do
             ActiveRecord::Base.connection.chrono_create_schemas!
           end
         end
       end
 
-      task 'db:schema:load' => 'db:chrono:create_schemas'
+      task 'db:schema:load' => 'db:chrono:model'
     end
   end
 end

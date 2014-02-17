@@ -110,7 +110,7 @@ module ChronoTest::Helpers
         class ::Defoo < ActiveRecord::Base
           include ChronoModel::TimeMachine
 
-          default_scope where(:active => true)
+          default_scope proc { where(:active => true) }
         end
 
         # STI case (https://github.com/ifad/chronomodel/issues/5)
@@ -150,7 +150,7 @@ module ChronoTest::Helpers
           define_method(:ts) { @_ts ||= [] }
         end unless obj.methods.include?(:ts)
 
-        now = ChronoTest.connection.select_value('select now()::timestamp')
+        now = ChronoTest.connection.select_value('select now()::timestamp') + 'Z'
         obj.ts.push(Time.parse(now))
       end
     end

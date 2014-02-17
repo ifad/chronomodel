@@ -14,11 +14,11 @@ module ChronoModel
     class Association < ActiveRecord::Associations::Association
 
       # If the association class or the through association are ChronoModels,
-      # then fetches the records from a virtual table using a subquery scoped
+      # then fetches the records from a virtual table using a subquery scope
       # to a specific timestamp.
-      def scoped
-        scoped = super
-        return scoped unless _chrono_record?
+      def scope
+        scope = super
+        return scope unless _chrono_record?
 
         klass = reflection.options[:polymorphic] ?
           owner.public_send(reflection.foreign_type).constantize :
@@ -28,12 +28,12 @@ module ChronoModel
           # For standard associations, replace the table name with the virtual
           # as-of table name at the owner's as-of-time
           #
-          scoped = scoped.readonly.from(klass.history.virtual_table_at(owner.as_of_time))
+          scope = scope.readonly.from(klass.history.virtual_table_at(owner.as_of_time))
         elsif respond_to?(:through_reflection) && through_reflection.klass.chrono?
 
           # For through associations, replace the joined table name instead.
           #
-          scoped.join_sources.each do |join|
+          scope.join_sources.each do |join|
             if join.left.name == through_reflection.klass.table_name
               v_table = through_reflection.klass.history.virtual_table_at(
                 owner.as_of_time, join.left.table_alias || join.left.table_name)
@@ -57,7 +57,7 @@ module ChronoModel
 
         end
 
-        return scoped
+        return scope
       end
 
       private

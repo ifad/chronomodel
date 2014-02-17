@@ -47,7 +47,7 @@ defining this temporal schema for a plain table.
 ## Requirements
 
 * Ruby &gt;= 1.9.3
-* Active Record = 3.2
+* Active Record &gt;= 4.0
 * PostgreSQL &gt;= 9.3
 * The `btree_gist` PostgreSQL extension
 
@@ -203,6 +203,11 @@ Run `rake`. SQL queries are logged to `spec/debug.log`. If you want to see
 them in your output, use `rake VERBOSE=true`.
 
 ## Caveats
+
+ * Rails 4 support requires disabling tsrange parsing support, as it is broken
+   and incomplete as of now: [link](https://github.com/rails/rails/issues/13793),
+   [link](https://github.com/rails/rails/issues/14010) and
+   [link](https://bugs.ruby-lang.org/issues/6864).
 
  * There is no upgrade path from v0.5 (PG 9.0-compatible) to v0.6 and up (9.3-only).
 
