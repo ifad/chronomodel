@@ -313,6 +313,7 @@ module ChronoModel
 
       def time_query(match, time, options)
         range = options[:on]
+        type  = options[:type] || :tsrange
 
         time = if time.kind_of?(Array)
           time.map! {|t| time_for_time_query(t)}
@@ -322,24 +323,40 @@ module ChronoModel
 
         if match == :not
           where(%[
-            #{build_time_query(:before, time, range)} OR
-            #{build_time_query(:after,  time, range)}
+            #{build_time_query(:before, time, range, type)} OR
+            #{build_time_query(:after,  time, range, type)}
           ])
         else
-          where(build_time_query(match, time, range))
+          where(build_time_query(match, time, range, type))
         end
       end
 
       private
         def time_for_time_query(t)
-          t = Conversions.time_to_utc_string(t.utc) if t.kind_of?(Time)
-          t == :now ? "timezone('UTC', now())" : "#{connection.quote(t)}::timestamp"
+          if t == :now
+            "timezone('UTC', now())"
+
+          elsif t == :today
+            "current_date"
+
+          elsif t.try(:acts_like_date?)
+            "#{connection.quote(t.to_s)}::date"
+
+          else
+
+            if t.try(:acts_like_time?)
+              t = Conversions.time_to_utc_string(t.utc)
+            end
+
+            "#{connection.quote(t)}::timestamp"
+
+          end
         end
 
-        def build_time_query(match, time, range)
+        def build_time_query(match, time, range, type)
           if time.kind_of?(Array)
             match = :at_range if match == :at
-            %[ tsrange(#{time.first}, #{time.last}) #{OPERATORS.fetch(match)} #{range} ]
+            %[ #{type}(#{time.first}, #{time.last}) #{OPERATORS.fetch(match)} #{range} ]
           else
             %[ #{time} #{OPERATORS.fetch(match)} #{range} ]
           end
