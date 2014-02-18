@@ -14,9 +14,6 @@ module ChronoModel
     # The schema holding historical data
     HISTORY_SCHEMA  = 'history'
 
-    # This adapter name, for identifiaction purposes.
-    ADAPTER_NAME = 'ChronoModel'
-
     # This is the data type used for the SCD2 validity
     RANGE_TYPE = 'tsrange'
 
@@ -26,11 +23,6 @@ module ChronoModel
     #
     def chrono_supported?
       postgresql_version >= 90300
-    end
-
-    # Returns 'ChronoModel'
-    def adapter_name
-      ADAPTER_NAME
     end
 
     # Creates the given table, possibly creating the temporal schema
