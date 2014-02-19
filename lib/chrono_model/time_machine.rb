@@ -304,34 +304,32 @@ module ChronoModel
     end
 
     module TimeQuery
-      OPERATORS = {
-        :at       => '<@',
-        :at_range => '&&',
-        :before   => '<<',
-        :after    => '>>',
-      }.freeze
-
       def time_query(match, time, options)
         range = options[:on]
         type  = options[:type] || :tsrange
 
-        time = if time.kind_of?(Array)
-          time.map! {|t| time_for_time_query(t)}
+        query = case match
+        when :at
+          build_time_query_at(time, range, type)
+
+        when :not
+          "NOT (#{build_time_query_at(time, range, type)})"
+
+        when :before
+          build_time_query(['NULL', time_for_time_query(time)], range, type)
+
+        when :after
+          build_time_query([time_for_time_query(time), 'NULL'], range, type)
+
         else
-          time_for_time_query(time)
+          raise ArgumentError, "Invalid time_query: #{match}"
         end
 
-        if match == :not
-          where(%[
-            #{build_time_query(:before, time, range, type)} OR
-            #{build_time_query(:after,  time, range, type)}
-          ])
-        else
-          where(build_time_query(match, time, range, type))
-        end
+        where(query)
       end
 
       private
+
         def time_for_time_query(t)
           if t == :now
             "timezone('UTC', now())"
@@ -353,12 +351,21 @@ module ChronoModel
           end
         end
 
-        def build_time_query(match, time, range, type)
-          if time.kind_of?(Array)
-            match = :at_range if match == :at
-            %[ #{type}(#{time.first}, #{time.last}) #{OPERATORS.fetch(match)} #{range} ]
+        def build_time_query_at(time, range, type)
+          time = if time.kind_of?(Array)
+            time.map! {|t| time_for_time_query(t)}
           else
-            %[ #{time} #{OPERATORS.fetch(match)} #{range} ]
+            time_for_time_query(time)
+          end
+
+          build_time_query(time, range, type)
+        end
+
+        def build_time_query(time, range, type)
+          if time.kind_of?(Array)
+            %[ #{type}(#{time.first}, #{time.last}) && #{range} ]
+          else
+            %[ #{time} <@ #{range} ]
           end
         end
     end

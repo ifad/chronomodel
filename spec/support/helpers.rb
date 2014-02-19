@@ -48,7 +48,12 @@ module ChronoTest::Helpers
     end
 
     module DSL
+      @@schema_setup = false
+
       def setup_schema!
+        return if @@schema_setup
+        @@schema_setup = true
+
         adapter.execute 'CREATE EXTENSION btree_gist'
 
         # Set up database structure
@@ -80,6 +85,11 @@ module ChronoTest::Helpers
 
         adapter.create_table 'plains' do |t|
           t.string :foo
+        end
+
+        adapter.create_table 'events' do |t|
+          t.string :name
+          t.daterange :interval
         end
       end
 
@@ -123,9 +133,17 @@ module ChronoTest::Helpers
 
         class ::Plain < ActiveRecord::Base
         end
+
+        class ::Event < ActiveRecord::Base
+          extend ChronoModel::TimeMachine::TimeQuery
+        end
       }
 
+      @@models_defined = false
       def define_models!
+        return if @@models_defined
+        @@models_defined = true
+
         Models.call
       end
 
