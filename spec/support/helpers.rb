@@ -54,8 +54,6 @@ module ChronoTest::Helpers
         return if @@schema_setup
         @@schema_setup = true
 
-        adapter.execute 'CREATE EXTENSION btree_gist'
-
         # Set up database structure
         #
         adapter.create_table 'foos', :temporal => true do |t|

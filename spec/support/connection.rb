@@ -36,6 +36,7 @@ module ChronoTest
 
   ensure
     connect!
+    connection.execute 'CREATE EXTENSION btree_gist'
     logger.info "Connected to #{config}"
   end
 
