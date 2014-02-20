@@ -534,9 +534,18 @@ module ChronoModel
         execute "DROP VIEW #{table}" if table_exists? table
         execute "CREATE VIEW #{table} AS SELECT * FROM ONLY #{current}"
 
+        # Set default values on the view (closes #12)
+        #
         chrono_metadata_set(table, options.merge(:chronomodel => VERSION))
 
-        columns = columns(table).map{|c| quote_column_name(c.name)}
+        columns(table).each do |column|
+          default = column.default ? quote(column.default) : column.default_function
+          next if column.name == pk || default.nil?
+
+          execute "ALTER VIEW #{table} ALTER COLUMN #{column.name} SET DEFAULT #{default}"
+        end
+
+        columns = columns(table).map {|c| quote_column_name(c.name)}
         columns.delete(quote_column_name(pk))
 
         updates = columns.map {|c| "#{c} = new.#{c}"}.join(",\n")

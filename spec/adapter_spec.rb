@@ -60,7 +60,7 @@ describe ChronoModel::Adapter do
 
     def native.to_proc
       proc {|t|
-        t.string  :test, :null => false
+        t.string  :test, :null => false, :default => 'default-value'
         t.integer :foo
         t.float   :bar
         t.text    :baz
@@ -460,6 +460,31 @@ describe ChronoModel::Adapter do
 
       it { ids(current).should == ids(history) }
     end
+  end
+
+  context 'INSERT on NOT NULL columns but with a DEFAULT value' do
+    before :all do
+      adapter.create_table table, :temporal => true, &columns
+    end
+
+    after :all do
+      adapter.drop_table table
+    end
+
+    def insert
+      adapter.execute <<-SQL
+        INSERT INTO #{table} DEFAULT VALUES
+      SQL
+    end
+
+    def select
+      adapter.select_values <<-SQL
+        SELECT test FROM #{table}
+      SQL
+    end
+
+    it { expect { insert }.to_not raise_error }
+    it { insert; select.uniq.should == ['default-value'] }
   end
 
   context 'redundant UPDATEs' do
