@@ -64,6 +64,7 @@ describe ChronoModel::Adapter do
         t.integer :foo
         t.float   :bar
         t.text    :baz
+        t.integer :ary, :array => true, :null => false, :default => []
       }
     end
 
