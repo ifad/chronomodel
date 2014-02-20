@@ -540,7 +540,7 @@ module ChronoModel
         chrono_metadata_set(table, options.merge(:chronomodel => VERSION))
 
         columns(table).each do |column|
-          default = column.default ? quote(column.default, column) : column.default_function
+          default = column.default.nil? ? column.default_function : quote(column.default, column)
           next if column.name == pk || default.nil?
 
           execute "ALTER VIEW #{table} ALTER COLUMN #{column.name} SET DEFAULT #{default}"
