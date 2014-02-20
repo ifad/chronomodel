@@ -526,6 +526,7 @@ module ChronoModel
         pk      = primary_key(table)
         current = [TEMPORAL_SCHEMA, table].join('.')
         history = [HISTORY_SCHEMA,  table].join('.')
+        seq     = serial_sequence(current, pk)
 
         options ||= chrono_metadata_for(table)
 
@@ -548,9 +549,7 @@ module ChronoModel
         columns = columns(table).map {|c| quote_column_name(c.name)}
         columns.delete(quote_column_name(pk))
 
-        updates = columns.map {|c| "#{c} = new.#{c}"}.join(",\n")
-
-        fields, values = columns.join(', '), columns.map {|c| "new.#{c}"}.join(', ')
+        fields, values = columns.join(', '), columns.map {|c| "NEW.#{c}"}.join(', ')
 
         # Columns to be journaled. By default everything except updated_at (GH #7)
         #
@@ -571,14 +570,17 @@ module ChronoModel
 
         # INSERT - insert data both in the temporal table and in the history one.
         #
+        # The serial sequence is invoked manually for brevity, to be able to use
+        # VALUES ( NEW.* ) in the INSERT statement. Anyway, it is a requirement
+        # enforced above.
+        #
         execute <<-SQL
           CREATE OR REPLACE FUNCTION chronomodel_#{table}_insert() RETURNS TRIGGER AS $$
             BEGIN
-              INSERT INTO #{current} ( #{fields} ) VALUES ( #{values} )
-              RETURNING #{pk} INTO NEW.#{pk};
+              NEW.#{pk} := nextval('#{seq}');
 
-              INSERT INTO #{history} ( #{pk}, #{fields}, validity )
-              VALUES ( NEW.#{pk}, #{values}, tsrange(timezone('UTC', now()), NULL) );
+              INSERT INTO #{current} VALUES ( NEW.* );
+              INSERT INTO #{history} VALUES ( NEW.*, DEFAULT, tsrange(timezone('UTC', now()), NULL), DEFAULT );
 
               RETURN NEW;
             END;
@@ -614,7 +616,7 @@ module ChronoModel
               _new := row(#{journal.map {|c| "NEW.#{c}" }.join(', ')});
 
               IF _old IS NOT DISTINCT FROM _new THEN
-                UPDATE ONLY #{current} SET #{updates} WHERE #{pk} = OLD.#{pk};
+                UPDATE ONLY #{current} SET ( #{fields} ) = ( #{values} ) WHERE #{pk} = OLD.#{pk};
                 RETURN NEW;
               END IF;
 
@@ -624,16 +626,15 @@ module ChronoModel
               SELECT hid INTO _hid FROM #{history} WHERE #{pk} = OLD.#{pk} AND lower(validity) = _now;
 
               IF _hid IS NOT NULL THEN
-                UPDATE #{history} SET #{updates} WHERE hid = _hid;
+                UPDATE #{history} SET ( #{fields} ) = ( #{values} ) WHERE hid = _hid;
               ELSE
                 UPDATE #{history} SET validity = tsrange(lower(validity), _now)
                 WHERE #{pk} = OLD.#{pk} AND upper_inf(validity);
 
-                INSERT INTO #{history} ( #{pk}, #{fields}, validity )
-                VALUES ( OLD.#{pk}, #{values}, tsrange(_now, NULL) );
+                INSERT INTO #{history} VALUES ( NEW.*, DEFAULT, tsrange(_now, NULL), DEFAULT );
               END IF;
 
-              UPDATE ONLY #{current} SET #{updates} WHERE #{pk} = OLD.#{pk};
+              UPDATE ONLY #{current} SET ( #{fields} ) = ( #{values} ) WHERE #{pk} = OLD.#{pk};
 
               RETURN NEW;
             END;
