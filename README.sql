@@ -54,12 +54,10 @@ create view public.countries as select * from only temporal.countries;
 --
 create or replace function public.chronomodel_countries_insert() returns trigger as $$
   begin
-    insert into temporal.countries ( name, valid_from )
-    values ( new.name )
-    returning id into new.id;
+    new.id = nextval('temporal.countries_id_seq');
 
-    insert into history.countries ( id, name, validity )
-    values ( new.id, new.name, tsrange(timezone('utc', now()), null) );
+    insert into temporal.countries ( new.* );
+    insert into history.countries ( new.*, default, tsrange(timezone('utc', now()), null), default );
 
     return new;
   end;
@@ -85,16 +83,15 @@ create function chronomodel_countries_update() returns trigger as $$
     select hid into _hid from history.countries where id = old.id and lower(validity) = _now;
 
     if _hid is not null then
-      update history.countries set name = new.name where hid = _hid;
+      update history.countries set ( name ) = ( new.name ) where hid = _hid;
     else
       update history.countries set validity = tsrange(lower(validity), _now)
       where id = old.id and upper_inf(validity);
 
-      insert into history.countries ( id, name, validity )
-      values ( old.id, new.values, tsrange(_now, null) );
+      insert into history.countries ( new.*, default, tsrange(_now, null), default );
     end if;
 
-    update only temporal.countries set name = new.name where id = old.id;
+    update only temporal.countries set ( name ) = ( new.name ) where id = old.id;
 
     return new;
   end;
@@ -122,7 +119,7 @@ create or replace function chronomodel_countries_delete() returns trigger as $$
     delete from only temporal.countries
     where temporal.id = old.id;
 
-    return null;
+    return old;
   end;
 $$ language plpgsql;
 
