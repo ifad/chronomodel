@@ -126,10 +126,10 @@ you issue a `\d+`. Example after a test run:
                                                            List of relations
      Schema |     Name      |   Type   |    Owner    |    Size    |                           Description
     --------+---------------+----------+-------------+------------+-----------------------------------------------------------------
-     public | bars          | view     | chronomodel | 0 bytes    | {"temporal":true,"chronomodel":"0.6.0.alpha"}
-     public | foos          | view     | chronomodel | 0 bytes    | {"temporal":true,"chronomodel":"0.6.0.alpha"}
+     public | bars          | view     | chronomodel | 0 bytes    | {"temporal":true,"chronomodel":"0.7.0.alpha"}
+     public | foos          | view     | chronomodel | 0 bytes    | {"temporal":true,"chronomodel":"0.7.0.alpha"}
      public | plains        | table    | chronomodel | 0 bytes    |
-     public | test_table    | view     | chronomodel | 0 bytes    | {"temporal":true,"journal":["foo"],"chronomodel":"0.6.0.alpha"}
+     public | test_table    | view     | chronomodel | 0 bytes    | {"temporal":true,"journal":["foo"],"chronomodel":"0.7.0.alpha"}
 
 
 ## Data querying
