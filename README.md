@@ -1,4 +1,4 @@
-# ChronoModel
+# ChronoModel [![Build Status](https://travis-ci.org/ifad/chronomodel.png?branch=master)](https://travis-ci.org/ifad/chronomodel) [![Dependency Status](https://gemnasium.com/ifad/chronomodel.png)](https://gemnasium.com/ifad/chronomodel) [![Code Climate](https://codeclimate.com/github/ifad/chronomodel.png)](https://codeclimate.com/github/ifad/chronomodel)
 
 A temporal database system on PostgreSQL using
 [views](http://www.postgresql.org/docs/9.3/static/sql-createview.html),
@@ -8,10 +8,6 @@ A temporal database system on PostgreSQL using
 This is a data structure for a
 [Slowly-Changing Dimension Type 2](http://en.wikipedia.org/wiki/Slowly_changing_dimension#Type_2)
 temporal database, implemented using [PostgreSQL](http://www.postgresql.org) &gt;= 9.3 features.
-
-[![Build Status](https://travis-ci.org/ifad/chronomodel.png?branch=master)](https://travis-ci.org/ifad/chronomodel)
-[![Dependency Status](https://gemnasium.com/ifad/chronomodel.png)](https://gemnasium.com/ifad/chronomodel)
-[![Code Climate](https://codeclimate.com/github/ifad/chronomodel.png)](https://codeclimate.com/github/ifad/chronomodel)
 
 All the history recording is done inside the database system, freeing the application code from
 having to deal with it.
