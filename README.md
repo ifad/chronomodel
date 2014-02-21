@@ -3,7 +3,7 @@
 A temporal database system on PostgreSQL using
 [views](http://www.postgresql.org/docs/9.3/static/sql-createview.html),
 [table inheritance](http://www.postgresql.org/docs/9.3/static/ddl-inherit.html) and
-[INSTEAD OF triggers](http://www.postgresql.org/docs/9.3/static/sql-createtrigger.html)
+[INSTEAD OF triggers](http://www.postgresql.org/docs/9.3/static/sql-createtrigger.html). ChronoModel does what Oracle sells as "Flashback Queries", without breaking the SQL standard and requiring the big bucks.
 
 This is a data structure for a
 [Slowly-Changing Dimension Type 2](http://en.wikipedia.org/wiki/Slowly_changing_dimension#Type_2)
