@@ -23,6 +23,11 @@ Current data is hold in a table in the `temporal` [schema](http://www.postgresql
 while history in hold in another table in the `history` schema. The latter
 [inherits](http://www.postgresql.org/docs/9.3/static/ddl-inherit.html) from the former, to get
 automated schema updates for free.
+
+The current time is taken using [`current_timestamp`](http://www.postgresql.org/docs/9.3/interactive/functions-datetime.html#FUNCTIONS-DATETIME-TABLE),
+so that multiple data manipulations in the same transaction on the same records always create a
+single history entry (they are _squashed_ together).
+
 [Partitioning](http://www.postgresql.org/docs/9.3/static/ddl-partitioning.html)
 of history is also possible: this design [fits the requirements](http://www.postgresql.org/docs/9.3/static/ddl-partitioning.html#DDL-PARTITIONING-CONSTRAINT-EXCLUSION) but it is not implemented yet.
 
