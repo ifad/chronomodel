@@ -164,24 +164,30 @@ This work on associations using temporal extensions as well:
 
 Will execute:
 
-    # ... countries history query ...
-    LIMIT 1
+    SELECT "countries".*, '#{1.year.ago}' AS as_of_time FROM (
+      SELECT "history"."countries".* FROM "history"."countries"
+      WHERE '#{1.year.ago}' <@ "history"."countries"."validity"
+    ) AS "countries" LIMIT 1
+    
+and then, using the above fetched `as_of_time` timestamp, will exec:
 
     SELECT * FROM  (
       SELECT "history"."compositions".* FROM "history"."compositions"
-      WHERE '#{above_timestamp}' <@ "history"."compositions"."validity"
+      WHERE '#{as_of_time}' <@ "history"."compositions"."validity"
     ) AS "compositions" WHERE country_id = X
 
-And `.joins` works as well:
+`.joins` works as well:
 
     Country.as_of(1.month.ago).joins(:compositions)
 
 Will execute:
 
     SELECT "countries".* FROM (
-      # .. countries history query ..
+      SELECT "history"."countries".* FROM "history"."countries"
+      WHERE '#{1.year.ago}' <@ "history"."countries"."validity"
     ) AS "countries" INNER JOIN (
-      # .. compositions history query ..
+      SELECT "history"."compositions".* FROM "history"."compositions"
+      WHERE '#{1.year.ago}' <@ "history"."compositions"."validity"
     ) AS "compositions" ON compositions.country_id = countries.id
 
 More methods are provided, see the
@@ -191,11 +197,11 @@ for more information.
 
 ## Running tests
 
-You need a running Postgresql instance. Create `spec/config.yml` with the
+You need a running PostgreSQL 9.3 instance. Create `spec/config.yml` with the
 connection authentication details (use `spec/config.yml.example` as template).
 
-The user you use to connect to PostgreSQL must be a superuser, for it to
-create `btree_gist` extension.
+You also need a database superuser, because specs need to create the `btree_gist`
+extension.
 
 Run `rake`. SQL queries are logged to `spec/debug.log`. If you want to see
 them in your output, use `rake VERBOSE=true`.
@@ -207,15 +213,16 @@ them in your output, use `rake VERBOSE=true`.
    [link](https://github.com/rails/rails/issues/14010) and
    [link](https://bugs.ruby-lang.org/issues/6864).
 
- * There is no upgrade path from v0.5 (PG 9.0-compatible) to v0.6 and up (9.3-only).
+ * There is (yet) no upgrade path from [v0.5](https://github.com/ifad/chronomodel/tree/c2daa0f),
+   (PG 9.0-compatible, box() and hacks) to v0.6 and up (9.3-only, tsrange and _less_ hacks).
 
  * The triggers and temporal indexes cannot be saved in schema.rb. The AR
    schema dumper is quite basic, and it isn't (currently) extensible.
    As we're using many database-specific features, Chronomodel forces the
    usage of the `:sql` schema dumper, and included rake tasks override
    `db:schema:dump` and `db:schema:load` to do `db:structure:dump` and
-   `db:structure:load`. Two helper tasks are also added, `db:data:dump`
-   and `db:data:load`.
+   `db:structure:load`.
+   Two helper tasks are also added, `db:data:dump` and `db:data:load`.
 
  * `.includes` is quirky when using `.as_of`.
 
