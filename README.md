@@ -1,7 +1,4 @@
-# ChronoModel [![Build Status][build-status-badge]][build-status] [![Dependency Status][deps-status-badge]][deps-status] [![Code Climate][code-analysis-badge]][code-analysis]
-
-A temporal database system on PostgreSQL using [updatable views][], [table
-inheritance][] and [INSTEAD OF triggers][].
+# Temporal database system on PostgreSQL using [updatable views][], [table inheritance][] and [INSTEAD OF triggers][]. [![Build Status][build-status-badge]][build-status] [![Dependency Status][deps-status-badge]][deps-status] [![Code Climate][code-analysis-badge]][code-analysis]
 
 ChronoModel does what Oracle sells as "Flashback Queries", but with standard
 SQL on free PostgreSQL. Academically speaking, ChronoModel implements a
