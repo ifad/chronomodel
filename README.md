@@ -5,7 +5,9 @@ SQL on free PostgreSQL. Academically speaking, ChronoModel implements a
 [Type-2 Slowly-Changing Dimension][wp-scd-2].
 
 All history keeping happens inside the database system, freeing application
-code from having to deal with it.
+code from having to deal with it. ChronoModel implements all the required
+features to Ruby on Rails's ORM to leverage the database temporal structure
+below.
 
 
 ## Design
