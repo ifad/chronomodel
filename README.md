@@ -216,10 +216,10 @@ Expands to:
 ```sql
 SELECT "countries".* FROM (
   SELECT "history"."countries".* FROM "history"."countries"
-  WHERE '#{1.year.ago}' <@ "history"."countries"."validity"
+  WHERE '#{1.month.ago}' <@ "history"."countries"."validity"
 ) AS "countries" INNER JOIN (
   SELECT "history"."compositions".* FROM "history"."compositions"
-  WHERE '#{1.year.ago}' <@ "history"."compositions"."validity"
+  WHERE '#{1.month.ago}' <@ "history"."compositions"."validity"
 ) AS "compositions" ON compositions.country_id = countries.id
 ```
 
