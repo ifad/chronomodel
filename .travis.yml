@@ -11,6 +11,10 @@ addons:
 
 bundler_args: --without development
 
+before_install:
+  - sudo apt-get update
+  - sudo apt-get install postgresql-plpython-9.3
+
 before_script:
   - psql -c "CREATE DATABASE chronomodel;" -U postgres
 
