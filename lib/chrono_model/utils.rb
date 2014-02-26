@@ -17,6 +17,29 @@ module ChronoModel
     end
   end
 
+  module Json
+    extend self
+
+    def create
+      adapter.execute 'CREATE LANGUAGE plpythonu'
+      adapter.execute File.read(sql 'json_ops.sql')
+    end
+
+    def drop
+      adapter.execute File.read(sql 'uninstall-json_ops.sql')
+      adapter.execute 'DROP LANGUAGE plpythonu'
+    end
+
+    private
+    def sql(file)
+      File.dirname(__FILE__) + '/../../sql/' + file
+    end
+
+    def adapter
+      ActiveRecord::Base.connection
+    end
+  end
+
   module Utilities
     # Amends the given history item setting a different period.
     # Useful when migrating from legacy systems.

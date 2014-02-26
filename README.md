@@ -238,6 +238,18 @@ You need to connect as  a database superuser, because specs need to create the
 Run `rake`. SQL queries are logged to `spec/debug.log`. If you want to see them
 in your output, use `rake VERBOSE=true`.
 
+## Usage with JSON columns
+
+[JSON][json-type] does not provide an [equality operator][json-func].
+As both unnecessary update suppression and selective journaling require
+comparing the OLD and NEW rows fields, this fails by default.
+
+ChronoModel provides a naive JSON equality operator using a naive
+comparison of JSON objects [implemented in pl/python][json-opclass].
+
+To load the opclass you can use the `ChronoModel::Json.install`
+convenience method. If you don't use JSON don't bother doing this.
+
 ## Caveats
 
  * Rails 4 support requires disabling tsrange parsing support, as it
@@ -309,3 +321,6 @@ in your output, use `rake VERBOSE=true`.
 [cte-optimization-fence]: http://archives.postgresql.org/pgsql-hackers/2012-09/msg00700.php
 [cte-opt-out-fence]: http://archives.postgresql.org/pgsql-hackers/2012-10/msg00024.php
 [chronomodel-cte-impl]: https://github.com/ifad/chronomodel/commit/18f4c4b
+
+[json-type]: http://www.postgresql.org/docs/9.3/static/datatype-json.html
+[json-func]: http://www.postgresql.org/docs/9.3/static/functions-json.html
