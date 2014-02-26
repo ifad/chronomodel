@@ -4,7 +4,7 @@
 -- sorting its keys, and then calculates the object
 -- hash from it.
 --
-CREATE OR REPLACE FUNCTION json_hash( a json ) RETURNS INTEGER AS $$
+CREATE OR REPLACE FUNCTION json_hash( a json ) RETURNS INT8 AS $$
   import json
   return hash(json.dumps(json.loads(a), sort_keys=True, separators=(',', ':')))
 $$ LANGUAGE plpythonu STRICT IMMUTABLE;
