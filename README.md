@@ -126,6 +126,9 @@ the `:validity` option:
 change_table :your_table, :temporal => true, :copy_data => true, :validity => '1977-01-01'
 ```
 
+Please note that `change_table` requires you to use *old_style* `up` and
+`down` migrations. It cannot work with Rails 3-style `change` migrations.
+
 ## Selective Journaling
 
 By default UPDATEs only to the `updated_at` field are not recorded in the
