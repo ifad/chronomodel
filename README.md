@@ -327,3 +327,4 @@ convenience method. If you don't use JSON don't bother doing this.
 
 [json-type]: http://www.postgresql.org/docs/9.3/static/datatype-json.html
 [json-func]: http://www.postgresql.org/docs/9.3/static/functions-json.html
+[json-opclass]: https://github.com/ifad/chronomodel/blob/master/sql/json_ops.sql
