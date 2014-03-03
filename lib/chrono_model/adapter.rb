@@ -24,6 +24,17 @@ module ChronoModel
     def chrono_supported?
       postgresql_version >= 90300
     end
+    
+    # Enable to manage an array of column names (added for composite-primary-keys)
+    def quote_column_name(name)
+      if name.is_a?(Array)
+        Array(name).map do |col|
+          super(col.to_s)
+        end.join(',')
+      else
+        super
+      end
+    end
 
     # Creates the given table, possibly creating the temporal schema
     # objects if the `:temporal` option is given and set to true.
