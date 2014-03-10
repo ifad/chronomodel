@@ -318,8 +318,8 @@ describe ChronoModel::TimeMachine do
 
     timestamps_from = lambda {|*records|
       ts = records.map(&:history).flatten!.inject([]) {|ret, rec|
-        ret.push [rec.valid_from.to_i, rec.valid_from.usec] if rec.valid_from
-        ret.push [rec.valid_to  .to_i, rec.valid_to  .usec] if rec.valid_to
+        ret.push [rec.valid_from.to_i, rec.valid_from.usec] if rec.try(:valid_from)
+        ret.push [rec.valid_to  .to_i, rec.valid_to  .usec] if rec.try(:valid_to)
         ret
       }.sort.uniq
     }
@@ -439,31 +439,44 @@ describe ChronoModel::TimeMachine do
     end
   end
 
-  context do
-    let!(:history) { foo.history.first }
-    let!(:current) { foo }
+  describe 'timestamp methods' do
+    history_methods = %w( valid_from valid_to recorded_at )
+    current_methods = %w( as_of_time )
 
-    spec = lambda {|attr|
-      return lambda {|*|
-        describe 'on history records' do
-          subject { history.public_send(attr) }
+    context 'on history records' do
+      let(:record) { foo.history.first }
+
+      (history_methods + current_methods).each do |attr|
+        describe ['#', attr].join do
+          subject { record.public_send(attr) }
 
           it { should be_present }
           it { should be_a(Time) }
           it { should be_utc }
         end
+      end
+    end
 
-        describe 'on current records' do
-          subject { current.public_send(attr) }
+    context 'on current records' do
+      let(:record) { foo }
+
+      history_methods.each do |attr|
+        describe ['#', attr].join do
+          subject { record.public_send(attr) }
+
+          it { expect { subject }.to raise_error(NoMethodError) }
+        end
+      end
+
+      current_methods.each do |attr|
+        describe ['#', attr].join do
+          subject { record.public_send(attr) }
 
           it { should be_nil }
         end
-      }
-    }
-
-    %w( valid_from valid_to recorded_at as_of_time ).each do |attr|
-      describe ['#', attr].join, &spec.call(attr)
+      end
     end
+
   end
 
   # Class methods

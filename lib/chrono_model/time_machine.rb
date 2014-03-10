@@ -115,6 +115,10 @@ module ChronoModel
         def valid_to
           validity.last
         end
+
+        def recorded_at
+          Conversions.string_to_utc_time attributes_before_type_cast['recorded_at']
+        end
       end
 
       model.singleton_class.instance_eval do
@@ -191,15 +195,10 @@ module ChronoModel
       self.attributes.key?('as_of_time') || self.kind_of?(self.class.history)
     end
 
-    # Hack around AR timezone support. These timestamps are recorded
-    # by the chrono triggers in UTC, but AR reads them as they were
-    # stored in the local timezone - thus here we bypass type casting
-    # to force creation of UTC timestamps.
+    # Read the virtual 'as_of_time' attribute and return it as an UTC timestamp.
     #
-    %w( valid_from valid_to recorded_at as_of_time ).each do |attr|
-      define_method(attr) do
-        Conversions.string_to_utc_time attributes_before_type_cast[attr]
-      end
+    def as_of_time
+      Conversions.string_to_utc_time attributes_before_type_cast['as_of_time']
     end
 
     # Inhibit destroy of historical records
