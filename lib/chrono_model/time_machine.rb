@@ -369,9 +369,9 @@ module ChronoModel
 
         def build_time_query(time, range)
           if time.kind_of?(Array)
-            %[ #{range.type}(#{time.first}, #{time.last}) && #{range.name} ]
+            %[ #{range.type}(#{time.first}, #{time.last}) && #{table_name}.#{range.name} ]
           else
-            %[ #{time} <@ #{range.name} ]
+            %[ #{time} <@ #{table_name}.#{range.name} ]
           end
         end
     end
