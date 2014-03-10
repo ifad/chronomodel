@@ -304,22 +304,23 @@ module ChronoModel
     end
 
     module TimeQuery
+      # TODO Documentation
+      #
       def time_query(match, time, options)
-        range = options[:on]
-        type  = options[:type] || :tsrange
+        range = columns_hash.fetch(options[:on].to_s)
 
         query = case match
         when :at
-          build_time_query_at(time, range, type)
+          build_time_query_at(time, range)
 
         when :not
-          "NOT (#{build_time_query_at(time, range, type)})"
+          "NOT (#{build_time_query_at(time, range)})"
 
         when :before
-          build_time_query(['NULL', time_for_time_query(time)], range, type)
+          build_time_query(['NULL', time_for_time_query(time, range)], range)
 
         when :after
-          build_time_query([time_for_time_query(time), 'NULL'], range, type)
+          build_time_query([time_for_time_query(time, range), 'NULL'], range)
 
         else
           raise ArgumentError, "Invalid time_query: #{match}"
@@ -330,42 +331,48 @@ module ChronoModel
 
       private
 
-        def time_for_time_query(t)
-          if t == :now
-            "timezone('UTC', now())"
-
-          elsif t == :today
-            "current_date"
-
-          elsif t.try(:acts_like_date?)
-            "#{connection.quote(t.to_s)}::date"
-
+        def time_for_time_query(t, column)
+          if t == :now || t == :today
+            now_for_column(column)
           else
-
-            if t.try(:acts_like_time?)
-              t = Conversions.time_to_utc_string(t.utc)
-            end
-
-            "#{connection.quote(t)}::timestamp"
-
+            [connection.quote(t, column),
+             primitive_type_for_column(column)
+            ].join('::')
           end
         end
 
-        def build_time_query_at(time, range, type)
+        def now_for_column(column)
+          case column.type
+          when :tsrange, :tstzrange then "timezone('UTC', current_timestamp)"
+          when :daterange           then "current_date"
+          else raise "Cannot generate 'now()' for #{column.type} column #{column.name}"
+          end
+        end
+
+        def primitive_type_for_column(column)
+          case column.type
+          when :tsrange   then :timestamp
+          when :tstzrange then :timestamptz
+          when :daterange then :date
+          else raise "Don't know how to map #{column.type} column #{column.name} to a primitive type"
+          end
+        end
+
+        def build_time_query_at(time, range)
           time = if time.kind_of?(Array)
-            time.map! {|t| time_for_time_query(t)}
+            time.map! {|t| time_for_time_query(t, range)}
           else
-            time_for_time_query(time)
+            time_for_time_query(time, range)
           end
 
-          build_time_query(time, range, type)
+          build_time_query(time, range)
         end
 
-        def build_time_query(time, range, type)
+        def build_time_query(time, range)
           if time.kind_of?(Array)
-            %[ #{type}(#{time.first}, #{time.last}) && #{range} ]
+            %[ #{range.type}(#{time.first}, #{time.last}) && #{range.name} ]
           else
-            %[ #{time} <@ #{range} ]
+            %[ #{time} <@ #{range.name} ]
           end
         end
     end

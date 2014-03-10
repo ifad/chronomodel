@@ -16,10 +16,6 @@ describe ChronoModel::TimeMachine::TimeQuery do
   build   = Event.create! name: 'build',   interval: (7.days.ago.to_date...Date.yesterday)
   profit  = Event.create! name: 'profit',  interval: (Date.tomorrow...1.year.from_now.to_date)
 
-  context 'does not yet support casting the provided timestamp to the appropriate type' do
-    it { expect { Event.time_query(:at, Time.now, on: :interval).to_a }.to raise_error(ActiveRecord::StatementInvalid) }
-  end
-
   describe :at do
     describe 'with a single timestamp' do
       subject { Event.time_query(:at, time.try(:to_date) || time, on: :interval).to_a }
