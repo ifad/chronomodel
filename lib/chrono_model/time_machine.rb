@@ -434,7 +434,7 @@ module ChronoModel
       # Fetches history record at the given time
       #
       def at(time)
-        time = Conversions.time_to_utc_string(time.utc) if time.kind_of?(Time)
+        time = Conversions.time_to_utc_string(time.utc) if time.kind_of?(Time) && !time.utc?
 
         unscoped.
           select("#{quoted_table_name}.*, #{connection.quote(time)}::timestamp AS as_of_time").
