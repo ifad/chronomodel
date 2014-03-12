@@ -2,7 +2,7 @@
 
 ChronoModel does what Oracle sells as "Flashback Queries", but with standard
 SQL on free PostgreSQL. Academically speaking, ChronoModel implements a
-[Type-2 Slowly-Changing Dimension][wp-scd-2].
+[Type-2 Slowly-Changing Dimension][wp-scd-2] with [history tables][wp-scd-4].
 
 All history keeping happens inside the database system, freeing application
 code from having to deal with it. ChronoModel implements all the required
@@ -302,6 +302,7 @@ convenience method. If you don't use JSON don't bother doing this.
 [table inheritance]: http://www.postgresql.org/docs/9.3/static/ddl-inherit.html
 [INSTEAD OF triggers]: http://www.postgresql.org/docs/9.3/static/sql-createtrigger.html
 [wp-scd-2]: http://en.wikipedia.org/wiki/Slowly_changing_dimension#Type_2
+[wp-scd-4]: http://en.wikipedia.org/wiki/Slowly_changing_dimension#Type_4
 [triggers]: http://www.postgresql.org/docs/9.3/static/trigger-definition.html
 [schema]: http://www.postgresql.org/docs/9.3/static/ddl-schemas.html
 [inherits]: http://www.postgresql.org/docs/9.3/static/ddl-inherit.html
