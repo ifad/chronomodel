@@ -501,17 +501,11 @@ module ChronoModel
       end
 
       def chrono_metadata_for(table)
-        comment = select_value(%[
-          SELECT obj_description(c.oid)
-            FROM pg_catalog.pg_class c,
-                 pg_catalog.pg_namespace n
-           WHERE c.relname = #{quote(table)}
-             AND c.relkind = 'v'
-             AND c.relnamespace = n.oid
-             AND n.nspname = 'public'
-        ]) || '{}'
+        comment = select_value(
+          "SELECT obj_description(#{quote(['public', table].join('.'))}::regclass)",
+          "ChronoModel metadata for #{table}") if table_exists?(table)
 
-        MultiJson.load(comment)
+        MultiJson.load(comment || '{}')
       end
 
       def chrono_metadata_set(table, metadata)
