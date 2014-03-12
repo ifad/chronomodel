@@ -2,19 +2,15 @@ module ChronoModel
   class Railtie < ::Rails::Railtie
     ActiveRecord::Tasks::DatabaseTasks.register_task /chronomodel/, ActiveRecord::Tasks::PostgreSQLDatabaseTasks
 
-    initializer :chrono_initialize do
-      ActiveRecord::Base.connection.chrono_create_schemas!
-    end
+    setup = lambda { ActiveRecord::Base.connection.chrono_setup }
+
+    initializer :chrono_initialize, &setup
 
     rake_tasks do
       load 'chrono_model/schema_format.rake'
 
       namespace :db do
-        namespace :chrono do
-          task :model do
-            ActiveRecord::Base.connection.chrono_create_schemas!
-          end
-        end
+        namespace(:chrono) { task :model, &setup }
       end
 
       task 'db:schema:load' => 'db:chrono:model'

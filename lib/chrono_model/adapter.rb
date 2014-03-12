@@ -39,9 +39,6 @@ module ChronoModel
         options[:id] = '__chrono_id'
       end
 
-      # Create required schemas
-      chrono_create_schemas!
-
       transaction do
         _on_temporal_schema { super }
         _on_history_schema { chrono_create_history_for(table_name) }
@@ -456,15 +453,27 @@ module ChronoModel
       end
     end
 
-    def chrono_create_schemas!
-      [TEMPORAL_SCHEMA, HISTORY_SCHEMA].each do |schema|
-        execute "CREATE SCHEMA #{schema}" unless schema_exists?(schema)
-      end
+    def chrono_setup!
+      chrono_create_schemas
+      chrono_setup_type_map
 
-      OID::TYPE_MAP[3908] = TSRange.new
     end
 
     private
+      # Create the temporal and history schemas, unless they already exist
+      #
+      def chrono_create_schemas
+        [TEMPORAL_SCHEMA, HISTORY_SCHEMA].each do |schema|
+          execute "CREATE SCHEMA #{schema}" unless schema_exists?(schema)
+        end
+      end
+
+      # Adds the above TSRange class to the PG Adapter OID::TYPE_MAP
+      #
+      def chrono_setup_type_map
+        OID::TYPE_MAP[3908] = TSRange.new
+      end
+
 
       def chrono_metadata_for(table)
         comment = select_value(%[
@@ -684,7 +693,7 @@ module ChronoModel
         transaction do
           execute "DROP VIEW #{table_name}"
 
-          _on_temporal_schema { yield }
+          _on_temporal_schema { yield } if block_given?
 
           # Recreate the triggers
           chrono_create_view_for(table_name)
