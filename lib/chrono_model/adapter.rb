@@ -526,7 +526,6 @@ module ChronoModel
         pk      = primary_key(table)
         current = [TEMPORAL_SCHEMA, table].join('.')
         history = [HISTORY_SCHEMA,  table].join('.')
-        seq     = serial_sequence(current, pk)
 
         options ||= chrono_metadata_for(table)
 
@@ -570,17 +569,16 @@ module ChronoModel
 
         # INSERT - insert data both in the temporal table and in the history one.
         #
-        # The serial sequence is invoked manually for brevity, to be able to use
-        # VALUES ( NEW.* ) in the INSERT statement. Anyway, it is a requirement
-        # enforced above.
+        # The serial sequence is invoked manually for clarity.
         #
         execute <<-SQL
           CREATE OR REPLACE FUNCTION chronomodel_#{table}_insert() RETURNS TRIGGER AS $$
             BEGIN
-              NEW.#{pk} := nextval('#{seq}');
+              INSERT INTO #{current} ( #{fields} ) VALUES ( #{values} )
+              RETURNING #{pk} INTO NEW.#{pk};
 
-              INSERT INTO #{current} VALUES ( NEW.* );
-              INSERT INTO #{history} VALUES ( NEW.*, DEFAULT, tsrange(timezone('UTC', now()), NULL), DEFAULT );
+              INSERT INTO #{history} ( #{pk}, #{fields}, validity )
+              VALUES ( NEW.#{pk}, #{values}, tsrange(timezone('UTC', now()), NULL) );
 
               RETURN NEW;
             END;
@@ -631,7 +629,8 @@ module ChronoModel
                 UPDATE #{history} SET validity = tsrange(lower(validity), _now)
                 WHERE #{pk} = OLD.#{pk} AND upper_inf(validity);
 
-                INSERT INTO #{history} VALUES ( NEW.*, DEFAULT, tsrange(_now, NULL), DEFAULT );
+                INSERT INTO #{history} ( #{pk}, #{fields}, validity )
+                     VALUES ( OLD.#{pk}, #{values}, tsrange(_now, NULL) );
               END IF;
 
               UPDATE ONLY #{current} SET ( #{fields} ) = ( #{values} ) WHERE #{pk} = OLD.#{pk};
