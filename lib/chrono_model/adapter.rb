@@ -502,7 +502,7 @@ module ChronoModel
 
       def chrono_metadata_for(table)
         comment = select_value(
-          "SELECT obj_description(#{quote(['public', table].join('.'))}::regclass)",
+          "SELECT obj_description(#{quote(table)}::regclass)",
           "ChronoModel metadata for #{table}") if table_exists?(table)
 
         MultiJson.load(comment || '{}')
@@ -512,7 +512,7 @@ module ChronoModel
         comment = MultiJson.dump(metadata)
 
         execute %[
-          COMMENT ON VIEW public.#{table} IS #{quote(comment)}
+          COMMENT ON VIEW #{table} IS #{quote(comment)}
         ]
       end
 
