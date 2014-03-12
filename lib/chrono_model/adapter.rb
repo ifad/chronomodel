@@ -482,7 +482,7 @@ module ChronoModel
         transaction do
           current = VERSION
 
-          tables.each do |table_name|
+          _on_temporal_schema { tables }.each do |table_name|
             next unless is_chrono?(table_name)
             metadata = chrono_metadata_for(table_name)
             version = metadata['chronomodel']
