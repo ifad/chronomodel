@@ -457,6 +457,7 @@ module ChronoModel
       chrono_create_schemas
       chrono_setup_type_map
 
+      chrono_upgrade_structure!
     end
 
     private
@@ -474,6 +475,30 @@ module ChronoModel
         OID::TYPE_MAP[3908] = TSRange.new
       end
 
+      # Upgrades existing structure for each table, if required.
+      # TODO: allow upgrades from pre-0.6 structure with box() and stuff.
+      #
+      def chrono_upgrade_structure!
+        transaction do
+          current = VERSION
+
+          tables.each do |table_name|
+            next unless is_chrono?(table_name)
+            metadata = chrono_metadata_for(table_name)
+            version = metadata['chronomodel']
+
+            if version.blank? # FIXME
+              raise Error, "ChronoModel found structures created by a too old version. Cannot upgrade right now."
+            end
+
+            next if version == current
+
+            logger.info "ChronoModel: upgrading #{table_name} from #{version} to #{current}"
+            chrono_alter(table_name)
+            logger.info "ChronoModel: upgrade complete"
+          end
+        end
+      end
 
       def chrono_metadata_for(table)
         comment = select_value(%[
