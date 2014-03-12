@@ -537,7 +537,7 @@ module ChronoModel
 
         # Set default values on the view (closes #12)
         #
-        chrono_metadata_set(table, options.merge(:chronomodel => VERSION))
+        chrono_metadata_set(table, options.merge('chronomodel' => VERSION))
 
         columns(table).each do |column|
           default = column.default.nil? ? column.default_function : quote(column.default, column)
