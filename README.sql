@@ -55,10 +55,15 @@ create view public.countries as select * from only temporal.countries;
 --
 create or replace function public.chronomodel_countries_insert() returns trigger as $$
   begin
-    new.id = nextval('temporal.countries_id_seq');
+    if new.id is null then
+      new.id = nextval('temporal.countries_id_seq');
+    end if;
 
-    insert into temporal.countries ( new.* );
-    insert into history.countries ( new.*, default, tsrange(timezone('utc', now()), null), default );
+    insert into temporal.countries ( id, name, updated_at )
+    values ( new.id, new.name, new.updated_at );
+
+    insert into history.countries (id, name, updated_at, validity )
+    values ( new.id, new.name, new.updated_at, tsrange(timezone('utc', now()), null) );
 
     return new;
   end;
@@ -111,7 +116,8 @@ create function chronomodel_countries_update() returns trigger as $$
       update history.countries set validity = tsrange(lower(validity), _now)
       where id = old.id and upper_inf(validity);
 
-      insert into history.countries ( new.*, default, tsrange(_now, null), default );
+      insert into history.countries ( id, name, updated_at, validity )
+      values ( old.id, new.name, new.updated_at, tsrange(_now, null) );
     end if;
 
     update only temporal.countries set ( name ) = ( new.name ) where id = old.id;

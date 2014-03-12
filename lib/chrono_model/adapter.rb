@@ -554,6 +554,7 @@ module ChronoModel
         pk      = primary_key(table)
         current = [TEMPORAL_SCHEMA, table].join('.')
         history = [HISTORY_SCHEMA,  table].join('.')
+        seq     = serial_sequence(current, pk)
 
         options ||= chrono_metadata_for(table)
 
@@ -597,13 +598,18 @@ module ChronoModel
 
         # INSERT - insert data both in the temporal table and in the history one.
         #
-        # The serial sequence is invoked manually for clarity.
+        # The serial sequence is invoked manually only if the PK is NULL, to
+        # allow setting the PK to a specific value (think migration scenario).
         #
         execute <<-SQL
           CREATE OR REPLACE FUNCTION chronomodel_#{table}_insert() RETURNS TRIGGER AS $$
             BEGIN
-              INSERT INTO #{current} ( #{fields} ) VALUES ( #{values} )
-              RETURNING #{pk} INTO NEW.#{pk};
+              IF NEW.#{pk} IS NULL THEN
+                NEW.#{pk} := nextval('#{seq}');
+              END IF;
+
+              INSERT INTO #{current} ( #{pk}, #{fields} )
+              VALUES ( NEW.#{pk}, #{values} );
 
               INSERT INTO #{history} ( #{pk}, #{fields}, validity )
               VALUES ( NEW.#{pk}, #{values}, tsrange(timezone('UTC', now()), NULL) );
