@@ -494,7 +494,7 @@ module ChronoModel
             next if version == current
 
             logger.info "ChronoModel: upgrading #{table_name} from #{version} to #{current}"
-            chrono_alter(table_name)
+            chrono_create_view_for(table_name)
             logger.info "ChronoModel: upgrade complete"
           end
         end
@@ -718,7 +718,7 @@ module ChronoModel
         transaction do
           execute "DROP VIEW #{table_name}"
 
-          _on_temporal_schema { yield } if block_given?
+          _on_temporal_schema { yield }
 
           # Recreate the triggers
           chrono_create_view_for(table_name)
