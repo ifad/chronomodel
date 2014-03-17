@@ -534,6 +534,12 @@ describe ChronoModel::TimeMachine do
       it { Foo.history.all.map(&:name).should == foo_history }
       it { Bar.history.all.map(&:name).should == bar_history }
     end
+
+    describe '.time_query' do
+      it { Foo.history.time_query(:after, :now).count.should == 3 }
+      it { Foo.history.time_query(:before, :now).count.should == 5 }
+    end
+
   end
 
   # Transactions

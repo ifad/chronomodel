@@ -381,7 +381,14 @@ module ChronoModel
     module HistoryMethods
       include TimeQuery
 
-      # for identifying this class as the History subclass
+      # In the History context, pre-fill the :on options with the validity interval.
+      #
+      def time_query(match, time, options = {})
+        options[:on] ||= :validity
+        super
+      end
+
+      # To identify this class as the History subclass
       def history?
         true
       end
@@ -438,7 +445,7 @@ module ChronoModel
 
         unscoped.
           select("#{quoted_table_name}.*, #{connection.quote(time)}::timestamp AS as_of_time").
-          time_query(:at, time, :on => :validity)
+          time_query(:at, time)
       end
 
       # Returns the whole history as read only.
