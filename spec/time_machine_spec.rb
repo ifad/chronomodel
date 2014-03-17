@@ -538,6 +538,7 @@ describe ChronoModel::TimeMachine do
     describe '.time_query' do
       it { Foo.history.time_query(:after, :now).count.should == 3 }
       it { Foo.history.time_query(:before, :now).count.should == 5 }
+      it { Foo.history.past.size.should == 2 }
     end
 
   end

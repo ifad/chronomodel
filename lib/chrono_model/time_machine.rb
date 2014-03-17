@@ -388,6 +388,10 @@ module ChronoModel
         super
       end
 
+      def past
+        time_query(:before, :now).where('NOT upper_inf(validity)')
+      end
+
       # To identify this class as the History subclass
       def history?
         true
