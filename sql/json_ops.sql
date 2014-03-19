@@ -24,13 +24,33 @@ CREATE OR REPLACE FUNCTION json_eq( a json, b json ) RETURNS BOOLEAN AS $$
   SELECT json_hash(a) = json_hash(b);
 $$ LANGUAGE SQL STRICT IMMUTABLE;
 
-CREATE OPERATOR = (
-  LEFTARG   = json,
-  RIGHTARG  = json,
-  PROCEDURE = json_eq
-);
+DO $$
+  BEGIN
 
-CREATE OPERATOR CLASS json_ops
-DEFAULT FOR TYPE JSON USING hash AS
-OPERATOR    1   =  (json, json),
-FUNCTION    1   json_hash(json);
+    CREATE OPERATOR = (
+      LEFTARG   = json,
+      RIGHTARG  = json,
+      PROCEDURE = json_eq
+    );
+
+    RAISE LOG 'Created JSON equality operator';
+
+  EXCEPTION WHEN duplicate_function THEN
+    RAISE NOTICE 'JSON equality operator already exists, skipping';
+  END;
+$$ LANGUAGE plpgsql;
+
+DO $$
+  BEGIN
+
+    CREATE OPERATOR CLASS json_ops
+    DEFAULT FOR TYPE JSON USING hash AS
+    OPERATOR    1   =  (json, json),
+    FUNCTION    1   json_hash(json);
+
+    RAISE LOG 'Created JSON hash operator class';
+
+  EXCEPTION WHEN duplicate_object THEN
+    RAISE NOTICE 'JSON hash operator class already exists, skipping';
+  END;
+$$ LANGUAGE plpgsql;
