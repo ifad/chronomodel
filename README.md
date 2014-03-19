@@ -6,8 +6,8 @@ SQL on free PostgreSQL. Academically speaking, ChronoModel implements a
 
 All history keeping happens inside the database system, freeing application
 code from having to deal with it. ChronoModel implements all the required
-features to Ruby on Rails's ORM to leverage the database temporal structure
-below.
+features in Ruby on Rails' ORM to leverage the database temporal structure
+beneath.
 
 
 ## Design
@@ -250,7 +250,7 @@ comparing the OLD and NEW rows fields, this fails by default.
 ChronoModel provides a naive JSON equality operator using a naive
 comparison of JSON objects [implemented in pl/python][json-opclass].
 
-To load the opclass you can use the `ChronoModel::Json.install`
+To load the opclass you can use the `ChronoModel::Json.create`
 convenience method. If you don't use JSON don't bother doing this.
 
 ## Caveats
