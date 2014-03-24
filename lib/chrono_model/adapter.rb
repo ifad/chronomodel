@@ -716,12 +716,14 @@ module ChronoModel
       #
       def chrono_alter(table_name)
         transaction do
+          options = chrono_metadata_for(table_name)
+
           execute "DROP VIEW #{table_name}"
 
           _on_temporal_schema { yield }
 
           # Recreate the triggers
-          chrono_create_view_for(table_name)
+          chrono_create_view_for(table_name, options)
         end
       end
 
