@@ -126,7 +126,13 @@ module ChronoModel
             # Remove temporal features from this table
             #
             execute "DROP VIEW #{table_name}"
-            _on_temporal_schema { execute "DROP FUNCTION IF EXISTS #{table_name}_ins() CASCADE" }
+
+            _on_temporal_schema do
+              %w( insert update delete ).each do |func|
+                execute "DROP FUNCTION IF EXISTS #{table_name}_#{func}() CASCADE"
+              end
+            end
+
             _on_history_schema { execute "DROP TABLE #{table_name}" }
 
             default_schema = select_value 'SELECT current_schema()'
