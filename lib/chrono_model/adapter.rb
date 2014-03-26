@@ -463,6 +463,31 @@ module ChronoModel
 
       OID::TYPE_MAP[3908] = TSRange.new
     end
+    
+    def copy_temporal_indexes_to_history_after_change_table_to_temporal(table_name)
+      history_index_names = []
+      _on_history_schema { history_index_names = indexes(table_name).map(&:name) }
+
+      temporal_indexes = []
+      _on_temporal_schema { temporal_indexes = indexes(table_name) }
+
+      temporal_indexes.each do |temporal_index|
+        unless history_index_names.include?(temporal_index[:name])
+          options = temporal_index.to_h
+          options.delete(:table)
+          options.delete(:columns)
+          options.delete(:lengths)
+          options.delete(:orders)
+          options.delete(:unique) # Uniqueness constraints do not make sense in the history table
+
+          _on_history_schema {
+            ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.instance_method(:add_index).bind(self).call(
+              temporal_index[:table], temporal_index[:columns], options
+            )
+          }
+        end
+      end
+    end
 
     private
 
