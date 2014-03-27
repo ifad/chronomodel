@@ -102,6 +102,7 @@ module ChronoModel
             execute "ALTER TABLE #{table_name} SET SCHEMA #{TEMPORAL_SCHEMA}"
             _on_history_schema { chrono_create_history_for(table_name) }
             chrono_create_view_for(table_name, options)
+            copy_indexes_to_history_from_temporal(table_name)
 
             TableCache.add! table_name
 
@@ -464,16 +465,19 @@ module ChronoModel
       OID::TYPE_MAP[3908] = TSRange.new
     end
     
-    def copy_temporal_indexes_to_history_after_change_table_to_temporal(table_name)
+    # Copy the indexes from the temporal table to the history table if the indexes
+    # are not already created with the same name.
+    #
+    def copy_indexes_to_history_from_temporal(table_name)
       history_index_names = []
       _on_history_schema { history_index_names = indexes(table_name).map(&:name) }
 
       temporal_indexes = []
       _on_temporal_schema { temporal_indexes = indexes(table_name) }
 
-      temporal_indexes.each do |temporal_index|
-        unless history_index_names.include?(temporal_index[:name])
-          options = temporal_index.to_h
+      temporal_indexes.each do |index|
+        unless history_index_names.include?(index[:name])
+          options = index.to_h
           options.delete(:table)
           options.delete(:columns)
           options.delete(:lengths)
@@ -482,7 +486,7 @@ module ChronoModel
 
           _on_history_schema {
             ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.instance_method(:add_index).bind(self).call(
-              temporal_index[:table], temporal_index[:columns], options
+              index[:table], index[:columns], options
             )
           }
         end
