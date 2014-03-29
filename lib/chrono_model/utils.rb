@@ -45,7 +45,7 @@ module ChronoModel
     # Useful when migrating from legacy systems.
     #
     def amend_period!(hid, from, to)
-      unless [from, to].all? {|ts| ts.respond_to?(:zone) && ts.zone == 'UTC'}
+      unless [from, to].any? {|ts| ts.respond_to?(:zone) && ts.zone == 'UTC'}
         raise 'Can amend history only with UTC timestamps'
       end
 
