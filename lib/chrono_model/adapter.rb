@@ -67,6 +67,12 @@ module ChronoModel
           end
         end
 
+        pkey = primary_key(new_name)
+        _on_history_schema do
+          add_history_validity_constraint(new_name, pkey)
+          remove_history_validity_constraint(new_name, :prefix => name)
+        end
+
         execute "ALTER VIEW #{name} RENAME TO #{new_name}"
 
         TableCache.del! name
@@ -342,7 +348,7 @@ module ChronoModel
     end
 
     def remove_timeline_consistency_constraint(table, options = {})
-      name = timeline_consistency_constraint_name(table)
+      name = timeline_consistency_constraint_name(options[:prefix] || table)
 
       chrono_alter_constraint(table, options) do
         execute <<-SQL
@@ -522,6 +528,14 @@ module ChronoModel
         ]
       end
 
+      def add_history_validity_constraint(table, pkey)
+        add_timeline_consistency_constraint(table, :validity, :id => pkey, :on_current_schema => true)
+      end
+
+      def remove_history_validity_constraint(table, options = {})
+        remove_timeline_consistency_constraint(table, options.merge(:on_current_schema => true))
+      end
+
       # Create the history table in the history schema
       def chrono_create_history_for(table)
         parent = "#{TEMPORAL_SCHEMA}.#{table}"
@@ -535,7 +549,7 @@ module ChronoModel
           ) INHERITS ( #{parent} )
         SQL
 
-        add_timeline_consistency_constraint(table, :validity, :id => p_pkey, :on_current_schema => true)
+        add_history_validity_constraint(table, p_pkey)
 
         # Inherited primary key
         execute "CREATE INDEX #{table}_inherit_pkey ON #{table} ( #{p_pkey} )"
