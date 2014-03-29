@@ -81,9 +81,10 @@ module ChronoTest::Matchers
       def matches?(table)
         super(table)
 
-        table_exists? &&
+        table_exists?           &&
         inherits_from_temporal? &&
-        has_consistency_constraint?
+        has_consistency_constraint? &&
+        has_history_indexes?
       end
 
       def description
@@ -95,7 +96,8 @@ module ChronoTest::Matchers
           message << [
             ("to exist in the #{history_schema} schema"    unless @existance),
             ("to inherit from #{temporal_schema}.#{table}" unless @inheritance),
-            ("to have a timeline consistency constraint"   unless @constraint)
+            ("to have a timeline consistency constraint"   unless @constraint),
+            ("to have history indexes"                     unless @indexes)
           ].compact.to_sentence
         end
       end
@@ -115,6 +117,31 @@ module ChronoTest::Matchers
                  AND inhparent = $2::regclass::oid
             )
           SQL
+        end
+
+        def has_history_indexes?
+          binds = [ history_schema, table ]
+
+          indexes = select_values(<<-SQL, binds, 'Check history indexes')
+            SELECT indexdef FROM pg_indexes
+             WHERE schemaname = $1
+               AND tablename  = $2
+          SQL
+
+          fqtn = [history_schema, table].join('.')
+
+          @indexes =
+            indexes.sort == [
+              "CREATE INDEX index_#{table}_temporal_on_lower_validity ON #{fqtn} USING btree (lower(validity))",
+              "CREATE INDEX index_#{table}_temporal_on_upper_validity ON #{fqtn} USING btree (upper(validity))",
+              "CREATE INDEX index_#{table}_temporal_on_validity ON #{fqtn} USING gist (validity)",
+
+              "CREATE INDEX #{table}_inherit_pkey ON #{fqtn} USING btree (id)",
+              "CREATE INDEX #{table}_instance_history ON #{fqtn} USING btree (id, recorded_at)",
+              "CREATE UNIQUE INDEX #{table}_pkey ON #{fqtn} USING btree (hid)",
+              "CREATE INDEX #{table}_recorded_at ON #{fqtn} USING btree (recorded_at)",
+              "CREATE INDEX #{table}_timeline_consistency ON #{fqtn} USING gist (id, validity)"
+            ].sort
         end
 
         def has_consistency_constraint?

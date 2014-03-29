@@ -69,8 +69,19 @@ module ChronoModel
 
         pkey = primary_key(new_name)
         _on_history_schema do
-          add_history_validity_constraint(new_name, pkey)
-          remove_history_validity_constraint(new_name, :prefix => name)
+          standard_index_names = %w(
+            inherit_pkey instance_history pkey
+            recorded_at timeline_consistency )
+
+          old_names = temporal_index_names(name, :validity) +
+            standard_index_names.map {|i| [name, i].join('_') }
+
+          new_names = temporal_index_names(new_name, :validity) +
+            standard_index_names.map {|i| [new_name, i].join('_') }
+
+          old_names.zip(new_names).each do |old, new|
+            execute "ALTER INDEX #{old} RENAME TO #{new}"
+          end
         end
 
         execute "ALTER VIEW #{name} RENAME TO #{new_name}"
@@ -318,7 +329,7 @@ module ChronoModel
       end
     end
 
-    def temporal_index_names(table, range, options)
+    def temporal_index_names(table, range, options = {})
       prefix = options[:name].presence || "index_#{table}_temporal"
 
       # When creating computed indexes (e.g. ends_on::timestamp + time
@@ -551,9 +562,6 @@ module ChronoModel
 
         add_history_validity_constraint(table, p_pkey)
 
-        # Inherited primary key
-        execute "CREATE INDEX #{table}_inherit_pkey ON #{table} ( #{p_pkey} )"
-
         chrono_create_history_indexes_for(table, p_pkey)
       end
 
@@ -564,6 +572,7 @@ module ChronoModel
 
         add_temporal_indexes table, :validity, :on_current_schema => true
 
+        execute "CREATE INDEX #{table}_inherit_pkey     ON #{table} ( #{p_pkey} )"
         execute "CREATE INDEX #{table}_recorded_at      ON #{table} ( recorded_at )"
         execute "CREATE INDEX #{table}_instance_history ON #{table} ( #{p_pkey}, recorded_at )"
       end
