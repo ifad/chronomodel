@@ -120,10 +120,27 @@ describe ChronoModel::Adapter do
 
     with_plain_table do
       before :all do
+        adapter.add_index table, :foo
+        adapter.add_index table, :bar, :unique => true
+
         adapter.change_table table, :temporal => true
       end
 
       it_should_behave_like 'temporal table'
+
+      let(:history_indexes) do
+        adapter.on_schema(ChronoModel::Adapter::HISTORY_SCHEMA) do
+          adapter.indexes(table)
+        end
+      end
+
+      it "copies plain index to history" do
+        history_indexes.find {|i| i.columns == ['foo']}.should be_present
+      end
+
+      it "copies unique index to history without uniqueness constraint" do
+        history_indexes.find {|i| i.columns == ['bar'] && i.unique == false}.should be_present
+      end
     end
   end
 
