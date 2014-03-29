@@ -57,6 +57,8 @@ module ChronoModel
       clear_cache!
 
       transaction do
+        # Rename tables
+        #
         [TEMPORAL_SCHEMA, HISTORY_SCHEMA].each do |schema|
           on_schema(schema) do
             seq     = serial_sequence(name, primary_key(name))
@@ -67,6 +69,8 @@ module ChronoModel
           end
         end
 
+        # Rename indexes
+        #
         pkey = primary_key(new_name)
         _on_history_schema do
           standard_index_names = %w(
@@ -84,6 +88,14 @@ module ChronoModel
           end
         end
 
+        # Rename functions
+        #
+        %w( insert update delete ).each do |func|
+          execute "ALTER FUNCTION chronomodel_#{name}_#{func}() RENAME TO chronomodel_#{new_name}_#{func}"
+        end
+
+        # Rename the public view
+        #
         execute "ALTER VIEW #{name} RENAME TO #{new_name}"
 
         TableCache.del! name
