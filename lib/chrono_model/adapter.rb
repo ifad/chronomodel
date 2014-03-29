@@ -128,6 +128,7 @@ module ChronoModel
             execute "ALTER TABLE #{table_name} SET SCHEMA #{TEMPORAL_SCHEMA}"
             _on_history_schema { chrono_create_history_for(table_name) }
             chrono_create_view_for(table_name, options)
+            copy_indexes_to_history_from_temporal(table_name)
 
             TableCache.add! table_name
 
@@ -493,6 +494,34 @@ module ChronoModel
       chrono_setup_type_map
 
       chrono_upgrade_structure!
+    end
+    
+    # Copy the indexes from the temporal table to the history table if the indexes
+    # are not already created with the same name.
+    #
+    def copy_indexes_to_history_from_temporal(table_name)
+      history_index_names = []
+      _on_history_schema { history_index_names = indexes(table_name).map(&:name) }
+
+      temporal_indexes = []
+      _on_temporal_schema { temporal_indexes = indexes(table_name) }
+
+      temporal_indexes.each do |index|
+        unless history_index_names.include?(index[:name])
+          options = index.to_h
+          options.delete(:table)
+          options.delete(:columns)
+          options.delete(:lengths)
+          options.delete(:orders)
+          options.delete(:unique) # Uniqueness constraints do not make sense in the history table
+
+          _on_history_schema {
+            ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.instance_method(:add_index).bind(self).call(
+              index[:table], index[:columns], options
+            )
+          }
+        end
+      end
     end
 
     private
