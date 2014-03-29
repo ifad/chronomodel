@@ -130,18 +130,19 @@ module ChronoTest::Matchers
 
           fqtn = [history_schema, table].join('.')
 
-          @indexes =
-            indexes.sort == [
-              "CREATE INDEX index_#{table}_temporal_on_lower_validity ON #{fqtn} USING btree (lower(validity))",
-              "CREATE INDEX index_#{table}_temporal_on_upper_validity ON #{fqtn} USING btree (upper(validity))",
-              "CREATE INDEX index_#{table}_temporal_on_validity ON #{fqtn} USING gist (validity)",
+          expected = [
+            "CREATE INDEX index_#{table}_temporal_on_lower_validity ON #{fqtn} USING btree (lower(validity))",
+            "CREATE INDEX index_#{table}_temporal_on_upper_validity ON #{fqtn} USING btree (upper(validity))",
+            "CREATE INDEX index_#{table}_temporal_on_validity ON #{fqtn} USING gist (validity)",
 
-              "CREATE INDEX #{table}_inherit_pkey ON #{fqtn} USING btree (id)",
-              "CREATE INDEX #{table}_instance_history ON #{fqtn} USING btree (id, recorded_at)",
-              "CREATE UNIQUE INDEX #{table}_pkey ON #{fqtn} USING btree (hid)",
-              "CREATE INDEX #{table}_recorded_at ON #{fqtn} USING btree (recorded_at)",
-              "CREATE INDEX #{table}_timeline_consistency ON #{fqtn} USING gist (id, validity)"
-            ].sort
+            "CREATE INDEX #{table}_inherit_pkey ON #{fqtn} USING btree (id)",
+            "CREATE INDEX #{table}_instance_history ON #{fqtn} USING btree (id, recorded_at)",
+            "CREATE UNIQUE INDEX #{table}_pkey ON #{fqtn} USING btree (hid)",
+            "CREATE INDEX #{table}_recorded_at ON #{fqtn} USING btree (recorded_at)",
+            "CREATE INDEX #{table}_timeline_consistency ON #{fqtn} USING gist (id, validity)"
+          ]
+
+          @indexes = (expected - indexes).empty?
         end
 
         def has_consistency_constraint?
