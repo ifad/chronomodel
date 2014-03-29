@@ -81,7 +81,9 @@ module ChronoTest::Matchers
       def matches?(table)
         super(table)
 
-        table_exists? && inherits_from_temporal?
+        table_exists? &&
+        inherits_from_temporal? &&
+        has_consistency_constraint?
       end
 
       def description
@@ -92,7 +94,8 @@ module ChronoTest::Matchers
         "expected #{table} ".tap do |message|
           message << [
             ("to exist in the #{history_schema} schema"    unless @existance),
-            ("to inherit from #{temporal_schema}.#{table}" unless @inheritance)
+            ("to inherit from #{temporal_schema}.#{table}" unless @inheritance),
+            ("to have a timeline consistency constraint"   unless @constraint)
           ].compact.to_sentence
         end
       end
@@ -110,6 +113,32 @@ module ChronoTest::Matchers
               SELECT 1 FROM pg_catalog.pg_inherits
                WHERE inhrelid  = $1::regclass::oid
                  AND inhparent = $2::regclass::oid
+            )
+          SQL
+        end
+
+        def has_consistency_constraint?
+          binds = [
+            connection.timeline_consistency_constraint_name(table), # conname
+            history_schema,                                         # connamespace
+            [history_schema, table].join('.'),                      # conrelid, attrelid
+            connection.primary_key(table)                           # attnum
+          ]
+
+          @constraint = select_value(<<-SQL, binds, 'Check Consistency Constraint') == 't'
+            SELECT EXISTS (
+              SELECT 1 FROM pg_catalog.pg_constraint
+              WHERE conname = $1
+                AND contype = 'x'
+                AND conrelid = $3::regclass
+                AND connamespace = (
+                  SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = $2
+                )
+                AND conkey = (
+                  SELECT array_agg(attnum) FROM pg_catalog.pg_attribute
+                  WHERE attname IN ($4, 'validity')
+                    AND attrelid = $3::regclass
+                )
             )
           SQL
         end

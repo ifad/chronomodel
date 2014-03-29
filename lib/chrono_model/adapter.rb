@@ -535,7 +535,7 @@ module ChronoModel
           ) INHERITS ( #{parent} )
         SQL
 
-        add_timeline_consistency_constraint(table, :validity, :on_current_schema => true)
+        add_timeline_consistency_constraint(table, :validity, :id => p_pkey, :on_current_schema => true)
 
         # Inherited primary key
         execute "CREATE INDEX #{table}_inherit_pkey ON #{table} ( #{p_pkey} )"
