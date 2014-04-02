@@ -473,8 +473,29 @@ module ChronoModel
         readonly.where(:id => object).extend(HistorySelect)
       end
 
+      # HACK FIXME. When querying history, ChronoModel does not add his
+      # timestamps and sorting if there is an aggregate function in the
+      # select list - as it is likely what you'll want. However, if you
+      # have a query that performs an aggregate in a subquery, the code
+      # below will do the wrong thing - and you'll have to forcibly add
+      # back the history fields yourself.
+      #
+      # The obvious solution is to use a VIEW on the history containing
+      # the added history fields, and remove all this crap from here...
+      # but it is not easily feasible. So we're going with a workaround
+      # for now.
+      #
+      #   - vjt  Wed Apr  2 19:56:35 CEST 2014
+      #
+      def force_history_fields
+        select(HistorySelect::SELECT_VALUES).order(HistorySelect::ORDER_VALUES[quoted_table_name])
+      end
+
       module HistorySelect #:nodoc:
         Aggregates = %r{(?:(?:bit|bool)_(?:and|or)|(?:array_|string_|xml)agg|count|every|m(?:in|ax)|sum|stddev|var(?:_pop|_samp|iance)|corr|covar_|regr_)\w*\s*\(}i
+
+        SELECT_VALUES = "LEAST(upper(validity), timezone('UTC', now())) AS as_of_time"
+        ORDER_VALUES  = lambda {|tbl| %[#{tbl}."recorded_at", #{tbl}."hid"]}
 
         def build_arel
           has_aggregate = select_values.any? do |v|
@@ -485,11 +506,11 @@ module ChronoModel
           return super if has_aggregate
 
           if order_values.blank?
-            self.order_values += [ %[#{quoted_table_name}."recorded_at", #{quoted_table_name}."hid"] ]
+            self.order_values += [ ORDER_VALUES[quoted_table_name] ]
           end
 
           super.tap do |rel|
-            rel.project("LEAST(upper(validity), timezone('UTC', now())) AS as_of_time")
+            rel.project(SELECT_VALUES)
           end
         end
       end
