@@ -699,6 +699,10 @@ module ChronoModel
         # exists, update it with new data. This logic makes possible to "squash"
         # together changes made in a transaction in a single history row.
         #
+        # If you want to disable this behaviour, set the CHRONOMODEL_NO_SQUASH
+        # environment variable. This is useful when running scenarios inside
+        # cucumber, in which everything runs in the same transaction.
+        #
         execute <<-SQL
           CREATE OR REPLACE FUNCTION chronomodel_#{table}_update() RETURNS TRIGGER AS $$
             DECLARE _now timestamp;
@@ -721,7 +725,7 @@ module ChronoModel
               _now := timezone('UTC', now());
               _hid := NULL;
 
-              SELECT hid INTO _hid FROM #{history} WHERE #{pk} = OLD.#{pk} AND lower(validity) = _now;
+              #{"SELECT hid INTO _hid FROM #{history} WHERE #{pk} = OLD.#{pk} AND lower(validity) = _now;" unless ENV['CHRONOMODEL_NO_SQUASH']}
 
               IF _hid IS NOT NULL THEN
                 UPDATE #{history} SET ( #{fields} ) = ( #{values} ) WHERE hid = _hid;
