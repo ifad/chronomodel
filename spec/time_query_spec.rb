@@ -87,7 +87,8 @@ describe ChronoModel::TimeMachine::TimeQuery do
   end
 
   describe :before do
-    subject { Event.time_query(:before, time.try(:to_date) || time, on: :interval, type: :daterange).to_a }
+    let(:inclusive) { true }
+    subject { Event.time_query(:before, time.try(:to_date) || time, on: :interval, type: :daterange, inclusive: inclusive).to_a }
 
     context '16 days ago' do
       let(:time) { 16.days.ago }
@@ -97,11 +98,21 @@ describe ChronoModel::TimeMachine::TimeQuery do
     context '14 days ago' do
       let(:time) { 14.days.ago }
       it { should == [think] }
+
+      context 'not inclusive' do
+        let(:inclusive) { false }
+        it { should be_empty }
+      end
     end
 
     context '11 days ago' do
       let(:time) { 11.days.ago }
       it { should =~ [think, plan, collect] }
+
+      context 'not inclusive' do
+        let(:inclusive) { false }
+        it { should == [think, plan] }
+      end
     end
 
     context '10 days ago' do
@@ -126,7 +137,8 @@ describe ChronoModel::TimeMachine::TimeQuery do
   end
 
   describe :after do
-    subject { Event.time_query(:after, time.try(:to_date) || time, on: :interval, type: :daterange).to_a }
+    let(:inclusive) { true }
+    subject { Event.time_query(:after, time.try(:to_date) || time, on: :interval, type: :daterange, inclusive: inclusive).to_a }
 
     context 'one month ago' do
       let(:time) { 1.month.ago }
@@ -161,6 +173,11 @@ describe ChronoModel::TimeMachine::TimeQuery do
     context 'one month from now' do
       let(:time) { 1.month.from_now }
       it { should == [profit] }
+
+      context 'not inclusive' do
+        let(:inclusive) { false }
+        it { should be_empty }
+      end
     end
 
     context 'far future' do

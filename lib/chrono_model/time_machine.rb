@@ -316,10 +316,12 @@ module ChronoModel
           "NOT (#{build_time_query_at(time, range)})"
 
         when :before
-          build_time_query(['NULL', time_for_time_query(time, range)], range)
+          op = options.fetch(:inclusive, true) ? '&&' : '@>'
+          build_time_query(['NULL', time_for_time_query(time, range)], range, op)
 
         when :after
-          build_time_query([time_for_time_query(time, range), 'NULL'], range)
+          op = options.fetch(:inclusive, true) ? '&&' : '@>'
+          build_time_query([time_for_time_query(time, range), 'NULL'], range, op)
 
         else
           raise ArgumentError, "Invalid time_query: #{match}"
@@ -367,9 +369,9 @@ module ChronoModel
           build_time_query(time, range)
         end
 
-        def build_time_query(time, range)
+        def build_time_query(time, range, op = '&&')
           if time.kind_of?(Array)
-            %[ #{range.type}(#{time.first}, #{time.last}) && #{table_name}.#{range.name} ]
+            %[ #{range.type}(#{time.first}, #{time.last}) #{op} #{table_name}.#{range.name} ]
           else
             %[ #{time} <@ #{table_name}.#{range.name} ]
           end
