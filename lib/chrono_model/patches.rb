@@ -11,7 +11,7 @@ module ChronoModel
     # then the as_of scope is called on either this association's class or
     # on the join model's (:through association) one.
     #
-    class Association < ActiveRecord::Associations::Association
+    module Association
 
       # If the association class or the through association are ChronoModels,
       # then fetches the records from a virtual table using a subquery scope
