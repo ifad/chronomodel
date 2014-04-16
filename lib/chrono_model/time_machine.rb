@@ -52,15 +52,29 @@ module ChronoModel
           attributes[self.class.primary_key]
         end
 
-        # HACK to make ActiveAdmin work properly. This will be surely
-        # better written in the future.
+        # HACK. find() and save() require the real history ID. So we are
+        # setting it now and ensuring to reset it to the original one after
+        # execution completes.
         #
-        def self.find(*args)
+        def self.with_hid_pkey(&block)
           old = self.primary_key
           self.primary_key = :hid
-          super
+
+          block.call
         ensure
           self.primary_key = old
+        end
+
+        def self.find(*)
+          with_hid_pkey { super }
+        end
+
+        def save(*)
+          self.class.with_hid_pkey { super }
+        end
+
+        def save!(*)
+          self.class.with_hid_pkey { super }
         end
 
         # Returns the previous history entry, or nil if this

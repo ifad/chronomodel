@@ -596,4 +596,36 @@ describe ChronoModel::TimeMachine do
     end
   end
 
+  # This group is below here to not to disturb the flow of the above specs.
+  #
+  context 'history modification' do
+    describe '#save' do
+      subject { bar.history.first }
+
+      before do
+        subject.name = 'modified bar history'
+        subject.save
+        subject.reload
+      end
+
+      it { should be_a(Bar::History) }
+      it { should be_true }
+      its(:name) { should == 'modified bar history' }
+    end
+
+    describe '#save!' do
+      subject { bar.history.second }
+
+      before do
+        subject.name = 'another modified bar history'
+        subject.save
+        subject.reload
+      end
+
+      it { should be_a(Bar::History) }
+      it { should be_true }
+      its(:name) { should == 'another modified bar history' }
+    end
+  end
+
 end

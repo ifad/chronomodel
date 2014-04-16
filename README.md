@@ -230,6 +230,10 @@ SELECT "countries".* FROM (
 
 More methods are provided, see the [TimeMachine][] source for more information.
 
+## History manipulation
+
+History objects can be changed and `.save`d just like any other record.
+
 ## Running tests
 
 You need a running PostgreSQL 9.3 instance. Create `spec/config.yml` with the
