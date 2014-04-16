@@ -69,12 +69,26 @@ module ChronoModel
           with_hid_pkey { super }
         end
 
-        def save(*)
-          self.class.with_hid_pkey { super }
-        end
+        if RUBY_VERSION.to_f < 2.0
+          # PLEASE UPDATE YOUR RUBY <3
+          #
+          def save_with_pkey(*)
+            self.class.with_hid_pkey { save_without_pkey }
+          end
 
-        def save!(*)
-          self.class.with_hid_pkey { super }
+          def save_with_pkey!(*)
+            self.class.with_hid_pkey { save_without_pkey! }
+          end
+
+          alias_method_chain :save, :pkey
+        else
+          def save(*)
+            self.class.with_hid_pkey { super }
+          end
+
+          def save!(*)
+            self.class.with_hid_pkey { super }
+          end
         end
 
         # Returns the previous history entry, or nil if this
