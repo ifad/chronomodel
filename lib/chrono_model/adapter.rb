@@ -558,6 +558,13 @@ module ChronoModel
             logger.info "ChronoModel: upgrade complete"
           end
         end
+      rescue => e
+        message = "ChronoModel structure upgrade failed: #{e.message}. Please drop dependent objects and then run ActiveRecord::Base.connection.chrono_setup!"
+
+        # Quite important, output it also to stderr.
+        #
+        logger.error message
+        $stderr.puts message
       end
 
       def chrono_metadata_for(table)
