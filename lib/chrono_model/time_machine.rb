@@ -417,7 +417,7 @@ module ChronoModel
       # Fetches as of +time+ records.
       #
       def as_of(time, scope = nil)
-        as_of = non_history_superclass.unscoped.readonly.from(virtual_table_at(time))
+        as_of = non_history_superclass.unscoped.from(virtual_table_at(time))
 
         # Add default scopes back if we're passed nil or a
         # specific scope, because we're .unscopeing above.
@@ -454,12 +454,6 @@ module ChronoModel
           time_query(:at, time)
       end
 
-      # Returns the whole history as read only.
-      #
-      def all
-        super.readonly
-      end
-
       # Returns the history sorted by recorded_at
       #
       def sorted
@@ -472,7 +466,7 @@ module ChronoModel
       # is maximum.
       #
       def of(object)
-        readonly.where(:id => object).extend(HistorySelect)
+        where(:id => object).extend(HistorySelect)
       end
 
       # HACK FIXME. When querying history, ChronoModel does not add his

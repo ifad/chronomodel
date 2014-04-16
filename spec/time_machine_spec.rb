@@ -156,9 +156,9 @@ describe ChronoModel::TimeMachine do
       it { bar.history.map(&:name).should == ['bar', 'foo bar', 'bar bar', 'new bar'] }
     end
 
-    describe 'returns read only records' do
-      it { foo.history.all?(&:readonly?).should be_true }
-      it { bar.history.all?(&:readonly?).should be_true }
+    describe 'does not return read only records' do
+      it { foo.history.all?(&:readonly?).should_not be_true }
+      it { bar.history.all?(&:readonly?).should_not be_true }
     end
 
     describe 'takes care of associated records' do
@@ -166,9 +166,9 @@ describe ChronoModel::TimeMachine do
       it { should == [nil, 'foo bar', 'new bar'] }
     end
 
-    describe 'returns read only associated records' do
-      it { foo.history[2].bars.all?(&:readonly?).should be_true }
-      it { bar.history.all? {|b| b.foo.readonly?}.should be_true }
+    describe 'does not return read only associated records' do
+      it { foo.history[2].bars.all?(&:readonly?).should_not be_true }
+      it { bar.history.all? {|b| b.foo.readonly?}.should_not be_true }
     end
 
     describe 'allows a custom select list' do

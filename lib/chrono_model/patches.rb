@@ -28,7 +28,7 @@ module ChronoModel
           # For standard associations, replace the table name with the virtual
           # as-of table name at the owner's as-of-time
           #
-          scope = scope.readonly.from(klass.history.virtual_table_at(owner.as_of_time))
+          scope = scope.from(klass.history.virtual_table_at(owner.as_of_time))
         elsif respond_to?(:through_reflection) && through_reflection.klass.chrono?
 
           # For through associations, replace the joined table name instead.
