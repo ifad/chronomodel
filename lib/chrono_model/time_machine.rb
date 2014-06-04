@@ -518,7 +518,7 @@ module ChronoModel
       module HistorySelect #:nodoc:
         Aggregates = %r{(?:(?:bit|bool)_(?:and|or)|(?:array_|string_|xml)agg|count|every|m(?:in|ax)|sum|stddev|var(?:_pop|_samp|iance)|corr|covar_|regr_)\w*\s*\(}i
 
-        SELECT_VALUES = "LEAST(upper(validity), timezone('UTC', now())) AS as_of_time"
+        SELECT_VALUES = "upper(validity) AS as_of_time"
         ORDER_VALUES  = lambda {|tbl| %[#{tbl}."recorded_at", #{tbl}."hid"]}
 
         def build_arel
