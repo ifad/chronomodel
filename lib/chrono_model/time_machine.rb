@@ -132,8 +132,13 @@ module ChronoModel
 
         # Returns this history entry's current record
         #
-        def record
-          self.class.superclass.find(rid)
+        def current_version
+          self.class.non_history_superclass.find(rid)
+        end
+
+        def record #:nodoc:
+          ActiveSupport::Deprecation.warn '.record is deprecated in favour of .current_version'
+          self.current_version
         end
 
         def valid_from
@@ -277,6 +282,12 @@ module ChronoModel
 
       options[:after] ||= as_of_time
       timeline(options.merge(:limit => 1, :reverse => false)).first
+    end
+
+    # Returns the current history version
+    #
+    def current_version
+      self.historical? ? self.class.find(self.id) : self
     end
 
     # Returns the differences between this entry and the previous history one.

@@ -244,9 +244,21 @@ describe ChronoModel::TimeMachine do
     it { should == foo.history.last }
   end
 
-  describe '#record' do
-    subject { foo.history.sample.record }
-    it { should == foo }
+  describe '#current_version' do
+    describe 'on plain records' do
+      subject { foo.current_version }
+      it { should == foo }
+    end
+
+    describe 'from #as_of' do
+      subject { foo.as_of(Time.now) }
+      it { should == foo }
+    end
+
+    describe 'on historical records' do
+      subject { foo.history.sample.current_version }
+      it { should == foo }
+    end
   end
 
   describe '#historical?' do
