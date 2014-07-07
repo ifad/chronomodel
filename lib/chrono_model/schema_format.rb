@@ -24,6 +24,7 @@ module PG
       ENV['PGHOST']     = config[:host].to_s     if config.key?(:host)
       ENV['PGPORT']     = config[:port].to_s     if config.key?(:port)
       ENV['PGPASSWORD'] = config[:password].to_s if config.key?(:password)
+      ENV['PGUSER']     = config[:username].to_s if config.key?(:username)
     end
   end
 
