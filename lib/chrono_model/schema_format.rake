@@ -27,8 +27,16 @@ namespace :db do
         f.puts "SET search_path TO #{ActiveRecord::Base.connection.schema_search_path};\n\n"
         f.puts ActiveRecord::Base.connection.dump_schema_information
       end
-    end
 
+      # the structure.sql file will contain CREATE SCHEMA statements
+      # but chronomodel creates the temporal and history schemas
+      # when the connection is established, so a db:structure:load fails
+      # fix up create schema statements to include the IF NOT EXISTS directive
+
+      sql = File.read(target)
+      sql.gsub!(/CREATE SCHEMA /, 'CREATE SCHEMA IF NOT EXISTS ')
+      File.open(target, "w") { |file| file << sql  }
+    end
 
     desc "Load structure.sql file into the current environment's database"
     task :load => :environment do
