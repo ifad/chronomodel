@@ -401,6 +401,10 @@ module ChronoModel
         def build_time_query_at(time, range)
           time = if time.kind_of?(Array)
             time.map! {|t| time_for_time_query(t, range)}
+
+            # If both edges of the range are the same the query fails using the '&&' operator.
+            # The correct solution is to use the <@ operator.
+            time.first == time.last ? time.first : time
           else
             time_for_time_query(time, range)
           end

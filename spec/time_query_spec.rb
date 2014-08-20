@@ -61,7 +61,7 @@ describe ChronoModel::TimeMachine::TimeQuery do
 
       context 'that is empty' do
         let(:times) { [ 14.days.ago, 14.days.ago ] }
-        it { should be_empty }
+        it { should_not be_empty }
       end
 
       context 'overlapping no records' do
