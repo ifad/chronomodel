@@ -1,4 +1,3 @@
-require 'shellwords'
 load File.expand_path(File.dirname(__FILE__) + '/schema_format.rb')
 
 namespace :db do
@@ -15,7 +14,7 @@ namespace :db do
         schema_search_path << ",#{ChronoModel::Adapter::HISTORY_SCHEMA}"
 
         # convert to command line arguments
-        schema_search_path = schema_search_path.split(",").map{|part| "--schema=#{Shellwords.escape(part.strip)}" }.join(" ")
+        schema_search_path = schema_search_path.split(",").map{|part| "--schema=#{part.strip}" }.join(" ")
       end
 
       PG.make_dump target,
