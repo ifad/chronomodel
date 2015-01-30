@@ -29,7 +29,7 @@ module PG
   end
 
   def make_dump(target, username, database, *options)
-    exec 'pg_dump', '-f', target, '-U', username, database, *options
+    exec 'pg_dump', '-f', target, '-U', username, '-d', database, *options
   end
 
   def load_dump(source, username, database, *options)
