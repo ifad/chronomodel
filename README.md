@@ -242,7 +242,7 @@ History objects can be changed and `.save`d just like any other record.
 
 ## Running tests
 
-You need a running PostgreSQL 9.3 instance. Create `spec/config.yml` with the
+You need a running PostgreSQL >= 9.3 instance. Create `spec/config.yml` with the
 connection authentication details (use `spec/config.yml.example` as template).
 
 You need to connect as  a database superuser, because specs need to create the
@@ -270,7 +270,7 @@ convenience method. If you don't use JSON don't bother doing this.
    as of now, mainly due to a [design clash with ruby][pg-tsrange-and-ruby].
 
  * There is (yet) no upgrade path from [v0.5][chronomodel-0.5],
-   (PG 9.0-compatible, `box()` and hacks) to v0.6 and up (9.3-only, `tsrange`
+   (PG 9.0-compatible, `box()` and hacks) to v0.6 and up (>=9.3-only, `tsrange`
    and _less_ hacks).
 
  * The triggers and temporal indexes cannot be saved in schema.rb. The AR
@@ -312,34 +312,34 @@ convenience method. If you don't use JSON don't bother doing this.
 [test-coverage]: https://codeclimate.com/github/ifad/chronomodel
 [test-coverage-badge]: https://codeclimate.com/github/ifad/chronomodel/badges/coverage.svg
 
-[updatable views]: http://www.postgresql.org/docs/9.3/static/sql-createview.html#SQL-CREATEVIEW-UPDATABLE-VIEWS
-[table inheritance]: http://www.postgresql.org/docs/9.3/static/ddl-inherit.html
-[INSTEAD OF triggers]: http://www.postgresql.org/docs/9.3/static/sql-createtrigger.html
+[updatable views]: http://www.postgresql.org/docs/9.4/static/sql-createview.html#SQL-CREATEVIEW-UPDATABLE-VIEWS
+[table inheritance]: http://www.postgresql.org/docs/9.4/static/ddl-inherit.html
+[INSTEAD OF triggers]: http://www.postgresql.org/docs/9.4/static/sql-createtrigger.html
 [wp-scd-2]: http://en.wikipedia.org/wiki/Slowly_changing_dimension#Type_2
 [wp-scd-4]: http://en.wikipedia.org/wiki/Slowly_changing_dimension#Type_4
-[triggers]: http://www.postgresql.org/docs/9.3/static/trigger-definition.html
-[schema]: http://www.postgresql.org/docs/9.3/static/ddl-schemas.html
-[inherits]: http://www.postgresql.org/docs/9.3/static/ddl-inherit.html
-[`current_timestamp`]: http://www.postgresql.org/docs/9.3/interactive/functions-datetime.html#FUNCTIONS-DATETIME-TABLE
+[triggers]: http://www.postgresql.org/docs/9.4/static/trigger-definition.html
+[schema]: http://www.postgresql.org/docs/9.4/static/ddl-schemas.html
+[inherits]: http://www.postgresql.org/docs/9.4/static/ddl-inherit.html
+[`current_timestamp`]: http://www.postgresql.org/docs/9.4/interactive/functions-datetime.html#FUNCTIONS-DATETIME-TABLE
 
-[Partitioning]: http://www.postgresql.org/docs/9.3/static/ddl-partitioning.html)
-[partitioning-excl-constraints]: http://www.postgresql.org/docs/9.3/static/ddl-partitioning.html#DDL-PARTITIONING-CONSTRAINT-EXCLUSION
+[Partitioning]: http://www.postgresql.org/docs/9.4/static/ddl-partitioning.html)
+[partitioning-excl-constraints]: http://www.postgresql.org/docs/9.4/static/ddl-partitioning.html#DDL-PARTITIONING-CONSTRAINT-EXCLUSION
 [README.sql]: https://github.com/ifad/chronomodel/blob/master/README.sql
-[GiST indexes]: http://www.postgresql.org/docs/9.3/static/gist.html
-[exclusion constraints]: http://www.postgresql.org/docs/9.3/static/sql-createtable.html#SQL-CREATETABLE-EXCLUDE
-[btree_gist]: http://www.postgresql.org/docs/9.3/static/btree-gist.html
-[COMMENT]: http://www.postgresql.org/docs/9.3/static/sql-comment.html
+[GiST indexes]: http://www.postgresql.org/docs/9.4/static/gist.html
+[exclusion constraints]: http://www.postgresql.org/docs/9.4/static/sql-createtable.html#SQL-CREATETABLE-EXCLUDE
+[btree_gist]: http://www.postgresql.org/docs/9.4/static/btree-gist.html
+[COMMENT]: http://www.postgresql.org/docs/9.4/static/sql-comment.html
 [TimeMachine]: https://github.com/ifad/chronomodel/blob/master/lib/chrono_model/time_machine.rb
 
 [r4-tsrange-broken]: https://github.com/rails/rails/pull/13793#issuecomment-34608093
 [r4-tsrange-incomplete]: https://github.com/rails/rails/issues/14010)
 [pg-tsrange-and-ruby]: https://bugs.ruby-lang.org/issues/6864
 [chronomodel-0.5]: https://github.com/ifad/chronomodel/tree/c2daa0f
-[Common Table Expressions]: http://www.postgresql.org/docs/9.3/static/queries-with.html
+[Common Table Expressions]: http://www.postgresql.org/docs/9.4/static/queries-with.html
 [cte-optimization-fence]: http://archives.postgresql.org/pgsql-hackers/2012-09/msg00700.php
 [cte-opt-out-fence]: http://archives.postgresql.org/pgsql-hackers/2012-10/msg00024.php
 [chronomodel-cte-impl]: https://github.com/ifad/chronomodel/commit/18f4c4b
 
-[json-type]: http://www.postgresql.org/docs/9.3/static/datatype-json.html
-[json-func]: http://www.postgresql.org/docs/9.3/static/functions-json.html
+[json-type]: http://www.postgresql.org/docs/9.4/static/datatype-json.html
+[json-func]: http://www.postgresql.org/docs/9.4/static/functions-json.html
 [json-opclass]: https://github.com/ifad/chronomodel/blob/master/sql/json_ops.sql
