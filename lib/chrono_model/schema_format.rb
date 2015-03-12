@@ -24,11 +24,12 @@ module PG
       ENV['PGHOST']     = config[:host].to_s     if config.key?(:host)
       ENV['PGPORT']     = config[:port].to_s     if config.key?(:port)
       ENV['PGPASSWORD'] = config[:password].to_s if config.key?(:password)
+      ENV['PGUSER']     = config[:username].to_s if config.key?(:username)
     end
   end
 
   def make_dump(target, username, database, *options)
-    exec 'pg_dump', '-f', target, '-U', username, database, *options
+    exec 'pg_dump', '-f', target, '-U', username, '-d', database, *options
   end
 
   def load_dump(source, username, database, *options)

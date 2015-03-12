@@ -285,7 +285,19 @@ module ChronoModel
       chrono_alter(table_name) { super }
     end
 
-    # Runs column_definitions, primary_key and indexes in the temporal schema,
+    # Runs column_definitions in the temporal schema, as the table there
+    # defined is the source for this information.
+    #
+    # The default search path is included however, since the table
+    # may reference types defined in other schemas, which result in their
+    # names becoming schema qualified, which will cause type resolutions to fail.
+    #
+    define_method(:column_definitions) do |table_name|
+      return super(table_name) unless is_chrono?(table_name)
+      on_schema(TEMPORAL_SCHEMA + ',' + self.schema_search_path, false) { super(table_name) }
+    end
+
+    # Runs primary_key, indexes and default_sequence_name in the temporal schema,
     # as the table there defined is the source for this information.
     #
     # Moreover, the PostgreSQLAdapter +indexes+ method uses current_schema(),
@@ -294,10 +306,11 @@ module ChronoModel
     # Schema nesting is disabled on these calls, make sure to fetch metadata
     # from the first caller's selected schema and not from the current one.
     #
-    [:column_definitions, :primary_key, :indexes].each do |method|
-      define_method(method) do |table_name|
-        return super(table_name) unless is_chrono?(table_name)
-        _on_temporal_schema(false) { super(table_name) }
+    [:primary_key, :indexes, :default_sequence_name].each do |method|
+      define_method(method) do |*args|
+        table_name = args.first
+        return super(*args) unless is_chrono?(table_name)
+        _on_temporal_schema(false) { super(*args) }
       end
     end
 

@@ -6,20 +6,36 @@ namespace :db do
     task :dump => :environment do
       config = PG.config!
       target = ENV['DB_STRUCTURE'] || Rails.root.join('db', 'structure.sql')
-      schema = config[:schema_search_path] || 'public'
+      schema_search_path = config[:schema_search_path]
 
-      PG.make_dump target, *config.values_at(:username, :database),
-        '-s', '-O', '-n', schema,
-        '-n', ChronoModel::Adapter::TEMPORAL_SCHEMA,
-        '-n', ChronoModel::Adapter::HISTORY_SCHEMA
+      unless schema_search_path.blank?
+        # add in chronomodel schemas
+        schema_search_path << ",#{ChronoModel::Adapter::TEMPORAL_SCHEMA}"
+        schema_search_path << ",#{ChronoModel::Adapter::HISTORY_SCHEMA}"
+
+        # convert to command line arguments
+        schema_search_path = schema_search_path.split(",").map{|part| "--schema=#{part.strip}" }.join(" ")
+      end
+
+      PG.make_dump target,
+                   *config.values_at(:username, :database),
+                   '-i', '-x', '-s', '-O', schema_search_path
 
       # Add migration information, after resetting the schema to the default one
       File.open(target, 'a') do |f|
-        f.puts "SET search_path = #{schema}, pg_catalog;"
+        f.puts "SET search_path TO #{ActiveRecord::Base.connection.schema_search_path};\n\n"
         f.puts ActiveRecord::Base.connection.dump_schema_information
       end
-    end
 
+      # the structure.sql file will contain CREATE SCHEMA statements
+      # but chronomodel creates the temporal and history schemas
+      # when the connection is established, so a db:structure:load fails
+      # fix up create schema statements to include the IF NOT EXISTS directive
+
+      sql = File.read(target)
+      sql.gsub!(/CREATE SCHEMA /, 'CREATE SCHEMA IF NOT EXISTS ')
+      File.open(target, "w") { |file| file << sql  }
+    end
 
     desc "Load structure.sql file into the current environment's database"
     task :load => :environment do
