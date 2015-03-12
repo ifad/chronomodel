@@ -302,9 +302,9 @@ convenience method. If you don't use JSON don't bother doing this.
 
 
 [build-status]: https://travis-ci.org/ifad/chronomodel
-[build-status-badge]: https://travis-ci.org/ifad/chronomodel.png?branch=master
+[build-status-badge]: https://travis-ci.org/ifad/chronomodel.svg
 [deps-status]: https://gemnasium.com/ifad/chronomodel
-[deps-status-badge]: https://gemnasium.com/ifad/chronomodel.png
+[deps-status-badge]: https://gemnasium.com/ifad/chronomodel.svg
 [code-analysis]: https://codeclimate.com/github/ifad/chronomodel
 [code-analysis-badge]: https://codeclimate.com/github/ifad/chronomodel.svg
 [docs-analysis]: http://inch-ci.org/github/ifad/chronomodel
