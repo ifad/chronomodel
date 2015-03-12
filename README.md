@@ -263,6 +263,10 @@ comparison of JSON objects [implemented in pl/python][json-opclass].
 To load the opclass you can use the `ChronoModel::Json.create`
 convenience method. If you don't use JSON don't bother doing this.
 
+If you are on Postgres 9.4, you are strongly encouraged to use JSONB,
+that has an equality operator built-in, it's faster and stricter, and
+offers many more indexing abilities and better performance than JSON.
+
 ## Caveats
 
  * Rails 4 support requires disabling tsrange parsing support, as it
