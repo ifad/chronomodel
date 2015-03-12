@@ -4,6 +4,7 @@
 [![Dependency Status][deps-status-badge]][deps-status]
 [![Code Climate][code-analysis-badge]][code-analysis]
 [![Test Coverage][test-coverage-badge]][test-coverage]
+[![Inlinedocs][docs-analysis-badge]][docs-analysis]
 
 ChronoModel does what Oracle sells as "Flashback Queries", but with standard
 SQL on free PostgreSQL. Academically speaking, ChronoModel implements a
@@ -306,6 +307,8 @@ convenience method. If you don't use JSON don't bother doing this.
 [deps-status-badge]: https://gemnasium.com/ifad/chronomodel.png
 [code-analysis]: https://codeclimate.com/github/ifad/chronomodel
 [code-analysis-badge]: https://codeclimate.com/github/ifad/chronomodel.svg
+[docs-analysis]: http://inch-ci.org/github/ifad/chronomodel
+[docs-analysis-badge]: http://inch-ci.org/github/ifad/chronomodel.svg?branch=master
 [test-coverage]: https://codeclimate.com/github/ifad/chronomodel
 [test-coverage-badge]: https://codeclimate.com/github/ifad/chronomodel/badges/coverage.svg
 
