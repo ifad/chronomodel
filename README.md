@@ -1,4 +1,9 @@
-# Temporal database system on PostgreSQL using [updatable views][], [table inheritance][] and [INSTEAD OF triggers][]. [![Build Status][build-status-badge]][build-status] [![Dependency Status][deps-status-badge]][deps-status] [![Code Climate][code-analysis-badge]][code-analysis]
+# Temporal database system on PostgreSQL using [updatable views][], [table inheritance][] and [INSTEAD OF triggers][].
+
+[![Build Status][build-status-badge]][build-status]
+[![Dependency Status][deps-status-badge]][deps-status]
+[![Code Climate][code-analysis-badge]][code-analysis]
+[![Test Coverage][test-coverage-badge]][test-coverage]
 
 ChronoModel does what Oracle sells as "Flashback Queries", but with standard
 SQL on free PostgreSQL. Academically speaking, ChronoModel implements a
@@ -300,7 +305,9 @@ convenience method. If you don't use JSON don't bother doing this.
 [deps-status]: https://gemnasium.com/ifad/chronomodel
 [deps-status-badge]: https://gemnasium.com/ifad/chronomodel.png
 [code-analysis]: https://codeclimate.com/github/ifad/chronomodel
-[code-analysis-badge]: https://codeclimate.com/github/ifad/chronomodel.png
+[code-analysis-badge]: https://codeclimate.com/github/ifad/chronomodel.svg
+[test-coverage]: https://codeclimate.com/github/ifad/chronomodel
+[test-coverage-badge]: https://codeclimate.com/github/ifad/chronomodel/badges/coverage.svg
 
 [updatable views]: http://www.postgresql.org/docs/9.3/static/sql-createview.html#SQL-CREATEVIEW-UPDATABLE-VIEWS
 [table inheritance]: http://www.postgresql.org/docs/9.3/static/ddl-inherit.html

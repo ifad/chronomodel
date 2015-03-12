@@ -20,4 +20,5 @@ group :test do
   gem 'rspec', '~> 2.0'
   gem 'rake'
   gem 'fuubar'
+  gem 'codeclimate-test-reporter', require: nil
 end
