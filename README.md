@@ -6,7 +6,12 @@
 [![Test Coverage][test-coverage-badge]][test-coverage]
 [![Inlinedocs][docs-analysis-badge]][docs-analysis]
 
-ChronoModel does what Oracle sells as "Flashback Queries", but with standard
+![{chronos - greek god of time}][chronos-image]
+
+> Chronos, the greek god of time.
+> Courtesy of [REBELLE SOCIETY][rebelle-society]
+
+ChronoModel implements what Oracle sells as "Flashback Queries", with standard
 SQL on free PostgreSQL. Academically speaking, ChronoModel implements a
 [Type-2 Slowly-Changing Dimension][wp-scd-2] with [history tables][wp-scd-4].
 
@@ -315,6 +320,9 @@ offers many more indexing abilities and better performance than JSON.
 [docs-analysis-badge]: http://inch-ci.org/github/ifad/chronomodel.svg?branch=master
 [test-coverage]: https://codeclimate.com/github/ifad/chronomodel
 [test-coverage-badge]: https://codeclimate.com/github/ifad/chronomodel/badges/coverage.svg
+
+[chronos-image]: http://i.imgur.com/8NObYiZl.jpg
+[rebelle-society]: http://www.rebellesociety.com/2012/10/11/the-writers-way-week-two-facing-procrastination/chronos_oeuvre_grand1/
 
 [updatable views]: http://www.postgresql.org/docs/9.4/static/sql-createview.html#SQL-CREATEVIEW-UPDATABLE-VIEWS
 [table inheritance]: http://www.postgresql.org/docs/9.4/static/ddl-inherit.html
