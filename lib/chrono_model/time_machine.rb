@@ -20,11 +20,6 @@ module ChronoModel
       TimeMachine.chrono_models[table_name] = history
 
       class << self
-        alias_method :direct_descendants_with_history, :direct_descendants
-        def direct_descendants
-          direct_descendants_with_history.reject(&:history?)
-        end
-
         alias_method :descendants_with_history, :descendants
         def descendants
           descendants_with_history.reject(&:history?)
