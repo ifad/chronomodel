@@ -36,8 +36,8 @@ module ChronoTest::Matchers
           select_rows(<<-SQL, [table, name], 'Check column').first == [name, type]
             SELECT attname, FORMAT_TYPE(atttypid, atttypmod)
               FROM pg_attribute
-             WHERE attrelid = $1::regclass::oid
-               AND attname = $2
+             WHERE attrelid = ?::regclass::oid
+               AND attname = ?
           SQL
         end
     end

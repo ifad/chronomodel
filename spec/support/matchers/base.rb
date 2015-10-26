@@ -2,6 +2,8 @@ require 'ostruct'
 
 module ChronoTest::Matchers
   class Base
+    include ActiveRecord::Sanitization::ClassMethods
+
     attr_reader :table
 
     def matches?(table)
@@ -15,6 +17,7 @@ module ChronoTest::Matchers
     end
 
     protected
+
       def connection
         ChronoTest.connection
       end
@@ -46,13 +49,9 @@ module ChronoTest::Matchers
       end
 
     private
-      FooColumn = OpenStruct.new(:name => '')
-
       def exec_query(sql, binds, name)
-        binds.map! do |col, val|
-          val ? [col, val] : [FooColumn, col]
-        end
-        connection.exec_query(sql, name, binds)
+        sql = sanitize_sql([sql, *binds], nil)
+        connection.exec_query(sql, name)
       end
   end
 
