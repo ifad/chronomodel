@@ -146,26 +146,26 @@ module ChronoTest::Matchers
         end
 
         def has_consistency_constraint?
-          binds = [
-            connection.timeline_consistency_constraint_name(table), # conname
-            history_schema,                                         # connamespace
-            [history_schema, table].join('.'),                      # conrelid, attrelid
-            connection.primary_key(table)                           # attnum
-          ]
+          binds = {
+            conname:      connection.timeline_consistency_constraint_name(table),
+            connamespace: history_schema,
+            conrelid:     [history_schema, table].join('.'),
+            attname:      connection.primary_key(table)
+          }
 
           @constraint = select_value(<<-SQL, binds, 'Check Consistency Constraint') == 't'
             SELECT EXISTS (
               SELECT 1 FROM pg_catalog.pg_constraint
-              WHERE conname = ?
+              WHERE conname = :conname
                 AND contype = 'x'
-                AND conrelid = $3::regclass
+                AND conrelid = :conrelid::regclass
                 AND connamespace = (
-                  SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = $2
+                  SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = :connamespace
                 )
                 AND conkey = (
                   SELECT array_agg(attnum) FROM pg_catalog.pg_attribute
-                  WHERE attname IN ($4, 'validity')
-                    AND attrelid = $3::regclass
+                  WHERE attname IN (:attname, 'validity')
+                    AND attrelid = :conrelid::regclass
                 )
             )
           SQL

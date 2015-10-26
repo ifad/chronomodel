@@ -48,7 +48,7 @@ module ChronoTest::Matchers
 
     private
       def exec_query(sql, binds, name)
-        sql = sanitize_sql([sql, *binds], nil)
+        sql = sanitize_sql_array([ sql, *Array.wrap(binds) ])
         connection.exec_query(sql, name)
       end
   end
