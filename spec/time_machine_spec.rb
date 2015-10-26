@@ -25,14 +25,16 @@ describe ChronoModel::TimeMachine do
   baz = Baz.create :name => 'baz', :bar => bar
 
   describe '.chrono?' do
+    subject { model.chrono? }
+
     context 'on a temporal model' do
-      subject { Foo }
-      it { should be_chrono }
+      let(:model) { Foo }
+      it { should be(true) }
     end
 
     context 'on a plain model' do
-      subject { Plain }
-      it { should_not be_chrono }
+      let(:model) { Plain }
+      it { should be(false) }
     end
   end
 
