@@ -283,6 +283,12 @@ module ChronoModel
     end
 
     module ClassMethods
+      # Identify this class as the parent, non-history, class.
+      #
+      def history?
+        false
+      end
+
       # Returns an ActiveRecord::Relation on the history of this model as
       # it was +time+ ago.
       def as_of(time)
@@ -371,7 +377,7 @@ module ChronoModel
       # superclass of Fruit::History, which is Fruit. So, we use
       # non_history_superclass instead. -npj
       def non_history_superclass(klass = self)
-        if klass.superclass.respond_to?(:history?) && klass.superclass.history?
+        if klass.superclass.history?
           non_history_superclass(klass.superclass)
         else
           klass.superclass
