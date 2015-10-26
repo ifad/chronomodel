@@ -57,6 +57,16 @@ describe ChronoModel::TimeMachine do
     end
   end
 
+  describe '.descendants' do
+    subject { Foo.descendants }
+    it { should_not include(Foo::History) }
+  end
+
+  describe '.descendants_with_history' do
+    subject { Foo.descendants_with_history }
+    it { should include(Foo::History) }
+  end
+
   # Specs start here
   #
   describe '.chrono_models' do
