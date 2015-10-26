@@ -38,6 +38,25 @@ describe ChronoModel::TimeMachine do
     end
   end
 
+  describe '.history?' do
+    subject { model.history? }
+
+    context 'on a temporal parent model' do
+      let(:model) { Foo }
+      it { should be(false) }
+    end
+
+    context 'on a temporal history model' do
+      let(:model) { Foo::History }
+      it { should be(true) }
+    end
+
+    context 'on a plain model' do
+      let(:model) { Plain }
+      it { expect { subject }.to raise_error(NoMethodError) }
+    end
+  end
+
   # Specs start here
   #
   describe '.chrono_models' do
