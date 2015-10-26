@@ -1,5 +1,3 @@
-require 'ostruct'
-
 module ChronoTest::Matchers
   class Base
     include ActiveRecord::Sanitization::ClassMethods
