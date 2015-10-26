@@ -14,16 +14,28 @@ module ChronoModel
       history = TimeMachine.define_history_model_for(self)
       TimeMachine.chrono_models[table_name] = history
 
-      # STI support. TODO: more thorough testing
-      #
-      def self.inherited(subclass)
-        super
+      class << self
+        alias_method :direct_descendants_with_history, :direct_descendants
+        def direct_descendants
+          direct_descendants_with_history.reject(&:history?)
+        end
 
-        # Do not smash stack: as the below method is defining a
-        # new anonymous class, without this check this leads to
-        # infinite recursion.
-        unless subclass.name.nil?
-          TimeMachine.define_inherited_history_model_for(subclass)
+        alias_method :descendants_with_history, :descendants
+        def descendants
+          descendants_with_history.reject(&:history?)
+        end
+
+        # STI support. TODO: more thorough testing
+        #
+        def inherited(subclass)
+          super
+
+          # Do not smash stack: as the below method is defining a
+          # new anonymous class, without this check this leads to
+          # infinite recursion.
+          unless subclass.name.nil?
+            TimeMachine.define_inherited_history_model_for(subclass)
+          end
         end
       end
     end
