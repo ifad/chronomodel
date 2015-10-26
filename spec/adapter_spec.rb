@@ -52,7 +52,7 @@ describe ChronoModel::Adapter do
 
   columns do
     native = [
-      ['test', 'character varying(255)'],
+      ['test', 'character varying'],
       ['foo',  'integer'],
       ['bar',  'double precision'],
       ['baz',  'text']
