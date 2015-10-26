@@ -114,6 +114,9 @@ module ChronoTest::Helpers
 
         class ::Publication < Element
         end
+
+        class ::Plain < ActiveRecord::Base
+        end
       }
 
       def define_models!
