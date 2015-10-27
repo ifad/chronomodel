@@ -338,7 +338,7 @@ module ChronoModel
       # Returns an ActiveRecord::Relation on the history of this model as
       # it was +time+ ago.
       def as_of(time)
-        history.as_of(time, current_scope)
+        history.as_of(time)
       end
 
       def attribute_names_for_history_changes
@@ -477,24 +477,9 @@ module ChronoModel
 
       # Fetches as of +time+ records.
       #
-      def as_of(time, scope = nil)
-        as_of = non_history_superclass.unscoped.from(virtual_table_at(time))
-
-        # Add default scopes back if we're passed nil or a
-        # specific scope, because we're .unscopeing above.
-        #
-        scopes = !scope.nil? ? [scope] : (
-          superclass.default_scopes.map do |s|
-            s.respond_to?(:call) ? s.call : s
-          end)
-
-        scopes.each do |s|
-          s.order_values.each {|clause| as_of = as_of.order(clause)}
-          s.where_values.each {|clause| as_of = as_of.where(clause)}
-        end
-
+      def as_of(time)
+        as_of = non_history_superclass.from(virtual_table_at(time))
         as_of.instance_variable_set(:@temporal, time)
-
         return as_of
       end
 
