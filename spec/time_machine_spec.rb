@@ -546,7 +546,7 @@ describe ChronoModel::TimeMachine do
 
       # Associations
       context do
-        subject { foos[0] }
+        subject { foos[0].id }
 
         it { Foo.as_of(foos[0].ts[0]).find(subject).bars.should == [] }
         it { Foo.as_of(foos[1].ts[0]).find(subject).bars.should == [] }
@@ -556,7 +556,7 @@ describe ChronoModel::TimeMachine do
       end
 
       context do
-        subject { foos[1] }
+        subject { foos[1].id }
 
         it { expect { Foo.as_of(foos[0].ts[0]).find(subject) }.to raise_error(ActiveRecord::RecordNotFound) }
         it { expect { Foo.as_of(foos[1].ts[0]).find(subject) }.to_not raise_error }
