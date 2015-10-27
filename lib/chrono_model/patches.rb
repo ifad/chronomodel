@@ -13,6 +13,10 @@ module ChronoModel
     #
     module Association
 
+      def skip_statement_cache?
+        super || _chrono_target?
+      end
+
       # If the association class or the through association are ChronoModels,
       # then fetches the records from a virtual table using a subquery scope
       # to a specific timestamp.
@@ -20,11 +24,7 @@ module ChronoModel
         scope = super
         return scope unless _chrono_record?
 
-        klass = reflection.options[:polymorphic] ?
-          owner.public_send(reflection.foreign_type).constantize :
-          reflection.klass
-
-        if klass.chrono?
+        if _chrono_target?
           # For standard associations, replace the table name with the virtual
           # as-of table name at the owner's as-of-time
           #
@@ -64,6 +64,15 @@ module ChronoModel
         def _chrono_record?
           owner.respond_to?(:as_of_time) && owner.as_of_time.present?
         end
+
+        def _chrono_target?
+          @_target_klass ||= reflection.options[:polymorphic] ?
+            owner.public_send(reflection.foreign_type).constantize :
+            reflection.klass
+
+          @_target_klass.chrono?
+        end
+
     end
 
   end
