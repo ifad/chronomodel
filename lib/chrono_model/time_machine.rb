@@ -242,7 +242,7 @@ module ChronoModel
     # Returns a boolean indicating whether this record is an history entry.
     #
     def historical?
-      self.as_of_time || self.kind_of?(self.class.history)
+      self.as_of_time.present? || self.kind_of?(self.class.history)
     end
 
     # Inhibit destroy of historical records

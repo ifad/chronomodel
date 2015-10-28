@@ -74,12 +74,12 @@ describe ChronoModel::TimeMachine do
   describe '.chrono_models' do
     subject { ChronoModel::TimeMachine.chrono_models }
 
-    it { should == {
+    it { should eq(
       'foos'     => Foo::History,
       'defoos'   => Defoo::History,
       'bars'     => Bar::History,
       'elements' => Element::History
-    } }
+    ) }
   end
 
   describe '#as_of' do
@@ -182,16 +182,16 @@ describe ChronoModel::TimeMachine do
 
   describe '#history' do
     describe 'returns historical instances' do
-      it { foo.history.should have(3).entries }
-      it { foo.history.map(&:name).should == ['foo', 'foo bar', 'new foo'] }
+      it { expect(foo.history.size).to eq(3) }
+      it { expect(foo.history.map(&:name)).to eq ['foo', 'foo bar', 'new foo'] }
 
-      it { bar.history.should have(4).entries }
-      it { bar.history.map(&:name).should == ['bar', 'foo bar', 'bar bar', 'new bar'] }
+      it { expect(bar.history.size).to eq(4) }
+      it { expect(bar.history.map(&:name)).to eq ['bar', 'foo bar', 'bar bar', 'new bar'] }
     end
 
     describe 'does not return read only records' do
-      it { foo.history.all?(&:readonly?).should_not be_true }
-      it { bar.history.all?(&:readonly?).should_not be_true }
+      it { expect(foo.history.all?(&:readonly?)).to be(false) }
+      it { expect(bar.history.all?(&:readonly?)).to be(false) }
     end
 
     describe 'takes care of associated records' do
@@ -200,8 +200,8 @@ describe ChronoModel::TimeMachine do
     end
 
     describe 'does not return read only associated records' do
-      it { foo.history[2].bars.all?(&:readonly?).should_not be_true }
-      it { bar.history.all? {|b| b.foo.readonly?}.should_not be_true }
+      it { foo.history[2].bars.all?(&:readonly?).should_not be(true) }
+      it { bar.history.all? {|b| b.foo.readonly?}.should_not be(true) }
     end
 
     describe 'allows a custom select list' do
@@ -290,20 +290,22 @@ describe ChronoModel::TimeMachine do
   end
 
   describe '#historical?' do
+    subject { record.historical? }
+
     describe 'on plain records' do
-      subject { foo.historical? }
-      it { should be_false }
+      let(:record) { foo }
+      it { is_expected.to be(false) }
     end
 
     describe 'on historical records' do
       describe 'from #history' do
-        subject { foo.history.first }
-        it { should be_true }
+        let(:record) { foo.history.first }
+        it { is_expected.to be(true) }
       end
 
       describe 'from #as_of' do
-        subject { foo.as_of(Time.now) }
-        it { should be_true }
+        let(:record) { foo.as_of(Time.now) }
+        it { is_expected.to be(true) }
       end
     end
   end
@@ -330,19 +332,21 @@ describe ChronoModel::TimeMachine do
       it { expect { rec.reload }.to raise_error(ActiveRecord::RecordNotFound) }
 
       describe 'does not delete its history' do
+        subject { record.name }
+
         context do
-          subject { rec.as_of(rec.ts.first) }
-          its(:name) { should == 'alive foo' }
+          let(:record) { rec.as_of(rec.ts.first) }
+          it { should == 'alive foo' }
         end
 
         context do
-          subject { rec.as_of(rec.ts.last) }
-          its(:name) { should == 'dying foo' }
+          let(:record) { rec.as_of(rec.ts.last) }
+          it { should == 'dying foo' }
         end
 
         context do
-          subject { Foo.as_of(rec.ts.first).where(:fooity => 42).first }
-          its(:name) { should == 'alive foo' }
+          let(:record) { Foo.as_of(rec.ts.first).where(:fooity => 42).first }
+          it { should == 'alive foo' }
         end
 
         context do
@@ -367,14 +371,14 @@ describe ChronoModel::TimeMachine do
     describe 'on records having an :has_many relationship' do
       describe 'by default returns timestamps of the record only' do
         subject { split.call(foo.timeline) }
-        its(:size) { should == foo.ts.size }
-        it { should == timestamps_from.call(foo) }
+        it { expect(subject.size).to eq foo.ts.size }
+        it { is_expected.to eq timestamps_from.call(foo) }
       end
 
       describe 'when asked, returns timestamps including the related objects' do
         subject { split.call(foo.timeline(:with => :bars)) }
-        its(:size) { should == foo.ts.size + bar.ts.size }
-        it { should == timestamps_from.call(foo, *foo.bars) }
+        it { expect(subject.size).to eq(foo.ts.size + bar.ts.size) }
+        it { is_expected.to eq(timestamps_from.call(foo, *foo.bars)) }
       end
     end
 
@@ -392,8 +396,8 @@ describe ChronoModel::TimeMachine do
           }
         end
 
-        its(:size) { should == expected.size }
-        it { should == expected }
+        it { expect(subject.size).to eq expected.size }
+        it { is_expected.to eq expected }
       end
     end
 
@@ -401,8 +405,8 @@ describe ChronoModel::TimeMachine do
       subject { split.call(baz.timeline) }
 
       describe 'returns timestamps of its temporal associations' do
-        its(:size) { should == bar.ts.size }
-        it { should == timestamps_from.call(bar) }
+        it { expect(subject.size).to eq bar.ts.size }
+        it { is_expected.to eq timestamps_from.call(bar) }
       end
     end
   end
@@ -463,12 +467,12 @@ describe ChronoModel::TimeMachine do
   describe '#pred' do
     context 'on records having history' do
       subject { bar.pred }
-      its(:name) { should == 'bar bar' }
+      it { expect(subject.name).to eq 'bar bar' }
     end
 
     context 'when there is enough history' do
       subject { bar.pred.pred.pred.pred }
-      its(:name) { should == 'bar' }
+      it { expect(subject.name).to eq 'bar' }
     end
 
     context 'when no history is recorded' do
@@ -599,7 +603,7 @@ describe ChronoModel::TimeMachine do
       end
 
       it "generate only a single history record" do
-        r1.history.should have(2).entries
+        expect(r1.history.size).to eq(2)
 
         r1.history.first.name.should == 'xact test'
         r1.history.last.name.should  == 'does work'
@@ -617,7 +621,7 @@ describe ChronoModel::TimeMachine do
       end
 
       it 'generates a single history record' do
-        r2.history.should have(1).entry
+        expect(r2.history.size).to eq(1)
 
         r2.history.first.name.should == 'I am Foo'
       end
@@ -648,9 +652,8 @@ describe ChronoModel::TimeMachine do
         subject.reload
       end
 
-      it { should be_a(Bar::History) }
-      it { should be_true }
-      its(:name) { should == 'modified bar history' }
+      it { is_expected.to be_a(Bar::History) }
+      it { expect(subject.name).to eq 'modified bar history' }
     end
 
     describe '#save!' do
@@ -662,9 +665,8 @@ describe ChronoModel::TimeMachine do
         subject.reload
       end
 
-      it { should be_a(Bar::History) }
-      it { should be_true }
-      its(:name) { should == 'another modified bar history' }
+      it { is_expected.to be_a(Bar::History) }
+      it { expect(subject.name).to eq 'another modified bar history' }
     end
   end
 

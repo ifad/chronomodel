@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'support/helpers'
 
 shared_examples_for 'temporal table' do
-  it { adapter.is_chrono?(subject).should be_true }
+  it { adapter.is_chrono?(subject).should be(true) }
 
   it { should_not have_public_backing }
 
@@ -17,7 +17,7 @@ shared_examples_for 'temporal table' do
 end
 
 shared_examples_for 'plain table' do
-  it { adapter.is_chrono?(subject).should be_false }
+  it { adapter.is_chrono?(subject).should be(false) }
 
   it { should have_public_backing }
 
