@@ -8,17 +8,7 @@ module ChronoModel
 
     module ClassMethods
       def as_of(time)
-        time = Conversions.time_to_utc_string(time.utc) if time.kind_of? Time
-
-        virtual_table = select(%[
-          #{quoted_table_name}.*, #{connection.quote(time)}::timestamp AS "as_of_time"]
-        ).to_sql
-
-        as_of = all.from("(#{virtual_table}) #{quoted_table_name}")
-
-        as_of.instance_variable_set(:@temporal, time)
-
-        return as_of
+        all.tap {|as_of| as_of.instance_variable_set(:@_as_of_time, time) }
       end
 
       include TimeMachine::HistoryMethods::Timeline
@@ -30,6 +20,10 @@ module ChronoModel
 
     def timeline
       self.class.timeline(self)
+    end
+
+    def as_of_time
+      @_as_of_time
     end
   end
 

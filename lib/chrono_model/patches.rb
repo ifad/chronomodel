@@ -3,6 +3,39 @@ require 'active_record'
 module ChronoModel
   module Patches
 
+    module Relation
+      def load
+        return super unless @_as_of_time && !loaded?
+
+        super.each do |record|
+          record.instance_variable_set(:@_as_of_time, @_as_of_time)
+        end
+      end
+
+      def merge(*)
+        return super unless @_as_of_time
+
+        super.tap do |relation|
+          relation.instance_variable_set(:@_as_of_time, @_as_of_time)
+        end
+      end
+
+      def build_arel
+        super.tap do |arel|
+
+          arel.join_sources.each do |join|
+            model = TimeMachine.chrono_models[join.left.table_name]
+            next unless model
+
+            join.left = Arel::Nodes::SqlLiteral.new(
+              model.history.virtual_table_at(@_as_of_time, join.left.table_alias || join.left.table_name)
+            )
+          end if @_as_of_time
+
+        end
+      end
+    end
+
     # Patches ActiveRecord::Associations::Association to add support for
     # temporal associations.
     #
@@ -12,7 +45,6 @@ module ChronoModel
     # on the join model's (:through association) one.
     #
     module Association
-
       def skip_statement_cache?
         super || _chrono_target?
       end
@@ -54,8 +86,9 @@ module ChronoModel
               join.left.table_alias = table_alias
             end
           end
-
         end
+
+        scope.instance_variable_set(:@_as_of_time, owner.as_of_time)
 
         return scope
       end
