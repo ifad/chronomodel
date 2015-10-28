@@ -14,8 +14,12 @@ module ChronoTest::Matchers
         'be in schema'
       end
 
-      def failure_message_for_should
+      def failure_message
         "expected to be in schema #@expected, but was in #@current"
+      end
+
+      def failure_message_when_negated
+        "expected to be in schema #@current, but was in #@expected"
       end
 
       def matches?(*)
