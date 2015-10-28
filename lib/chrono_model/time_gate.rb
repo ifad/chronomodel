@@ -8,11 +8,13 @@ module ChronoModel
 
     module ClassMethods
       def as_of(time)
-        all.tap {|as_of| as_of.instance_variable_set(:@_as_of_time, time) }
+        all.as_of_time!(time)
       end
 
       include TimeMachine::HistoryMethods::Timeline
     end
+
+    include Patches::AsOfTimeHolder
 
     def as_of(time)
       self.class.as_of(time).where(:id => self.id).first!
@@ -20,10 +22,6 @@ module ChronoModel
 
     def timeline
       self.class.timeline(self)
-    end
-
-    def as_of_time
-      @_as_of_time
     end
   end
 

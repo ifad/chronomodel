@@ -3,24 +3,44 @@ require 'active_record'
 module ChronoModel
   module Patches
 
+    module AsOfTimeHolder
+      # Sets the virtual 'as_of_time' attribute to the given time, converting to UTC.
+      #
+      # See ChronoModel::Patches::AsOfTimeHolder
+      #
+      def as_of_time!(time)
+        @_as_of_time = time.utc
+
+        self
+      end
+
+      # Reads the virtual 'as_of_time' attribute
+      #
+      # See ChronoModel::Patches::AsOfTimeHolder
+      #
+      def as_of_time
+        @_as_of_time
+      end
+    end
+
     module Relation
+      include AsOfTimeHolder
+
       def load
         return super unless @_as_of_time && !loaded?
 
-        super.each do |record|
-          record.instance_variable_set(:@_as_of_time, @_as_of_time)
-        end
+        super.each {|record| record.as_of_time!(@_as_of_time) }
       end
 
       def merge(*)
         return super unless @_as_of_time
 
-        super.tap do |relation|
-          relation.instance_variable_set(:@_as_of_time, @_as_of_time)
-        end
+        super.as_of_time!(@_as_of_time)
       end
 
       def build_arel
+        return super unless @_as_of_time
+
         super.tap do |arel|
 
           arel.join_sources.each do |join|
@@ -28,9 +48,10 @@ module ChronoModel
             next unless model
 
             join.left = Arel::Nodes::SqlLiteral.new(
-              model.history.virtual_table_at(@_as_of_time, join.left.table_alias || join.left.table_name)
+              model.history.virtual_table_at(@_as_of_time,
+                join.left.table_alias || join.left.table_name)
             )
-          end if @_as_of_time
+          end
 
         end
       end
@@ -88,7 +109,7 @@ module ChronoModel
           end
         end
 
-        scope.instance_variable_set(:@_as_of_time, owner.as_of_time)
+        scope.as_of_time!(owner.as_of_time)
 
         return scope
       end

@@ -5,6 +5,8 @@ module ChronoModel
   module TimeMachine
     extend ActiveSupport::Concern
 
+    include Patches::AsOfTimeHolder
+
     included do
       if table_exists? && !chrono?
         puts "WARNING: #{table_name} is not a temporal table. " \
@@ -243,12 +245,6 @@ module ChronoModel
       self.as_of_time || self.kind_of?(self.class.history)
     end
 
-    # Read the virtual 'as_of_time' attribute
-    #
-    def as_of_time
-      @_as_of_time
-    end
-
     # Inhibit destroy of historical records
     #
     def destroy
@@ -479,19 +475,13 @@ module ChronoModel
       end
 
       def relation
-        super.tap do |relation|
-          relation.instance_variable_set(:@_as_of_time, Time.now.utc)
-        end
+        super.as_of_time!(Time.now)
       end
 
       # Fetches as of +time+ records.
       #
       def as_of(time)
-        time = time.utc
-        as_of = non_history_superclass.from(virtual_table_at(time))
-        as_of.instance_variable_set(:@_as_of_time, time)
-
-        return as_of
+        non_history_superclass.from(virtual_table_at(time)).as_of_time!(time)
       end
 
       def virtual_table_at(time, name = nil)
@@ -504,11 +494,7 @@ module ChronoModel
       # Fetches history record at the given time
       #
       def at(time)
-        time = time.utc
-        relation = time_query(:at, time).from(quoted_table_name)
-        relation.instance_variable_set(:@_as_of_time, time)
-
-        return relation
+        time_query(:at, time).from(quoted_table_name).as_of_time!(time)
       end
 
       # Returns the history sorted by recorded_at
