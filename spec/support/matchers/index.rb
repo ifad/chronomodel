@@ -33,8 +33,12 @@ module ChronoTest::Matchers
         SQL
       end
 
-      def failure_message_for_should
+      def failure_message
         "expected #{schema}.#{table} to have a #{name} index on #{columns}"
+      end
+
+      def failure_message_when_negated
+        "expected #{schema}.#{table} to not have a #{name} index on #{columns}"
       end
     end
 

@@ -12,8 +12,6 @@ require 'support/matchers/column'
 require 'support/matchers/index'
 
 RSpec.configure do |config|
-  config.treat_symbols_as_metadata_keys_with_true_values = true
-
   config.include(ChronoTest::Matchers::Schema)
   config.include(ChronoTest::Matchers::Table)
   config.include(ChronoTest::Matchers::Column)

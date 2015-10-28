@@ -21,12 +21,12 @@ module ChronoTest::Matchers
         @matches.values.all?
       end
 
-      def failure_message_for_should
-        "expected #{@schema}.#{table} to have ".tap do |message|
-          message << @matches.map do |(name, type), match|
-            "a #{name}(#{type}) column" unless match
-          end.compact.to_sentence
-        end
+      def failure_message
+        message_matches("expected #{@schema}.#{table} to have")
+      end
+
+      def failure_message_when_negated
+        message_matches("expected #{@schema}.#{table} to not have")
       end
 
       protected
@@ -43,6 +43,15 @@ module ChronoTest::Matchers
              WHERE attrelid = ?::regclass::oid
                AND attname = ?
           SQL
+        end
+
+      private
+        def message_matches(message)
+          (message << ' ').tap do |message|
+            message << @matches.map do |(name, type), match|
+              "a #{name}(#{type}) column" unless match
+            end.compact.to_sentence
+          end
         end
     end
 

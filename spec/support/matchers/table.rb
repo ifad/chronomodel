@@ -39,8 +39,12 @@ module ChronoTest::Matchers
         'be in the public schema'
       end
 
-      def failure_message_for_should
+      def failure_message
         "expected #{table} to exist in the #{public_schema} schema"
+      end
+
+      def failure_message_when_negated
+        "expected #{table} to not exist in the #{public_schema} schema"
       end
     end
 
@@ -63,8 +67,12 @@ module ChronoTest::Matchers
         'be in the temporal schema'
       end
 
-      def failure_message_for_should
+      def failure_message
         "expected #{table} to exist in the #{temporal_schema} schema"
+      end
+
+      def failure_message_when_negated
+        "expected #{table} to not exist in the #{temporal_schema} schema"
       end
     end
 
@@ -91,13 +99,24 @@ module ChronoTest::Matchers
         'be in history schema'
       end
 
-      def failure_message_for_should
+      def failure_message
         "expected #{table} ".tap do |message|
           message << [
             ("to exist in the #{history_schema} schema"    unless @existance),
             ("to inherit from #{temporal_schema}.#{table}" unless @inheritance),
             ("to have a timeline consistency constraint"   unless @constraint),
             ("to have history indexes"                     unless @indexes)
+          ].compact.to_sentence
+        end
+      end
+
+      def failure_message_when_negated
+        "expected #{table} ".tap do |message|
+          message << [
+            ("to not exist in the #{history_schema} schema"    if @existance),
+            ("to not inherit from #{temporal_schema}.#{table}" if @inheritance),
+            ("to not have a timeline consistency constraint"   if @constraint),
+            ("to not have history indexes"                     if @indexes)
           ].compact.to_sentence
         end
       end
@@ -192,7 +211,7 @@ module ChronoTest::Matchers
         'be an updatable view'
       end
 
-      def failure_message_for_should
+      def failure_message
         "expected #{table} ".tap do |message|
           message << [
             ("to exist in the #{public_schema} schema" unless @existance     ),
@@ -200,6 +219,18 @@ module ChronoTest::Matchers
             ('to have an INSERT trigger'               unless @insert_trigger),
             ('to have an UPDATE trigger'               unless @update_trigger),
             ('to have a DELETE trigger'                unless @delete_trigger)
+          ].compact.to_sentence
+        end
+      end
+
+      def failure_message_when_negated
+        "expected #{table} ".tap do |message|
+          message << [
+            ("to not exist in the #{public_schema} schema" if @existance     ),
+            ('to not be an updatable view'                 if @updatable     ),
+            ('to not have an INSERT trigger'               if @insert_trigger),
+            ('to not have an UPDATE trigger'               if @update_trigger),
+            ('to not have a DELETE trigger'                if @delete_trigger)
           ].compact.to_sentence
         end
       end
