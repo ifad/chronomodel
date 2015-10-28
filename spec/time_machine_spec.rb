@@ -205,12 +205,13 @@ describe ChronoModel::TimeMachine do
     end
 
     describe 'allows a custom select list' do
-      it { foo.history.select(:id).first.attributes.keys.should == %w( id as_of_time ) }
+      it { foo.history.select(:id).first.attributes.keys.should == %w( id ) }
     end
 
     describe 'does not add as_of_time when there are aggregates' do
-      it { foo.history.select('max (id)').to_sql.should_not =~ /as_of_time/ } # The id is automatically added by ActiveRecord
-      it { foo.history.select('max(id) as foo, min(id) as bar').order(nil).first.attributes.keys.should == %w( foo bar id ) }
+      it { foo.history.select('max(id)').to_sql.should_not =~ /as_of_time/ }
+
+      it { foo.history.except(:order).select('max(id) as foo, min(id) as bar').group('id').first.attributes.keys.should == %w( id foo bar ) }
     end
 
     context 'with STI models' do
@@ -220,17 +221,11 @@ describe ChronoModel::TimeMachine do
       it { pub.history.map(&:title).should == ['wrong title', 'correct title'] }
     end
 
-    describe 'allows a custom order list' do
-      it { expect { foo.history.order('id') }.to_not raise_error }
-      it { foo.history.order('id').to_sql.should =~ /order by id/i }
-    end
-
     context '.sorted' do
       describe 'orders by recorded_at, hid' do
         it { foo.history.sorted.to_sql.should =~ /order by .+"recorded_at", .+"hid"/i }
       end
     end
-
   end
 
   describe '#pred' do
@@ -546,7 +541,7 @@ describe ChronoModel::TimeMachine do
 
       # Associations
       context do
-        subject { foos[0] }
+        subject { foos[0].id }
 
         it { Foo.as_of(foos[0].ts[0]).find(subject).bars.should == [] }
         it { Foo.as_of(foos[1].ts[0]).find(subject).bars.should == [] }
@@ -556,7 +551,7 @@ describe ChronoModel::TimeMachine do
       end
 
       context do
-        subject { foos[1] }
+        subject { foos[1].id }
 
         it { expect { Foo.as_of(foos[0].ts[0]).find(subject) }.to raise_error(ActiveRecord::RecordNotFound) }
         it { expect { Foo.as_of(foos[1].ts[0]).find(subject) }.to_not raise_error }

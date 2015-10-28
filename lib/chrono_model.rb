@@ -23,6 +23,10 @@ if RUBY_VERSION.to_i >= 2
   ActiveRecord::Associations::Association.instance_eval do
     prepend ChronoModel::Patches::Association
   end
+
+  ActiveRecord::Relation.instance_eval do
+    prepend ChronoModel::Patches::Relation
+  end
 else
   ActiveSupport::Deprecation.warn 'Ruby 1.9 is deprecated. Please update your Ruby <3'
 
@@ -32,5 +36,11 @@ else
     end
 
     ActiveRecord::Associations::Association = ChronoModel::Patches::AssociationPatch
+
+    class ChronoModel::Patches::RelationPatch < ActiveRecord::Relation
+      include ChronoModel::Patches::Relation
+    end
+
+    ActiveRecord::Relation = ChronoModel::Patches::RelationPatch
   end
 end

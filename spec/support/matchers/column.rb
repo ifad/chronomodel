@@ -31,13 +31,17 @@ module ChronoTest::Matchers
 
       protected
         def has_column?(name, type)
+          column_type(name) == [name, type]
+        end
+
+        def column_type(name)
           table = "#{@schema}.#{self.table}"
 
-          select_rows(<<-SQL, [table, name], 'Check column').first == [name, type]
+          select_rows(<<-SQL, [table, name], 'Check column').first
             SELECT attname, FORMAT_TYPE(atttypid, atttypmod)
               FROM pg_attribute
-             WHERE attrelid = $1::regclass::oid
-               AND attname = $2
+             WHERE attrelid = ?::regclass::oid
+               AND attname = ?
           SQL
         end
     end

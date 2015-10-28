@@ -24,10 +24,10 @@ module ChronoTest::Matchers
             JOIN pg_class i ON i.oid = d.indexrelid
             JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = ANY(d.indkey)
            WHERE i.relkind = 'i'
-             AND t.relname = $1
-             AND i.relname = $2
+             AND t.relname = ?
+             AND i.relname = ?
              AND i.relnamespace = (
-              SELECT oid FROM pg_namespace WHERE nspname = $3
+              SELECT oid FROM pg_namespace WHERE nspname = ?
             )
            ORDER BY a.attname
         SQL

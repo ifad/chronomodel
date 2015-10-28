@@ -34,7 +34,11 @@ describe ChronoModel::Adapter do
   context do
     subject { adapter }
     it { should be_a_kind_of(ChronoModel::Adapter) }
-    its(:adapter_name) { should == 'PostgreSQL' }
+
+    context do
+      subject { adapter.adapter_name }
+      it { should == 'PostgreSQL' }
+    end
 
     context do
       before { adapter.stub(:postgresql_version => 90300) }
@@ -52,7 +56,7 @@ describe ChronoModel::Adapter do
 
   columns do
     native = [
-      ['test', 'character varying(255)'],
+      ['test', 'character varying'],
       ['foo',  'integer'],
       ['bar',  'double precision'],
       ['baz',  'text']
@@ -537,7 +541,7 @@ describe ChronoModel::Adapter do
     before :all do
       adapter.create_table table, :temporal => true do |t|
         t.string 'test'
-        t.timestamps
+        t.timestamps null: false
       end
 
       adapter.execute <<-SQL

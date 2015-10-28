@@ -5,6 +5,8 @@ module ChronoModel
   module TimeMachine
     extend ActiveSupport::Concern
 
+    include Patches::AsOfTimeHolder
+
     included do
       if table_exists? && !chrono?
         puts "WARNING: #{table_name} is not a temporal table. " \
@@ -51,6 +53,8 @@ module ChronoModel
         self.table_name = [Adapter::HISTORY_SCHEMA, model.table_name].join('.')
 
         extend TimeMachine::HistoryMethods
+
+        scope :chronological, -> { order(:recorded_at, :hid) }
 
         # The history id is `hid`, but this cannot set as primary key
         # or temporal assocations will break. Solutions are welcome.
@@ -160,6 +164,7 @@ module ChronoModel
         def valid_to
           validity.last
         end
+        alias as_of_time valid_to
 
         def recorded_at
           Conversions.string_to_utc_time attributes_before_type_cast['recorded_at']
@@ -224,7 +229,7 @@ module ChronoModel
     # Return the complete read-only history of this instance.
     #
     def history
-      self.class.history.of(self)
+      self.class.history.chronological.of(self)
     end
 
     # Returns an Array of timestamps for which this instance has an history
@@ -237,13 +242,7 @@ module ChronoModel
     # Returns a boolean indicating whether this record is an history entry.
     #
     def historical?
-      self.attributes.key?('as_of_time') || self.kind_of?(self.class.history)
-    end
-
-    # Read the virtual 'as_of_time' attribute and return it as an UTC timestamp.
-    #
-    def as_of_time
-      Conversions.string_to_utc_time attributes_before_type_cast['as_of_time']
+      self.as_of_time || self.kind_of?(self.class.history)
     end
 
     # Inhibit destroy of historical records
@@ -338,12 +337,12 @@ module ChronoModel
       # Returns an ActiveRecord::Relation on the history of this model as
       # it was +time+ ago.
       def as_of(time)
-        history.as_of(time, current_scope)
+        history.as_of(time)
       end
 
       def attribute_names_for_history_changes
         @attribute_names_for_history_changes ||= attribute_names -
-          %w( id hid validity recorded_at as_of_time )
+          %w( id hid validity recorded_at )
       end
 
       def has_timeline(options)
@@ -475,27 +474,14 @@ module ChronoModel
         end
       end
 
+      def relation
+        super.as_of_time!(Time.now)
+      end
+
       # Fetches as of +time+ records.
       #
-      def as_of(time, scope = nil)
-        as_of = non_history_superclass.unscoped.from(virtual_table_at(time))
-
-        # Add default scopes back if we're passed nil or a
-        # specific scope, because we're .unscopeing above.
-        #
-        scopes = !scope.nil? ? [scope] : (
-          superclass.default_scopes.map do |s|
-            s.respond_to?(:call) ? s.call : s
-          end)
-
-        scopes.each do |s|
-          s.order_values.each {|clause| as_of = as_of.order(clause)}
-          s.where_values.each {|clause| as_of = as_of.where(clause)}
-        end
-
-        as_of.instance_variable_set(:@temporal, time)
-
-        return as_of
+      def as_of(time)
+        non_history_superclass.from(virtual_table_at(time)).as_of_time!(time)
       end
 
       def virtual_table_at(time, name = nil)
@@ -508,11 +494,7 @@ module ChronoModel
       # Fetches history record at the given time
       #
       def at(time)
-        time = Conversions.time_to_utc_string(time.utc) if time.kind_of?(Time) && !time.utc?
-
-        unscoped.
-          select("#{quoted_table_name}.*, #{connection.quote(time)}::timestamp AS as_of_time").
-          time_query(:at, time)
+        time_query(:at, time).from(quoted_table_name).as_of_time!(time)
       end
 
       # Returns the history sorted by recorded_at
@@ -527,49 +509,15 @@ module ChronoModel
       # is maximum.
       #
       def of(object)
-        where(:id => object).extend(HistorySelect)
+        where(:id => object)
       end
 
-      # HACK FIXME. When querying history, ChronoModel does not add his
-      # timestamps and sorting if there is an aggregate function in the
-      # select list - as it is likely what you'll want. However, if you
-      # have a query that performs an aggregate in a subquery, the code
-      # below will do the wrong thing - and you'll have to forcibly add
-      # back the history fields yourself.
+      # FIXME Remove, this was a workaround to a former design flaw.
       #
-      # The obvious solution is to use a VIEW on the history containing
-      # the added history fields, and remove all this crap from here...
-      # but it is not easily feasible. So we're going with a workaround
-      # for now.
-      #
-      #   - vjt  Wed Apr  2 19:56:35 CEST 2014
+      #   - vjt  Wed Oct 28 17:13:57 CET 2015
       #
       def force_history_fields
-        select(HistorySelect::SELECT_VALUES).order(HistorySelect::ORDER_VALUES[quoted_table_name])
-      end
-
-      module HistorySelect #:nodoc:
-        Aggregates = %r{(?:(?:bit|bool)_(?:and|or)|(?:array_|string_|xml)agg|count|every|m(?:in|ax)|sum|stddev|var(?:_pop|_samp|iance)|corr|covar_|regr_)\w*\s*\(}i
-
-        SELECT_VALUES = "upper(validity) AS as_of_time"
-        ORDER_VALUES  = lambda {|tbl| %[#{tbl}."recorded_at", #{tbl}."hid"]}
-
-        def build_arel
-          has_aggregate = select_values.any? do |v|
-            v.kind_of?(Arel::Nodes::Function) || # FIXME this is a bit ugly.
-            v.to_s =~ Aggregates
-          end
-
-          return super if has_aggregate
-
-          if order_values.blank?
-            self.order_values += [ ORDER_VALUES[quoted_table_name] ]
-          end
-
-          super.tap do |rel|
-            rel.project(SELECT_VALUES)
-          end
-        end
+        self
       end
 
       include(Timeline = Module.new do
@@ -590,7 +538,7 @@ module ChronoModel
 
           fields = models.inject([]) {|a,m| a.concat m.quoted_history_fields}
 
-          relation = self.
+          relation = self.except(:order).
             select("DISTINCT UNNEST(ARRAY[#{fields.join(',')}]) AS ts")
 
           if assocs.present?
@@ -661,25 +609,6 @@ module ChronoModel
         end
       end
     end
-
-    module QueryMethods
-      def build_arel
-        super.tap do |arel|
-
-          arel.join_sources.each do |join|
-            model = TimeMachine.chrono_models[join.left.table_name]
-            next unless model
-
-            join.left = Arel::Nodes::SqlLiteral.new(
-              model.history.virtual_table_at(@temporal, join.left.table_alias || join.left.table_name)
-            )
-          end if @temporal
-
-        end
-      end
-    end
-    ActiveRecord::Relation.instance_eval { include QueryMethods }
-
   end
 
 end

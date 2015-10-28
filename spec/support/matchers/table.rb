@@ -18,8 +18,8 @@ module ChronoTest::Matchers
                 FROM pg_class c
                 LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
                WHERE c.relkind = '#{kind}'
-                 AND c.relname = $1
-                 AND n.nspname = $2
+                 AND c.relname = ?
+                 AND n.nspname = ?
             )
           SQL
         end
@@ -113,8 +113,8 @@ module ChronoTest::Matchers
           @inheritance = select_value(<<-SQL, binds, 'Check inheritance') == 't'
             SELECT EXISTS (
               SELECT 1 FROM pg_catalog.pg_inherits
-               WHERE inhrelid  = $1::regclass::oid
-                 AND inhparent = $2::regclass::oid
+               WHERE inhrelid  = ?::regclass::oid
+                 AND inhparent = ?::regclass::oid
             )
           SQL
         end
@@ -124,8 +124,8 @@ module ChronoTest::Matchers
 
           indexes = select_values(<<-SQL, binds, 'Check history indexes')
             SELECT indexdef FROM pg_indexes
-             WHERE schemaname = $1
-               AND tablename  = $2
+             WHERE schemaname = ?
+               AND tablename  = ?
           SQL
 
           fqtn = [history_schema, table].join('.')
@@ -146,26 +146,26 @@ module ChronoTest::Matchers
         end
 
         def has_consistency_constraint?
-          binds = [
-            connection.timeline_consistency_constraint_name(table), # conname
-            history_schema,                                         # connamespace
-            [history_schema, table].join('.'),                      # conrelid, attrelid
-            connection.primary_key(table)                           # attnum
-          ]
+          binds = {
+            conname:      connection.timeline_consistency_constraint_name(table),
+            connamespace: history_schema,
+            conrelid:     [history_schema, table].join('.'),
+            attname:      connection.primary_key(table)
+          }
 
           @constraint = select_value(<<-SQL, binds, 'Check Consistency Constraint') == 't'
             SELECT EXISTS (
               SELECT 1 FROM pg_catalog.pg_constraint
-              WHERE conname = $1
+              WHERE conname = :conname
                 AND contype = 'x'
-                AND conrelid = $3::regclass
+                AND conrelid = :conrelid::regclass
                 AND connamespace = (
-                  SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = $2
+                  SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = :connamespace
                 )
                 AND conkey = (
                   SELECT array_agg(attnum) FROM pg_catalog.pg_attribute
-                  WHERE attname IN ($4, 'validity')
-                    AND attrelid = $3::regclass
+                  WHERE attname IN (:attname, 'validity')
+                    AND attrelid = :conrelid::regclass
                 )
             )
           SQL
@@ -214,7 +214,7 @@ module ChronoTest::Matchers
 
           @updatable = select_value(<<-SQL, binds, 'Check updatable') == 'YES'
             SELECT is_updatable FROM information_schema.views
-             WHERE table_schema = $1 AND table_name = $2
+             WHERE table_schema = ? AND table_name = ?
           SQL
         end
 
@@ -224,8 +224,8 @@ module ChronoTest::Matchers
               FROM pg_catalog.pg_trigger t, pg_catalog.pg_class c, pg_catalog.pg_namespace n
              WHERE t.tgrelid = c.relfilenode
                AND n.oid = c.relnamespace
-               AND n.nspname = $1
-               AND c.relname = $2;
+               AND n.nspname = ?
+               AND c.relname = ?;
           SQL
 
           @insert_trigger = triggers.include? 'chronomodel_insert'

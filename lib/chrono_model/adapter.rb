@@ -1,6 +1,8 @@
 require 'active_record'
 require 'active_record/connection_adapters/postgresql_adapter'
 
+require 'multi_json'
+
 module ChronoModel
 
   # This class implements all ActiveRecord::ConnectionAdapters::SchemaStatements
@@ -467,6 +469,12 @@ module ChronoModel
       end
     end
 
+    def chrono_setup!
+      chrono_create_schemas
+
+      chrono_upgrade_structure!
+    end
+
     # HACK: Redefine tsrange parsing support, as it is broken currently.
     #
     # This self-made API is here because currently AR4 does not support
@@ -481,18 +489,13 @@ module ChronoModel
     #
     # so, for now, we are implementing our own.
     #
-    class TSRange < OID::Type
-      def extract_bounds(value)
-        from, to = value[1..-2].split(',')
-        {
-          from:          (value[1] == ',' || from == '-infinity') ? nil : from[1..-2],
-          to:            (value[-2] == ',' || to == 'infinity') ? nil : to[1..-2],
-          #exclude_start: (value[0] == '('),
-          #exclude_end:   (value[-1] == ')')
-        }
-      end
+    class TSRange < ActiveRecord::ConnectionAdapters::PostgreSQL::OID::Range
+      OID = 3908
 
-      def type_cast(value)
+      def cast_value(value)
+        return if value == 'empty'
+        return value if value.is_a?(::Array)
+
         extracted = extract_bounds(value)
 
         from = Conversions.string_to_utc_time extracted[:from]
@@ -500,13 +503,23 @@ module ChronoModel
 
         [from, to]
       end
+
+      def extract_bounds(value)
+        from, to = value[1..-2].split(',')
+        {
+          from:          (value[1] == ',' || from == '-infinity') ? nil : from[1..-2],
+          to:            (value[-2] == ',' || to == 'infinity') ? nil : to[1..-2],
+        }
+      end
     end
 
-    def chrono_setup!
-      chrono_create_schemas
-      chrono_setup_type_map
+    def initialize_type_map(type_map)
+      super.tap do
+        ar_type = type_map.fetch(TSRange::OID)
+        cm_type = TSRange.new(ar_type.subtype, ar_type.type)
 
-      chrono_upgrade_structure!
+        type_map.register_type TSRange::OID, cm_type
+      end
     end
 
     # Copy the indexes from the temporal table to the history table if the indexes
@@ -540,12 +553,6 @@ module ChronoModel
         [TEMPORAL_SCHEMA, HISTORY_SCHEMA].each do |schema|
           execute "CREATE SCHEMA #{schema}" unless schema_exists?(schema)
         end
-      end
-
-      # Adds the above TSRange class to the PG Adapter OID::TYPE_MAP
-      #
-      def chrono_setup_type_map
-        OID::TYPE_MAP[3908] = TSRange.new
       end
 
       # Upgrades existing structure for each table, if required.
