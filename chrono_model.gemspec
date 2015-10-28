@@ -22,7 +22,7 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'pry'
   gem.add_development_dependency 'hirb'
   gem.add_development_dependency RUBY_VERSION.to_f == 1.9 ? 'debugger' : 'byebug'
-  gem.add_development_dependency 'rspec', '~> 2.0'
+  gem.add_development_dependency 'rspec'
   gem.add_development_dependency 'rake'
   gem.add_development_dependency 'fuubar'
   gem.add_development_dependency 'codeclimate-test-reporter'

@@ -2,30 +2,30 @@ require 'spec_helper'
 require 'support/helpers'
 
 shared_examples_for 'temporal table' do
-  it { adapter.is_chrono?(subject).should be(true) }
+  it { expect(adapter.is_chrono?(subject)).to be(true) }
 
-  it { should_not have_public_backing }
+  it { is_expected.to_not have_public_backing }
 
-  it { should have_temporal_backing }
-  it { should have_history_backing }
-  it { should have_history_extra_columns }
-  it { should have_public_interface }
+  it { is_expected.to have_temporal_backing }
+  it { is_expected.to have_history_backing }
+  it { is_expected.to have_history_extra_columns }
+  it { is_expected.to have_public_interface }
 
-  it { should have_columns(columns) }
-  it { should have_temporal_columns(columns) }
-  it { should have_history_columns(columns) }
+  it { is_expected.to have_columns(columns) }
+  it { is_expected.to have_temporal_columns(columns) }
+  it { is_expected.to have_history_columns(columns) }
 end
 
 shared_examples_for 'plain table' do
-  it { adapter.is_chrono?(subject).should be(false) }
+  it { expect(adapter.is_chrono?(subject)).to be(false) }
 
-  it { should have_public_backing }
+  it { is_expected.to have_public_backing }
 
-  it { should_not have_temporal_backing }
-  it { should_not have_history_backing }
-  it { should_not have_public_interface }
+  it { is_expected.to_not have_temporal_backing }
+  it { is_expected.to_not have_history_backing }
+  it { is_expected.to_not have_public_interface }
 
-  it { should have_columns(columns) }
+  it { is_expected.to have_columns(columns) }
 end
 
 describe ChronoModel::Adapter do
@@ -33,21 +33,21 @@ describe ChronoModel::Adapter do
 
   context do
     subject { adapter }
-    it { should be_a_kind_of(ChronoModel::Adapter) }
+    it { is_expected.to be_a_kind_of(ChronoModel::Adapter) }
 
     context do
       subject { adapter.adapter_name }
-      it { should == 'PostgreSQL' }
+      it { is_expected.to eq 'PostgreSQL' }
     end
 
     context do
-      before { adapter.stub(:postgresql_version => 90300) }
-      it { should be_chrono_supported }
+      before { expect(adapter).to receive(:postgresql_version).and_return(90300) }
+      it { is_expected.to be_chrono_supported }
     end
 
     context do
-      before { adapter.stub(:postgresql_version => 90000) }
-      it { should_not be_chrono_supported }
+      before { expect(adapter).to receive(:postgresql_version).and_return(90000) }
+      it { is_expected.to_not be_chrono_supported }
     end
   end
 
@@ -139,11 +139,11 @@ describe ChronoModel::Adapter do
       end
 
       it "copies plain index to history" do
-        history_indexes.find {|i| i.columns == ['foo']}.should be_present
+        expect(history_indexes.find {|i| i.columns == ['foo']}).to be_present
       end
 
       it "copies unique index to history without uniqueness constraint" do
-        history_indexes.find {|i| i.columns == ['bar'] && i.unique == false}.should be_present
+        expect(history_indexes.find {|i| i.columns == ['bar'] && i.unique == false}).to be_present
       end
     end
   end
@@ -155,10 +155,10 @@ describe ChronoModel::Adapter do
       adapter.drop_table table
     end
 
-    it { should_not have_public_backing }
-    it { should_not have_temporal_backing }
-    it { should_not have_history_backing }
-    it { should_not have_public_interface }
+    it { is_expected.to_not have_public_backing }
+    it { is_expected.to_not have_temporal_backing }
+    it { is_expected.to_not have_history_backing }
+    it { is_expected.to_not have_public_interface }
   end
 
   describe '.add_index' do
@@ -168,13 +168,13 @@ describe ChronoModel::Adapter do
         adapter.add_index table, [:test],      :name => 'test_index'
       end
 
-      it { should have_temporal_index 'foobar_index', %w( foo bar ) }
-      it { should have_history_index  'foobar_index', %w( foo bar ) }
-      it { should have_temporal_index 'test_index',   %w( test ) }
-      it { should have_history_index  'test_index',   %w( test ) }
+      it { is_expected.to have_temporal_index 'foobar_index', %w( foo bar ) }
+      it { is_expected.to have_history_index  'foobar_index', %w( foo bar ) }
+      it { is_expected.to have_temporal_index 'test_index',   %w( test ) }
+      it { is_expected.to have_history_index  'test_index',   %w( test ) }
 
-      it { should_not have_index 'foobar_index', %w( foo bar ) }
-      it { should_not have_index 'test_index',   %w( test ) }
+      it { is_expected.to_not have_index 'foobar_index', %w( foo bar ) }
+      it { is_expected.to_not have_index 'test_index',   %w( test ) }
     end
 
     with_plain_table do
@@ -183,13 +183,13 @@ describe ChronoModel::Adapter do
         adapter.add_index table, [:test],      :name => 'test_index'
       end
 
-      it { should_not have_temporal_index 'foobar_index', %w( foo bar ) }
-      it { should_not have_history_index  'foobar_index', %w( foo bar ) }
-      it { should_not have_temporal_index 'test_index',   %w( test ) }
-      it { should_not have_history_index  'test_index',   %w( test ) }
+      it { is_expected.to_not have_temporal_index 'foobar_index', %w( foo bar ) }
+      it { is_expected.to_not have_history_index  'foobar_index', %w( foo bar ) }
+      it { is_expected.to_not have_temporal_index 'test_index',   %w( test ) }
+      it { is_expected.to_not have_history_index  'test_index',   %w( test ) }
 
-      it { should have_index 'foobar_index', %w( foo bar ) }
-      it { should have_index 'test_index',   %w( test ) }
+      it { is_expected.to have_index 'foobar_index', %w( foo bar ) }
+      it { is_expected.to have_index 'test_index',   %w( test ) }
     end
   end
 
@@ -202,9 +202,9 @@ describe ChronoModel::Adapter do
         adapter.remove_index table, :name => 'test_index'
       end
 
-      it { should_not have_temporal_index 'test_index', %w( test ) }
-      it { should_not have_history_index  'test_index', %w( test ) }
-      it { should_not have_index          'test_index', %w( test ) }
+      it { is_expected.to_not have_temporal_index 'test_index', %w( test ) }
+      it { is_expected.to_not have_history_index  'test_index', %w( test ) }
+      it { is_expected.to_not have_index          'test_index', %w( test ) }
     end
 
     with_plain_table do
@@ -215,9 +215,9 @@ describe ChronoModel::Adapter do
         adapter.remove_index table, :name => 'test_index'
       end
 
-      it { should_not have_temporal_index 'test_index', %w( test ) }
-      it { should_not have_history_index  'test_index', %w( test ) }
-      it { should_not have_index          'test_index', %w( test ) }
+      it { is_expected.to_not have_temporal_index 'test_index', %w( test ) }
+      it { is_expected.to_not have_history_index  'test_index', %w( test ) }
+      it { is_expected.to_not have_index          'test_index', %w( test ) }
     end
   end
 
@@ -229,9 +229,9 @@ describe ChronoModel::Adapter do
         adapter.add_column table, :foobarbaz, :integer
       end
 
-      it { should have_columns(extra_columns) }
-      it { should have_temporal_columns(extra_columns) }
-      it { should have_history_columns(extra_columns) }
+      it { is_expected.to have_columns(extra_columns) }
+      it { is_expected.to have_temporal_columns(extra_columns) }
+      it { is_expected.to have_history_columns(extra_columns) }
     end
 
     with_plain_table do
@@ -239,7 +239,7 @@ describe ChronoModel::Adapter do
         adapter.add_column table, :foobarbaz, :integer
       end
 
-      it { should have_columns(extra_columns) }
+      it { is_expected.to have_columns(extra_columns) }
     end
   end
 
@@ -251,13 +251,13 @@ describe ChronoModel::Adapter do
         adapter.remove_column table, :foo
       end
 
-      it { should have_columns(resulting_columns) }
-      it { should have_temporal_columns(resulting_columns) }
-      it { should have_history_columns(resulting_columns) }
+      it { is_expected.to have_columns(resulting_columns) }
+      it { is_expected.to have_temporal_columns(resulting_columns) }
+      it { is_expected.to have_history_columns(resulting_columns) }
 
-      it { should_not have_columns([['foo', 'integer']]) }
-      it { should_not have_temporal_columns([['foo', 'integer']]) }
-      it { should_not have_history_columns([['foo', 'integer']]) }
+      it { is_expected.to_not have_columns([['foo', 'integer']]) }
+      it { is_expected.to_not have_temporal_columns([['foo', 'integer']]) }
+      it { is_expected.to_not have_history_columns([['foo', 'integer']]) }
     end
 
     with_plain_table do
@@ -265,8 +265,8 @@ describe ChronoModel::Adapter do
         adapter.remove_column table, :foo
       end
 
-      it { should have_columns(resulting_columns) }
-      it { should_not have_columns([['foo', 'integer']]) }
+      it { is_expected.to have_columns(resulting_columns) }
+      it { is_expected.to_not have_columns([['foo', 'integer']]) }
     end
   end
 
@@ -276,13 +276,13 @@ describe ChronoModel::Adapter do
         adapter.rename_column table, :foo, :taratapiatapioca
       end
 
-      it { should_not have_columns([['foo', 'integer']]) }
-      it { should_not have_temporal_columns([['foo', 'integer']]) }
-      it { should_not have_history_columns([['foo', 'integer']]) }
+      it { is_expected.to_not have_columns([['foo', 'integer']]) }
+      it { is_expected.to_not have_temporal_columns([['foo', 'integer']]) }
+      it { is_expected.to_not have_history_columns([['foo', 'integer']]) }
 
-      it { should have_columns([['taratapiatapioca', 'integer']]) }
-      it { should have_temporal_columns([['taratapiatapioca', 'integer']]) }
-      it { should have_history_columns([['taratapiatapioca', 'integer']]) }
+      it { is_expected.to have_columns([['taratapiatapioca', 'integer']]) }
+      it { is_expected.to have_temporal_columns([['taratapiatapioca', 'integer']]) }
+      it { is_expected.to have_history_columns([['taratapiatapioca', 'integer']]) }
     end
 
     with_plain_table do
@@ -290,8 +290,8 @@ describe ChronoModel::Adapter do
         adapter.rename_column table, :foo, :taratapiatapioca
       end
 
-      it { should_not have_columns([['foo', 'integer']]) }
-      it { should have_columns([['taratapiatapioca', 'integer']]) }
+      it { is_expected.to_not have_columns([['foo', 'integer']]) }
+      it { is_expected.to have_columns([['taratapiatapioca', 'integer']]) }
     end
   end
 
@@ -301,13 +301,13 @@ describe ChronoModel::Adapter do
         adapter.change_column table, :foo, :float
       end
 
-      it { should_not have_columns([['foo', 'integer']]) }
-      it { should_not have_temporal_columns([['foo', 'integer']]) }
-      it { should_not have_history_columns([['foo', 'integer']]) }
+      it { is_expected.to_not have_columns([['foo', 'integer']]) }
+      it { is_expected.to_not have_temporal_columns([['foo', 'integer']]) }
+      it { is_expected.to_not have_history_columns([['foo', 'integer']]) }
 
-      it { should have_columns([['foo', 'double precision']]) }
-      it { should have_temporal_columns([['foo', 'double precision']]) }
-      it { should have_history_columns([['foo', 'double precision']]) }
+      it { is_expected.to have_columns([['foo', 'double precision']]) }
+      it { is_expected.to have_temporal_columns([['foo', 'double precision']]) }
+      it { is_expected.to have_history_columns([['foo', 'double precision']]) }
     end
 
     with_plain_table do
@@ -315,8 +315,8 @@ describe ChronoModel::Adapter do
         adapter.change_column table, :foo, :float
       end
 
-      it { should_not have_columns([['foo', 'integer']]) }
-      it { should have_columns([['foo', 'double precision']]) }
+      it { is_expected.to_not have_columns([['foo', 'integer']]) }
+      it { is_expected.to have_columns([['foo', 'double precision']]) }
     end
   end
 
@@ -326,9 +326,9 @@ describe ChronoModel::Adapter do
         adapter.remove_column table, :foo
       end
 
-      it { should_not have_columns([['foo', 'integer']]) }
-      it { should_not have_temporal_columns([['foo', 'integer']]) }
-      it { should_not have_history_columns([['foo', 'integer']]) }
+      it { is_expected.to_not have_columns([['foo', 'integer']]) }
+      it { is_expected.to_not have_temporal_columns([['foo', 'integer']]) }
+      it { is_expected.to_not have_history_columns([['foo', 'integer']]) }
     end
 
     with_plain_table do
@@ -336,7 +336,7 @@ describe ChronoModel::Adapter do
         adapter.remove_column table, :foo
       end
 
-      it { should_not have_columns([['foo', 'integer']]) }
+      it { is_expected.to_not have_columns([['foo', 'integer']]) }
     end
   end
 
@@ -344,8 +344,8 @@ describe ChronoModel::Adapter do
     subject { adapter.column_definitions(table).map {|d| d.take(2)} }
 
     assert = proc do
-      it { (subject & columns).should == columns }
-      it { should include(['id', 'integer']) }
+      it { expect(subject & columns).to eq columns }
+      it { is_expected.to include(['id', 'integer']) }
     end
 
     with_temporal_table(&assert)
@@ -356,7 +356,7 @@ describe ChronoModel::Adapter do
     subject { adapter.primary_key(table) }
 
     assert = proc do
-      it { should == 'id' }
+      it { is_expected.to eq 'id' }
     end
 
     with_temporal_table(&assert)
@@ -372,8 +372,8 @@ describe ChronoModel::Adapter do
         adapter.add_index table, [:bar, :baz], :name => 'bar_index'
       end
 
-      it { subject.map(&:name).should =~ %w( foo_index bar_index ) }
-      it { subject.map(&:columns).should =~ [['foo'], ['bar', 'baz']] }
+      it { expect(subject.map(&:name)).to match_array %w( foo_index bar_index ) }
+      it { expect(subject.map(&:columns)).to match_array [['foo'], ['bar', 'baz']] }
     end
 
     with_temporal_table(&assert)
@@ -388,32 +388,32 @@ describe ChronoModel::Adapter do
     context 'with nesting' do
 
       it 'saves the schema at each recursion' do
-        should be_in_schema(:default)
+        is_expected.to be_in_schema(:default)
 
-        adapter.on_schema('test_1') { should be_in_schema('test_1')
-          adapter.on_schema('test_2') { should be_in_schema('test_2')
-            adapter.on_schema('test_3') { should be_in_schema('test_3')
+        adapter.on_schema('test_1') { is_expected.to be_in_schema('test_1')
+          adapter.on_schema('test_2') { is_expected.to be_in_schema('test_2')
+            adapter.on_schema('test_3') { is_expected.to be_in_schema('test_3')
             }
-            should be_in_schema('test_2')
+            is_expected.to be_in_schema('test_2')
           }
-          should be_in_schema('test_1')
+          is_expected.to be_in_schema('test_1')
         }
 
-        should be_in_schema(:default)
+        is_expected.to be_in_schema(:default)
       end
 
     end
 
     context 'without nesting' do
       it 'ignores recursive calls' do
-        should be_in_schema(:default)
+        is_expected.to be_in_schema(:default)
 
-        adapter.on_schema('test_1', false) { should be_in_schema('test_1')
-          adapter.on_schema('test_2', false) { should be_in_schema('test_1')
-            adapter.on_schema('test_3', false) { should be_in_schema('test_1')
+        adapter.on_schema('test_1', false) { is_expected.to be_in_schema('test_1')
+          adapter.on_schema('test_2', false) { is_expected.to be_in_schema('test_1')
+            adapter.on_schema('test_3', false) { is_expected.to be_in_schema('test_1')
         } } }
 
-        should be_in_schema(:default)
+        is_expected.to be_in_schema(:default)
       end
     end
   end
@@ -449,8 +449,8 @@ describe ChronoModel::Adapter do
       end
 
       it { expect { insert }.to_not raise_error }
-      it { count(current).should == 2 }
-      it { count(history).should == 2 }
+      it { expect(count(current)).to eq 2 }
+      it { expect(count(history)).to eq 2 }
     end
 
     context 'when failing' do
@@ -462,9 +462,9 @@ describe ChronoModel::Adapter do
         SQL
       end
 
-      it { expect { insert }.to raise_error }
-      it { count(current).should == 2 } # Because the previous
-      it { count(history).should == 2 } # records are preserved
+      it { expect { insert }.to raise_error(ActiveRecord::StatementInvalid) }
+      it { expect(count(current)).to eq 2 } # Because the previous
+      it { expect(count(history)).to eq 2 } # records are preserved
     end
 
     context 'after a failure' do
@@ -478,10 +478,10 @@ describe ChronoModel::Adapter do
 
       it { expect { insert }.to_not raise_error }
 
-      it { count(current).should == 4 }
-      it { count(history).should == 4 }
+      it { expect(count(current)).to eq 4 }
+      it { expect(count(history)).to eq 4 }
 
-      it { ids(current).should == ids(history) }
+      it { expect(ids(current)).to eq ids(history) }
     end
   end
 
@@ -507,7 +507,7 @@ describe ChronoModel::Adapter do
     end
 
     it { expect { insert }.to_not raise_error }
-    it { insert; select.uniq.should == ['default-value'] }
+    it { insert; expect(select.uniq).to eq ['default-value'] }
   end
 
   context 'redundant UPDATEs' do
@@ -532,8 +532,8 @@ describe ChronoModel::Adapter do
       adapter.drop_table table
     end
 
-    it { count(current).should == 1 }
-    it { count(history).should == 2 }
+    it { expect(count(current)).to eq 1 }
+    it { expect(count(history)).to eq 2 }
 
   end
 
@@ -567,8 +567,8 @@ describe ChronoModel::Adapter do
       adapter.drop_table table
     end
 
-    it { count(current).should == 1 }
-    it { count(history).should == 2 }
+    it { expect(count(current)).to eq 1 }
+    it { expect(count(history)).to eq 2 }
   end
 
   context 'selective journaled fields' do
@@ -597,8 +597,8 @@ describe ChronoModel::Adapter do
       adapter.drop_table table
     end
 
-    it { count(current).should == 1 }
-    it { count(history).should == 1 }
+    it { expect(count(current)).to eq 1 }
+    it { expect(count(history)).to eq 1 }
 
     it 'preserves options upon column change'
     it 'changes option upon table change'
