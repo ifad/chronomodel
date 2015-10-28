@@ -34,7 +34,11 @@ describe ChronoModel::Adapter do
   context do
     subject { adapter }
     it { should be_a_kind_of(ChronoModel::Adapter) }
-    its(:adapter_name) { should == 'PostgreSQL' }
+
+    context do
+      subject { adapter.adapter_name }
+      it { should == 'PostgreSQL' }
+    end
 
     context do
       before { adapter.stub(:postgresql_version => 90300) }
