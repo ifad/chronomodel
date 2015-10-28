@@ -537,7 +537,7 @@ describe ChronoModel::Adapter do
     before :all do
       adapter.create_table table, :temporal => true do |t|
         t.string 'test'
-        t.timestamps
+        t.timestamps null: false
       end
 
       adapter.execute <<-SQL
