@@ -4,7 +4,6 @@ source 'https://rubygems.org'
 gemspec
 
 group :development do
-  gem 'debugger'
   gem 'pry'
 
   gem(
@@ -17,7 +16,6 @@ group :development do
 end
 
 group :test do
-  gem 'rspec'
+  gem 'rspec', '~> 2.0'
   gem 'rake'
-  gem 'fuubar'
 end
