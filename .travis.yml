@@ -4,13 +4,12 @@ rvm:
   - 2.1.7
   - 2.2.3
 
+sudo: false
+
 addons:
   postgresql: "9.4"
-
-before_install:
-  - sudo apt-get update
-  - sudo apt-get install postgresql-plpython-9.4
-  - sudo service postgresql restart
+  apt:
+    packages: postgresql-plpython-9.4
 
 before_script:
   - psql -c "CREATE DATABASE chronomodel;" -U postgres
