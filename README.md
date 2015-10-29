@@ -63,7 +63,7 @@ All timestamps are _forcibly_ stored in as UTC, bypassing the
 ## Requirements
 
 * Ruby >= 2.0 (1.9 is still supported, but support will be dropped soon).
-* Active Record = 4.0
+* Active Record = 4.2
 * PostgreSQL >= 9.3
 * The `btree_gist` and `plpython` PostgreSQL extensions:
 
