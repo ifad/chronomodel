@@ -6,6 +6,9 @@ rvm:
 
 sudo: false
 
+language: ruby
+cache: bundler
+
 addons:
   postgresql: "9.4"
   apt:
