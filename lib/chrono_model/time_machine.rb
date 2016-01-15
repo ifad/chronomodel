@@ -299,7 +299,7 @@ module ChronoModel
       # Returns an ActiveRecord::Relation on the history of this model as
       # it was +time+ ago.
       def as_of(time)
-        history.as_of(time, current_scope)
+        history.as_of(time.dup, current_scope)
       end
 
       def attribute_names_for_history_changes
@@ -394,6 +394,8 @@ module ChronoModel
       # Fetches as of +time+ records.
       #
       def as_of(time, scope = nil)
+        time = time.dup
+
         as_of = non_history_superclass.unscoped.readonly.from(virtual_table_at(time))
 
         # Add default scopes back if we're passed nil or a
@@ -418,12 +420,13 @@ module ChronoModel
         name = name ? connection.quote_table_name(name) :
           non_history_superclass.quoted_table_name
 
-        "(#{at(time).to_sql}) #{name}"
+        "(#{at(time.dup).to_sql}) #{name}"
       end
 
       # Fetches history record at the given time
       #
       def at(time)
+        time = time.dup
         time = Conversions.time_to_utc_string(time.utc) if time.kind_of?(Time)
 
         unscoped.
