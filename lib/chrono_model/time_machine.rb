@@ -451,7 +451,7 @@ module ChronoModel
       end
 
       def past
-        time_query(:before, :now).where('NOT upper_inf(validity)')
+        time_query(:before, :now).where("NOT upper_inf(#{quoted_table_name}.validity)")
       end
 
       # To identify this class as the History subclass
