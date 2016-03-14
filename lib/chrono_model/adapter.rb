@@ -567,8 +567,8 @@ module ChronoModel
             metadata = chrono_metadata_for(table_name)
             version = metadata['chronomodel']
 
-            if version.blank? # FIXME
-              raise Error, "ChronoModel found structures created by a too old version. Cannot upgrade right now."
+            if version.blank?
+              upgrade_from_legacy(table_name)
             end
 
             next if version == current
@@ -585,6 +585,38 @@ module ChronoModel
         #
         logger.error message
         $stderr.puts message
+      end
+
+      def upgrade_from_legacy(table_name)
+        # roses are red
+        # violets are blue
+        # and this is the most boring piece of code ever
+        history_table = "#{HISTORY_SCHEMA}.#{table_name}"
+        p_pkey = primary_key(table_name)
+
+        execute "ALTER TABLE #{history_table} ADD COLUMN validity tsrange;"
+        execute "UPDATE #{history_table} SET validity = tsrange(valid_from, valid_to);"
+
+        execute "DROP INDEX #{history_table}_temporal_on_valid_from;"
+        execute "DROP INDEX #{history_table}_temporal_on_valid_from_and_valid_to;"
+        execute "DROP INDEX #{history_table}_temporal_on_valid_to;"
+        execute "DROP INDEX #{history_table}_inherit_pkey"
+        execute "DROP INDEX #{history_table}_recorded_at"
+        execute "DROP INDEX #{history_table}_instance_history"
+        execute "ALTER TABLE #{history_table} DROP CONSTRAINT #{table_name}_valid_from_before_valid_to;"
+        execute "ALTER TABLE #{history_table} DROP CONSTRAINT #{table_name}_timeline_consistency;"
+        execute "DROP RULE #{table_name}_upd_first ON #{table_name};"
+        execute "DROP RULE #{table_name}_upd_next ON #{table_name};"
+        execute "DROP RULE #{table_name}_del ON #{table_name};"
+        execute "DROP RULE #{table_name}_ins ON #{table_name};"
+        execute "ALTER TABLE #{history_table} DROP COLUMN valid_from;"
+        execute "ALTER TABLE #{history_table} DROP COLUMN valid_to;"
+
+        execute "CREATE EXTENSION IF NOT EXISTS btree_gist;"
+
+        chrono_create_view_for(table_name)
+        _on_history_schema { add_history_validity_constraint(table_name, p_pkey) }
+        _on_history_schema { chrono_create_history_indexes_for(table_name, p_pkey) }
       end
 
       def chrono_metadata_for(table)
