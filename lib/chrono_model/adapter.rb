@@ -609,6 +609,8 @@ module ChronoModel
         execute "DROP RULE #{table_name}_upd_next ON #{table_name};"
         execute "DROP RULE #{table_name}_del ON #{table_name};"
         execute "DROP RULE #{table_name}_ins ON #{table_name};"
+        execute "DROP TRIGGER history_ins ON #{TEMPORAL_SCHEMA}.#{table_name};"
+        execute "DROP FUNCTION #{TEMPORAL_SCHEMA}.#{table_name}_ins();"
         execute "ALTER TABLE #{history_table} DROP COLUMN valid_from;"
         execute "ALTER TABLE #{history_table} DROP COLUMN valid_to;"
 
