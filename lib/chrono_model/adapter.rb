@@ -595,7 +595,13 @@ module ChronoModel
         p_pkey = primary_key(table_name)
 
         execute "ALTER TABLE #{history_table} ADD COLUMN validity tsrange;"
-        execute "UPDATE #{history_table} SET validity = tsrange(valid_from, valid_to);"
+        execute """
+          UPDATE #{history_table} SET validity = tsrange(valid_from,
+            CASE WHEN extract(year from valid_to) = 9999 THEN NULL
+                 ELSE valid_to
+            END
+          );
+        """
 
         execute "DROP INDEX #{history_table}_temporal_on_valid_from;"
         execute "DROP INDEX #{history_table}_temporal_on_valid_from_and_valid_to;"
