@@ -704,7 +704,7 @@ module ChronoModel
           default = column.default.nil? ? column.default_function : quote(column.default, column)
           next if column.name == pk || default.nil?
 
-          execute "ALTER VIEW #{table} ALTER COLUMN #{column.name} SET DEFAULT #{default}"
+          execute "ALTER VIEW #{table} ALTER COLUMN #{quote_column_name(column.name)} SET DEFAULT #{default}"
         end
 
         columns = columns(table).map {|c| quote_column_name(c.name)}
