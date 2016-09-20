@@ -572,37 +572,85 @@ describe ChronoModel::Adapter do
   end
 
   context 'selective journaled fields' do
-    before :all do
-      adapter.create_table table, :temporal => true, :journal => %w( foo ) do |t|
-        t.string 'foo'
-        t.string 'bar'
-      end
+    describe 'basic behaviour' do
+      specify do
+        adapter.create_table table, :temporal => true, :journal => %w( foo ) do |t|
+          t.string 'foo'
+          t.string 'bar'
+        end
 
-      adapter.execute <<-SQL
-        INSERT INTO #{table} (foo, bar) VALUES ('test foo', 'test bar');
-      SQL
-
-      adapter.execute <<-SQL
-        UPDATE #{table} SET foo = 'test foo', bar = 'no history';
-      SQL
-
-      2.times do
         adapter.execute <<-SQL
-          UPDATE #{table} SET bar = 'really no history';
+          INSERT INTO #{table} (foo, bar) VALUES ('test foo', 'test bar');
         SQL
+
+        adapter.execute <<-SQL
+          UPDATE #{table} SET foo = 'test foo', bar = 'no history';
+        SQL
+
+        2.times do
+          adapter.execute <<-SQL
+            UPDATE #{table} SET bar = 'really no history';
+          SQL
+        end
+
+        expect(count(current)).to eq 1
+        expect(count(history)).to eq 1
+
+        adapter.drop_table table
       end
     end
 
-    after :all do
-      adapter.drop_table table
+    describe 'schema changes' do
+      table 'journaled_things'
+
+      before do
+        adapter.create_table table, :temporal => true, :journal => %w( foo ) do |t|
+          t.string 'foo'
+          t.string 'bar'
+          t.string 'baz'
+        end
+      end
+
+      after do
+        adapter.drop_table table
+      end
+
+      it 'preserves options upon column change' do
+        adapter.change_table table, temporal: true, journal: %w(foo bar)
+
+        adapter.execute <<-SQL
+          INSERT INTO #{table} (foo, bar) VALUES ('test foo', 'test bar');
+        SQL
+
+        expect(count(current)).to eq 1
+        expect(count(history)).to eq 1
+
+        adapter.execute <<-SQL
+          UPDATE #{table} SET foo = 'test foo', bar = 'chronomodel';
+        SQL
+
+        expect(count(current)).to eq 1
+        expect(count(history)).to eq 2
+      end
+
+      it 'changes option upon table change' do
+        adapter.change_table table, temporal: true, journal: %w(bar)
+
+        adapter.execute <<-SQL
+          INSERT INTO #{table} (foo, bar) VALUES ('test foo', 'test bar');
+          UPDATE #{table} SET foo = 'test foo', bar = 'no history';
+        SQL
+
+        expect(count(current)).to eq 1
+        expect(count(history)).to eq 1
+
+        adapter.execute <<-SQL
+          UPDATE #{table} SET foo = 'test foo again', bar = 'no history';
+        SQL
+
+        expect(count(current)).to eq 1
+        expect(count(history)).to eq 1
+      end
     end
-
-    it { expect(count(current)).to eq 1 }
-    it { expect(count(history)).to eq 1 }
-
-    it 'preserves options upon column change'
-    it 'changes option upon table change'
-
   end
-
 end
