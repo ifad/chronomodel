@@ -447,8 +447,8 @@ module ChronoModel
     #
     def is_chrono?(table)
       TableCache.fetch(table) do
-        _on_temporal_schema { table_exists?(table) } &&
-        _on_history_schema { table_exists?(table) }
+        _on_temporal_schema { chrono_data_source_exists?(table) } &&
+        _on_history_schema { chrono_data_source_exists?(table) }
       end
 
     rescue ActiveRecord::StatementInvalid => e
@@ -630,7 +630,7 @@ module ChronoModel
       def chrono_metadata_for(table)
         comment = select_value(
           "SELECT obj_description(#{quote(table)}::regclass)",
-          "ChronoModel metadata for #{table}") if table_exists?(table)
+          "ChronoModel metadata for #{table}") if chrono_data_source_exists?(table)
 
         MultiJson.load(comment || '{}').with_indifferent_access
       end
@@ -693,7 +693,7 @@ module ChronoModel
 
         # SELECT - return only current data
         #
-        execute "DROP VIEW #{table}" if table_exists? table
+        execute "DROP VIEW #{table}" if chrono_data_source_exists? table
         execute "CREATE VIEW #{table} AS SELECT * FROM ONLY #{current}"
 
         # Set default values on the view (closes #12)
@@ -886,6 +886,16 @@ module ChronoModel
           _on_temporal_schema { yield }
         else
           yield
+        end
+      end
+
+      def chrono_data_source_exists?(table_name)
+        if ActiveRecord::VERSION::MAJOR >= 5
+          data_source_exists?(table_name)
+        else
+          # On Rails 4, table_exists? has the same behaviour, checking if both
+          # a view or table exists
+          table_exists?(table_name)
         end
       end
 
