@@ -19,7 +19,7 @@ namespace :db do
 
       PG.make_dump target,
                    *config.values_at(:username, :database),
-                   '-i', '-x', '-s', '-O', schema_search_path
+                   '-x', '-s', '-O', schema_search_path
 
       # Add migration information, after resetting the schema to the default one
       File.open(target, 'a') do |f|
