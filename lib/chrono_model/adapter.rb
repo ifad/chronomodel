@@ -152,7 +152,7 @@ module ChronoModel
             end
           end
 
-          chrono_alter(table_name) { super table_name, options, &block }
+          chrono_alter(table_name, options) { super table_name, options, &block }
         else
           if options[:temporal] == false && is_chrono?(table_name)
             # Remove temporal features from this table
@@ -851,9 +851,9 @@ module ChronoModel
       # types, the view must be dropped and recreated, while the change has
       # to be applied to the table in the temporal schema.
       #
-      def chrono_alter(table_name)
+      def chrono_alter(table_name, opts = {})
         transaction do
-          options = chrono_metadata_for(table_name)
+          options = chrono_metadata_for(table_name).merge(opts)
 
           execute "DROP VIEW #{table_name}"
 

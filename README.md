@@ -285,10 +285,6 @@ offers many more indexing abilities and better performance than JSON.
    [is broken][r4-tsrange-broken] and  [incomplete][r4-tsrange-incomplete]
    as of now, mainly due to a [design clash with ruby][pg-tsrange-and-ruby].
 
- * There is (yet) no upgrade path from [v0.5][chronomodel-0.5],
-   (PG 9.0-compatible, `box()` and hacks) to v0.6 and up (>=9.3-only, `tsrange`
-   and _less_ hacks).
-
  * The triggers and temporal indexes cannot be saved in schema.rb. The AR
    schema dumper is quite basic, and it isn't (currently) extensible.
    As we're using many database-specific features, Chronomodel forces the
