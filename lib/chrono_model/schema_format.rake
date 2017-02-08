@@ -6,20 +6,21 @@ namespace :db do
     task :dump => :environment do
       config = PG.config!
       target = ENV['DB_STRUCTURE'] || Rails.root.join('db', 'structure.sql')
-      schema_search_path = config[:schema_search_path]
+      schema = config[:schema_search_path]
 
-      unless schema_search_path.blank?
-        # add in chronomodel schemas
-        schema_search_path << ",#{ChronoModel::Adapter::TEMPORAL_SCHEMA}"
-        schema_search_path << ",#{ChronoModel::Adapter::HISTORY_SCHEMA}"
-
-        # convert to command line arguments
-        schema_search_path = schema_search_path.split(",").map{|part| "--schema=#{part.strip}" }.join(" ")
+      if schema.present?
+        # If a schema search path is configured, add also the ChronoModel schemas to the dump.
+        #
+        schema = schema.split /\s*,\s*/
+        schema = schema.concat [ ChronoModel::Adapter::TEMPORAL_SCHEMA, ChronoModel::Adapter::HISTORY_SCHEMA ]
+        schema = schema.map {|name| "--schema=#{name}" }
+      else
+        schema = [ ]
       end
-
+      
       PG.make_dump target,
                    *config.values_at(:username, :database),
-                   '-x', '-s', '-O', schema_search_path
+                   '-x', '-s', '-O', *schema
 
       # Add migration information, after resetting the schema to the default one
       File.open(target, 'a') do |f|
