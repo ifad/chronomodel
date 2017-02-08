@@ -27,13 +27,13 @@ namespace :db do
         f.puts ActiveRecord::Base.connection.dump_schema_information
       end
 
-      # the structure.sql file will contain CREATE SCHEMA statements
-      # but chronomodel creates the temporal and history schemas
-      # when the connection is established, so a db:structure:load fails
-      # fix up create schema statements to include the IF NOT EXISTS directive
-
+      # The structure.sql includes CREATE SCHEMA statements, but as these are executed
+      # when the connection to the database is established, a db:structure:load fails.
+      # This code adds the IF NOT EXISTS clause to CREATE SCHEMA statements as long as
+      # it is not already present.
+      #
       sql = File.read(target)
-      sql.gsub!(/CREATE SCHEMA /, 'CREATE SCHEMA IF NOT EXISTS ')
+      sql.gsub!(/CREATE SCHEMA (?!IF NOT EXISTS)/, '\&IF NOT EXISTS ')
       File.open(target, "w") { |file| file << sql  }
     end
 
