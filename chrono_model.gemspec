@@ -25,5 +25,6 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'rspec'
   gem.add_development_dependency 'rake'
   gem.add_development_dependency 'fuubar'
-  gem.add_development_dependency 'codeclimate-test-reporter'
+  gem.add_development_dependency 'simplecov'
+  gem.add_development_dependency 'codeclimate-test-reporter', '>= 1.0.0'
 end
