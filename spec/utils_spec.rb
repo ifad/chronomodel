@@ -18,6 +18,13 @@ describe ChronoModel::Conversions do
       it { expect(subject.usec).to  eq 129626 } # Ref Issue #32
     end
 
+    context 'given a valid UTC string without least significant zeros' do
+      let(:string) { '2017-02-06 09:46:31.129' }
+
+      it { is_expected.to be_a(Time) }
+      it { expect(subject.usec).to eq 129000 } # Ref Issue #32
+    end
+
     context 'given an invalid UTC time string' do
       let(:string) { 'foobar' }
 
