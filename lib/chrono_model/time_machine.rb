@@ -392,9 +392,8 @@ module ChronoModel
           if t == :now || t == :today
             now_for_column(column)
           else
-            [connection.quote(t, column),
-             primitive_type_for_column(column)
-            ].join('::')
+            quoted_t = connection.quote(connection.quoted_date(t))
+            [quoted_t, primitive_type_for_column(column)].join('::')
           end
         end
 
