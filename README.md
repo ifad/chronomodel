@@ -312,6 +312,12 @@ offers many more indexing abilities and better performance than JSON.
  4. Push to the branch (`git push origin my-new-feature`)
  5. Create new Pull Request
 
+## Special mention
+
+An special mention has to be made to [Paolo Zaccagnini][pzac-github]
+for all his effort in highlighting the improvements and best decisions
+taken over the life cycle of the design and implementation of Chronomodel
+while using it in many important projects.
 
 [build-status]: https://travis-ci.org/ifad/chronomodel
 [build-status-badge]: https://travis-ci.org/ifad/chronomodel.svg
@@ -358,3 +364,5 @@ offers many more indexing abilities and better performance than JSON.
 [json-type]: http://www.postgresql.org/docs/9.4/static/datatype-json.html
 [json-func]: http://www.postgresql.org/docs/9.4/static/functions-json.html
 [json-opclass]: https://github.com/ifad/chronomodel/blob/master/sql/json_ops.sql
+
+[pzac-github]: https://github.com/pzac
