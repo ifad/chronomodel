@@ -29,4 +29,5 @@ before_script:
   - psql -c "CREATE DATABASE chronomodel;" -U postgres
 
 script:
-  - bundle exec rake TEST_CONFIG=./spec/config.travis.yml CODECLIMATE_REPO_TOKEN=dedfb7472ee410eec459bff3681d9a8fd8dd237e9bd7e8675a7c8eb7e253bba9
+  - bundle exec rake TEST_CONFIG=./spec/config.travis.yml
+
