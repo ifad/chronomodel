@@ -701,7 +701,16 @@ module ChronoModel
         chrono_metadata_set(table, options.merge(:chronomodel => VERSION))
 
         columns(table).each do |column|
-          default = column.default.nil? ? column.default_function : quote(column.default, column)
+          default = if column.default.nil?
+            column.default_function
+          else
+            if ActiveRecord::VERSION::MAJOR == 4
+              quote(column.default, column)
+            else # Rails 5 and beyond
+              quote(column.default)
+            end
+          end
+
           next if column.name == pk || default.nil?
 
           execute "ALTER VIEW #{table} ALTER COLUMN #{quote_column_name(column.name)} SET DEFAULT #{default}"
