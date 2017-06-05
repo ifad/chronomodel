@@ -201,6 +201,16 @@ module ChronoModel
 
       # Define the History constant inside the subclass
       subclass.const_set :History, history
+
+      history.instance_eval do
+        # Monkey patch of ActiveRecord::Inheritance.
+        # STI was failing then a Foo::History record has Foo as type in the
+        # inheritance column; AR expects the type to be a descendant (or self)
+        # of the current class.
+        def find_sti_class(type_name)
+          super(type_name + "::History")
+        end
+      end
     end
 
     # Returns a read-only representation of this record as it was +time+ ago.
