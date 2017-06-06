@@ -66,7 +66,7 @@ All timestamps are _forcibly_ stored in as UTC, bypassing the
 ## Requirements
 
 * Ruby >= 2.2 (1.9 to 2.1 could still work, but aren't supported).
-* Active Record 4.2 or 5.0 (5.0 doesn't work with Ruby 2.4, though)
+* Active Record 4.2 or 5.0 (4.2 doesn't work with Ruby 2.4, though)
 * PostgreSQL >= 9.3
 * The `btree_gist` PostgreSQL extension
 * The `plpython` PostgreSQL extension if you have *JSON* (*not* JSONB) columns
