@@ -90,15 +90,19 @@ module ChronoModel
           end
         end
 
-        # Rename functions
+        # Drop view
+        #
+        execute "DROP VIEW #{name}"
+
+        # Drop functions
         #
         %w( insert update delete ).each do |func|
-          execute "ALTER FUNCTION chronomodel_#{name}_#{func}() RENAME TO chronomodel_#{new_name}_#{func}"
+          execute "DROP FUNCTION chronomodel_#{name}_#{func}()"
         end
 
-        # Rename the public view
+        # Create view and functions
         #
-        execute "ALTER VIEW #{name} RENAME TO #{new_name}"
+        chrono_create_view_for(new_name)
 
         TableCache.del! name
         TableCache.add! new_name
