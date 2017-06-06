@@ -7,6 +7,11 @@ gemfile:
   - gemfiles/rails_4.2.gemfile
   - gemfiles/rails_5.0.gemfile
 
+matrix:
+  exclude:
+    - rvm: 2.4
+      gemfile: gemfiles/rails_4.2.gemfile
+
 sudo: false
 
 language: ruby
