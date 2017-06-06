@@ -6,20 +6,21 @@ namespace :db do
     task :dump => :environment do
       config = PG.config!
       target = ENV['DB_STRUCTURE'] || Rails.root.join('db', 'structure.sql')
-      schema_search_path = config[:schema_search_path]
+      schema = config[:schema_search_path]
 
-      unless schema_search_path.blank?
-        # add in chronomodel schemas
-        schema_search_path << ",#{ChronoModel::Adapter::TEMPORAL_SCHEMA}"
-        schema_search_path << ",#{ChronoModel::Adapter::HISTORY_SCHEMA}"
-
-        # convert to command line arguments
-        schema_search_path = schema_search_path.split(",").map{|part| "--schema=#{part.strip}" }.join(" ")
+      if schema.present?
+        # If a schema search path is configured, add also the ChronoModel schemas to the dump.
+        #
+        schema = schema.split /\s*,\s*/
+        schema = schema.concat [ ChronoModel::Adapter::TEMPORAL_SCHEMA, ChronoModel::Adapter::HISTORY_SCHEMA ]
+        schema = schema.map {|name| "--schema=#{name}" }
+      else
+        schema = [ ]
       end
-
+      
       PG.make_dump target,
                    *config.values_at(:username, :database),
-                   '-x', '-s', '-O', schema_search_path
+                   '-x', '-s', '-O', *schema
 
       # Add migration information, after resetting the schema to the default one
       File.open(target, 'a') do |f|
@@ -27,13 +28,13 @@ namespace :db do
         f.puts ActiveRecord::Base.connection.dump_schema_information
       end
 
-      # the structure.sql file will contain CREATE SCHEMA statements
-      # but chronomodel creates the temporal and history schemas
-      # when the connection is established, so a db:structure:load fails
-      # fix up create schema statements to include the IF NOT EXISTS directive
-
+      # The structure.sql includes CREATE SCHEMA statements, but as these are executed
+      # when the connection to the database is established, a db:structure:load fails.
+      # This code adds the IF NOT EXISTS clause to CREATE SCHEMA statements as long as
+      # it is not already present.
+      #
       sql = File.read(target)
-      sql.gsub!(/CREATE SCHEMA /, 'CREATE SCHEMA IF NOT EXISTS ')
+      sql.gsub!(/CREATE SCHEMA (?!IF NOT EXISTS)/, '\&IF NOT EXISTS ')
       File.open(target, "w") { |file| file << sql  }
     end
 
