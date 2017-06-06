@@ -204,9 +204,9 @@ module ChronoModel
 
       history.instance_eval do
         # Monkey patch of ActiveRecord::Inheritance.
-        # STI was failing then a Foo::History record has Foo as type in the
-        # inheritance column; AR expects the type to be a descendant (or self)
-        # of the current class.
+        # STI fails when a Foo::History record has Foo as type in the
+        # inheritance column; AR expects the type to be an instance of the
+        # current class or a descendant (or self).
         def find_sti_class(type_name)
           super(type_name + "::History")
         end
