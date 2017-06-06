@@ -26,6 +26,17 @@ module ChronoModel
     def chrono_supported?
       postgresql_version >= 90300
     end
+    
+    # Enable to manage an array of column names (added for composite-primary-keys)
+    def quote_column_name(name)
+      if name.is_a?(Array)
+        Array(name).map do |col|
+          super(col.to_s)
+        end.join(',')
+      else
+        super
+      end
+    end
 
     # Creates the given table, possibly creating the temporal schema
     # objects if the `:temporal` option is given and set to true.
@@ -542,6 +553,31 @@ module ChronoModel
             CREATE INDEX #{index.name} ON #{table_name}
             USING #{index.using} ( #{index.columns.join(', ')} )
           ], 'Copy index from temporal to history'
+        end
+      end
+    end
+    
+    def copy_temporal_indexes_to_history_after_change_table_to_temporal(table_name)
+      history_index_names = []
+      _on_history_schema { history_index_names = indexes(table_name).map(&:name) }
+
+      temporal_indexes = []
+      _on_temporal_schema { temporal_indexes = indexes(table_name) }
+
+      temporal_indexes.each do |temporal_index|
+        unless history_index_names.include?(temporal_index[:name])
+          options = temporal_index.to_h
+          options.delete(:table)
+          options.delete(:columns)
+          options.delete(:lengths)
+          options.delete(:orders)
+          options.delete(:unique) # Uniqueness constraints do not make sense in the history table
+
+          _on_history_schema {
+            ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.instance_method(:add_index).bind(self).call(
+              temporal_index[:table], temporal_index[:columns], options
+            )
+          }
         end
       end
     end
