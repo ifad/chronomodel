@@ -201,6 +201,16 @@ module ChronoModel
 
       # Define the History constant inside the subclass
       subclass.const_set :History, history
+
+      history.instance_eval do
+        # Monkey patch of ActiveRecord::Inheritance.
+        # STI fails when a Foo::History record has Foo as type in the
+        # inheritance column; AR expects the type to be an instance of the
+        # current class or a descendant (or self).
+        def find_sti_class(type_name)
+          super(type_name + "::History")
+        end
+      end
     end
 
     # Returns a read-only representation of this record as it was +time+ ago.
@@ -392,9 +402,8 @@ module ChronoModel
           if t == :now || t == :today
             now_for_column(column)
           else
-            [connection.quote(t, column),
-             primitive_type_for_column(column)
-            ].join('::')
+            quoted_t = connection.quote(connection.quoted_date(t))
+            [quoted_t, primitive_type_for_column(column)].join('::')
           end
         end
 

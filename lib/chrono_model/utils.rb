@@ -51,7 +51,8 @@ module ChronoModel
 
       connection.execute %[
         UPDATE #{quoted_table_name}
-           SET "validity" = tsrange(#{connection.quote(from)}, #{connection.quote(to)})
+           SET "validity" = tsrange(#{connection.quote(from)}, #{connection.quote(to)}),
+               "recorded_at" = #{connection.quote(from)}
          WHERE "hid" = #{hid.to_i}
       ]
     end

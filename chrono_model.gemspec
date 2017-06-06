@@ -15,7 +15,7 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
   gem.version       = ChronoModel::VERSION
 
-  gem.add_dependency "activerecord", "~> 4.2.0"
+  gem.add_dependency "activerecord", ">= 4.2.0"
   gem.add_dependency "pg"
   gem.add_dependency "multi_json"
 
@@ -26,5 +26,5 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'rake'
   gem.add_development_dependency 'fuubar'
   gem.add_development_dependency 'simplecov'
-  gem.add_development_dependency 'codeclimate-test-reporter', '>= 1.0.0'
+  gem.add_development_dependency 'codeclimate-test-reporter'
 end

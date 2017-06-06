@@ -1,8 +1,16 @@
 rvm:
-  - 2.0.0
-  - 2.1
-  - 2.2.5
-  - 2.3.1
+  - 2.2.7
+  - 2.3
+  - 2.4
+
+gemfile:
+  - gemfiles/rails_4.2.gemfile
+  - gemfiles/rails_5.0.gemfile
+
+matrix:
+  exclude:
+    - rvm: 2.4
+      gemfile: gemfiles/rails_4.2.gemfile
 
 sudo: false
 
@@ -15,7 +23,6 @@ addons:
     packages: postgresql-plpython-9.4
   code_climate:
     repo_token: dedfb7472ee410eec459bff3681d9a8fd8dd237e9bd7e8675a7c8eb7e253bba9
-
 
 before_script:
   - psql -c "CREATE DATABASE chronomodel;" -U postgres
