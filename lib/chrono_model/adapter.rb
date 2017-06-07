@@ -71,9 +71,9 @@ module ChronoModel
           end
         end
 
-        # Rename indexes
+
+        # Rename indexes on history schema
         #
-        pkey = primary_key(new_name)
         _on_history_schema do
           standard_index_names = %w(
             inherit_pkey instance_history pkey
@@ -87,6 +87,18 @@ module ChronoModel
 
           old_names.zip(new_names).each do |old, new|
             execute "ALTER INDEX #{old} RENAME TO #{new}"
+          end
+        end
+
+        # Rename indexes on temporal schema
+        #
+        _on_temporal_schema do
+          temporal_indexes =  indexes(new_name)
+          temporal_indexes.map(&:name).each do |old_idx_name|
+            if old_idx_name =~ /^index_#{name}_on_(?<columns>.+)/
+              new_idx_name = "index_#{new_name}_on_#{$~['columns']}"
+              execute "ALTER INDEX #{old_idx_name} RENAME TO #{new_idx_name}"
+            end
           end
         end
 
