@@ -93,12 +93,22 @@ describe ChronoModel::Adapter do
     context ':temporal => true' do
       before :all do
         adapter.create_table table, :temporal => true, &columns
+        adapter.add_index table, :test
+        adapter.add_index table, [:foo, :bar]
 
         adapter.rename_table table, renamed
       end
       after(:all) { adapter.drop_table(renamed) }
 
       it_should_behave_like 'temporal table'
+
+      it 'renames indexes' do
+        new_index_names = adapter.indexes(renamed).map(&:name)
+        expected_index_names = [[:test], [:foo, :bar]].map do |idx_cols|
+          "index_#{renamed}_on_#{idx_cols.join('_and_')}"
+        end
+        expect(new_index_names.to_set).to eq expected_index_names.to_set
+      end
     end
 
     context ':temporal => false' do
