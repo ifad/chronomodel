@@ -68,7 +68,8 @@ module ChronoModel
     module Preloader
       attr_reader :options
 
-      AS_OF_PRELOAD_SCOPE = Struct.new(:as_of_time, :values, :where_clause, :joins_values)
+      NULL_RELATION = ActiveRecord::Associations::Preloader::NULL_RELATION
+      AS_OF_PRELOAD_SCOPE = Struct.new(:as_of_time, *NULL_RELATION.members)
 
       def initialize(options = {})
         @options = options.freeze
@@ -79,11 +80,11 @@ module ChronoModel
           preload_scope = AS_OF_PRELOAD_SCOPE.new
 
           preload_scope.as_of_time = as_of_time
-          given_preload_scope ||= ActiveRecord::Associations::Preloader::NULL_RELATION
+          given_preload_scope ||= NULL_RELATION
 
-          preload_scope.values       = given_preload_scope.values
-          preload_scope.where_clause = given_preload_scope.where_clause
-          preload_scope.joins_values = given_preload_scope.joins_values
+          NULL_RELATION.members.each do |member|
+            preload_scope[member] = given_preload_scope[member]
+          end
         end
 
         super records, associations, preload_scope
