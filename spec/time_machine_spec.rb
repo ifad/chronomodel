@@ -24,6 +24,8 @@ describe ChronoModel::TimeMachine do
   #
   baz = Baz.create :name => 'baz', :bar => bar
 
+  # Specs start here
+  #
   describe '.chrono?' do
     subject { model.chrono? }
 
@@ -69,8 +71,6 @@ describe ChronoModel::TimeMachine do
     it { is_expected.to include(Publication) }
   end
 
-  # Specs start here
-  #
   describe '.chrono_models' do
     subject { ChronoModel::TimeMachine.chrono_models }
 
@@ -132,6 +132,28 @@ describe ChronoModel::TimeMachine do
       it { expect(bar.as_of(bar.ts[1]).foo.name).to eq 'foo bar' }
       it { expect(bar.as_of(bar.ts[2]).foo.name).to eq 'new foo' }
       it { expect(bar.as_of(bar.ts[3]).foo.name).to eq 'new foo' }
+    end
+
+    describe 'supports historical queries with includes()' do
+      it { expect(Foo.as_of(foo.ts[0]).includes(:bars).first.bars).to eq [] }
+      it { expect(Foo.as_of(foo.ts[1]).includes(:bars).first.bars).to eq [] }
+      it { expect(Foo.as_of(foo.ts[2]).includes(:bars).first.bars).to eq [bar] }
+
+      it { expect(Foo.as_of(bar.ts[0]).includes(:bars).first.bars.first.name).to eq 'bar' }
+      it { expect(Foo.as_of(bar.ts[1]).includes(:bars).first.bars.first.name).to eq 'foo bar' }
+      it { expect(Foo.as_of(bar.ts[2]).includes(:bars).first.bars.first.name).to eq 'bar bar' }
+      it { expect(Foo.as_of(bar.ts[3]).includes(:bars).first.bars.first.name).to eq 'new bar' }
+
+
+      it { expect(Bar.as_of(bar.ts[0]).includes(:foo).first.foo).to eq foo }
+      it { expect(Bar.as_of(bar.ts[1]).includes(:foo).first.foo).to eq foo }
+      it { expect(Bar.as_of(bar.ts[2]).includes(:foo).first.foo).to eq foo }
+      it { expect(Bar.as_of(bar.ts[3]).includes(:foo).first.foo).to eq foo }
+
+      it { expect(Bar.as_of(bar.ts[0]).includes(:foo).first.foo.name).to eq 'foo bar' }
+      it { expect(Bar.as_of(bar.ts[1]).includes(:foo).first.foo.name).to eq 'foo bar' }
+      it { expect(Bar.as_of(bar.ts[2]).includes(:foo).first.foo.name).to eq 'new foo' }
+      it { expect(Bar.as_of(bar.ts[3]).includes(:foo).first.foo.name).to eq 'new foo' }
     end
 
     it 'doesn\'t raise RecordNotFound when no history records are found' do

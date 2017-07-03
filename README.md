@@ -302,8 +302,6 @@ offers many more indexing abilities and better performance than JSON.
    `db:structure:load`.
    Two helper tasks are also added, `db:data:dump` and `db:data:load`.
 
- * `.includes` is quirky when using `.as_of`.
-
  * The choice of using subqueries instead of [Common Table Expressions]
    [pg-ctes] was dictated by the fact that CTEs [currently act as an
    optimization fence][pg-cte-optimization-fence].
