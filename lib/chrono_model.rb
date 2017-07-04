@@ -14,11 +14,18 @@ if defined?(Rails)
   require 'chrono_model/railtie'
 end
 
-
 ActiveRecord::Associations::Association.instance_eval do
   prepend ChronoModel::Patches::Association
 end
 
 ActiveRecord::Relation.instance_eval do
   prepend ChronoModel::Patches::Relation
+end
+
+ActiveRecord::Associations::Preloader.instance_eval do
+  prepend ChronoModel::Patches::Preloader
+end
+
+ActiveRecord::Associations::Preloader::Association.instance_eval do
+  prepend ChronoModel::Patches::Preloader::Association
 end

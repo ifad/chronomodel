@@ -55,6 +55,52 @@ module ChronoModel
 
         end
       end
+
+      def build_preloader
+        ActiveRecord::Associations::Preloader.new(as_of_time: as_of_time)
+      end
+    end
+
+    # Patches ActiveRecord::Associations::Preloader to add support for
+    # temporal associations. This is tying itself to Rails internals
+    # and it is ugly :-(.
+    #
+    module Preloader
+      attr_reader :options
+
+      NULL_RELATION = ActiveRecord::Associations::Preloader::NULL_RELATION
+      AS_OF_PRELOAD_SCOPE = Struct.new(:as_of_time, *NULL_RELATION.members)
+
+      def initialize(options = {})
+        @options = options.freeze
+      end
+
+      def preload(records, associations, given_preload_scope = nil)
+        if (as_of_time = options[:as_of_time])
+          preload_scope = AS_OF_PRELOAD_SCOPE.new
+
+          preload_scope.as_of_time = as_of_time
+          given_preload_scope ||= NULL_RELATION
+
+          NULL_RELATION.members.each do |member|
+            preload_scope[member] = given_preload_scope[member]
+          end
+        end
+
+        super records, associations, preload_scope
+      end
+
+      module Association
+        def build_scope
+          scope = super
+
+          if preload_scope.respond_to?(:as_of_time)
+            scope = scope.as_of(preload_scope.as_of_time)
+          end
+
+          return scope
+        end
+      end
     end
 
     # Patches ActiveRecord::Associations::Association to add support for
