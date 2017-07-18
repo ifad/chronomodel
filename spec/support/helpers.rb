@@ -109,6 +109,7 @@ module ChronoTest::Helpers
           include ChronoModel::TimeMachine
 
           has_many :bars
+          has_many :sub_bars, :through => :bars
         end
 
         class ::Bar < ActiveRecord::Base
