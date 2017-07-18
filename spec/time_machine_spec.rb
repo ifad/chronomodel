@@ -16,10 +16,17 @@ describe ChronoModel::TimeMachine do
   bar = ts_eval { Bar.create! :name => 'bar', :foo => foo }
   ts_eval(bar) { update_attributes! :name => 'foo bar' }
 
+  #
+  subbar = ts_eval { SubBar.create! :name => 'sub-bar', :bar => bar }
+  ts_eval(subbar) { update_attributes! :name => 'bar sub-bar' }
+
   ts_eval(foo) { update_attributes! :name => 'new foo' }
 
   ts_eval(bar) { update_attributes! :name => 'bar bar' }
   ts_eval(bar) { update_attributes! :name => 'new bar' }
+
+  ts_eval(subbar) { update_attributes! :name => 'sub-bar sub-bar' }
+  ts_eval(subbar) { update_attributes! :name => 'new sub-bar' }
 
   #
   baz = Baz.create :name => 'baz', :bar => bar
@@ -143,6 +150,16 @@ describe ChronoModel::TimeMachine do
       it { expect(Foo.as_of(bar.ts[1]).includes(:bars).first.bars.first.name).to eq 'foo bar' }
       it { expect(Foo.as_of(bar.ts[2]).includes(:bars).first.bars.first.name).to eq 'bar bar' }
       it { expect(Foo.as_of(bar.ts[3]).includes(:bars).first.bars.first.name).to eq 'new bar' }
+
+
+      it { expect(Foo.as_of(foo.ts[0]).includes(bars: :sub_bars).first.bars).to eq [] }
+      it { expect(Foo.as_of(foo.ts[1]).includes(bars: :sub_bars).first.bars).to eq [] }
+      it { expect(Foo.as_of(foo.ts[2]).includes(bars: :sub_bars).first.bars).to eq [bar] }
+
+      it { expect(Foo.as_of(bar.ts[0]).includes(bars: :sub_bars).first.bars.first.name).to eq 'bar' }
+      it { expect(Foo.as_of(bar.ts[1]).includes(bars: :sub_bars).first.bars.first.name).to eq 'foo bar' }
+      it { expect(Foo.as_of(bar.ts[2]).includes(bars: :sub_bars).first.bars.first.name).to eq 'bar bar' }
+      it { expect(Foo.as_of(bar.ts[3]).includes(bars: :sub_bars).first.bars.first.name).to eq 'new bar' }
 
 
       it { expect(Bar.as_of(bar.ts[0]).includes(:foo).first.foo).to eq foo }
