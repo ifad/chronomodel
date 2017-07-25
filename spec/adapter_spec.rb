@@ -355,7 +355,7 @@ describe ChronoModel::Adapter do
 
     assert = proc do
       it { expect(subject & columns).to eq columns }
-      it { is_expected.to include(['id', 'integer']) }
+      it { is_expected.to include(['id', pk_type]) }
     end
 
     with_temporal_table(&assert)
