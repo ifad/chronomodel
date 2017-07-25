@@ -39,7 +39,7 @@ module ChronoTest::Helpers
       end
 
       def self.pk_type
-        @pk_type ||= if ActiveRecord::VERSION::MAJOR == 5 && ActiveRecord::VERSION::MINOR >=1
+        @pk_type ||= if ActiveRecord::VERSION::MAJOR == 5 && ActiveRecord::VERSION::MINOR >= 1
           'bigint'
         else
           'integer'
