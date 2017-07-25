@@ -443,7 +443,7 @@ module ChronoModel
         # there is no way to know which path will be restored when the
         # transaction ends.
         #
-        if @connection.transaction_status == PGconn::PQTRANS_INERROR
+        if @connection.transaction_status == PG::Connection::PQTRANS_INERROR
           @schema_search_path = nil
         else
           self.schema_search_path = old_path
