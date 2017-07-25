@@ -5,7 +5,7 @@ module ChronoTest::Helpers
       base.extend DSL
       base.instance_eval do
         delegate :adapter, :to => ChronoTest
-        delegate :columns, :table, :to => DSL
+        delegate :columns, :table, :pk_type, :to => DSL
       end
     end
 
@@ -37,7 +37,15 @@ module ChronoTest::Helpers
         @columns = block.call if block
         @columns
       end
-      delegate :columns, :table, :to => self
+
+      def self.pk_type
+        @pk_type ||= if ActiveRecord::VERSION::MAJOR == 5 && ActiveRecord::VERSION::MINOR >= 1
+          'bigint'
+        else
+          'integer'
+        end
+      end
+      delegate :columns, :table, :pk_type, :to => self
     end
   end
 
