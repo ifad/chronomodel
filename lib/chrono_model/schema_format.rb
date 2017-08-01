@@ -17,6 +17,8 @@ end
 # PG utilities
 #
 module PG
+  SQL_COMMENT_BEGIN = "--".freeze
+
   extend self
 
   def config!
@@ -30,6 +32,7 @@ module PG
 
   def make_dump(target, username, database, *options)
     exec 'pg_dump', '-f', target, '-U', username, '-d', database, *options
+    remove_sql_header_comments(target)
   end
 
   def load_dump(source, username, database, *options)
@@ -74,6 +77,22 @@ module PG
 
   def logger
     ActiveRecord::Base.logger
+  end
+
+  private
+
+  def remove_sql_header_comments(filename)
+    tempfile = Tempfile.open("uncommented_structure.sql")
+    begin
+      File.foreach(filename) do |line|
+        unless line.start_with?(SQL_COMMENT_BEGIN)
+          tempfile << line
+        end
+      end
+    ensure
+      tempfile.close
+    end
+    FileUtils.mv(tempfile.path, filename)
   end
 
 end
