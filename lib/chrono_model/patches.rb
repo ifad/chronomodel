@@ -56,6 +56,8 @@ module ChronoModel
         end
       end
 
+      # Build a preloader at the +as_of_time+ of this relation
+      #
       def build_preloader
         ActiveRecord::Associations::Preloader.new(as_of_time: as_of_time)
       end
@@ -68,15 +70,60 @@ module ChronoModel
     module Preloader
       attr_reader :options
 
-      NULL_RELATION = ActiveRecord::Associations::Preloader::NULL_RELATION
-      AS_OF_PRELOAD_SCOPE = Struct.new(:as_of_time, *NULL_RELATION.members)
-
+      # We overwrite the initializer in order to pass the +as_of_time+
+      # parameter above in the build_preloader
+      #
       def initialize(options = {})
         @options = options.freeze
       end
 
+      # See +ActiveRecord::Associations::Preloader::NULL_RELATION+
+      NULL_RELATION = ActiveRecord::Associations::Preloader::NULL_RELATION
+
+      # Extension of +NULL_RELATION+ adding an +as_of_time+ property. See
+      # +preload+.
+      AS_OF_PRELOAD_SCOPE = Struct.new(:as_of_time, *NULL_RELATION.members)
+
+      # Patches the AR Preloader (lib/active_record/associations/preloader.rb)
+      # in order to carry around the +as_of_time+ of the original invocation.
+      #
+      # * The +records+ are the parent records where the association is defined
+      # * The +associations+ are the association names involved in preloading
+      # * The +given_preload_scope+ is the preloading scope, that is used only
+      # in the :through association and it holds the intermediate records
+      # _through_ which the final associated records are eventually fetched.
+      #
+      # As the +preload_scope+ is passed around to all the different
+      # incarnations of the preloader strategies, we are using it to pass
+      # around the +as_of_time+ of the original query invocation, so that
+      # preloaded records are preloaded honoring the +as_of_time+.
+      #
+      # The +preload_scope+ is not nil only for through associations, but the
+      # preloader interfaces expect it to be always defined, for consistency.
+      # So, AR defines a +NULL_RELATION+ constant to pass around for the
+      # association types that do not have a preload_scope. It quacks like a
+      # Relation, and it contains only the methods that are used by the other
+      # preloader methods. We extend AR's +NULL_RELATION+ with an `as_of_time`
+      # property.
+      #
+      # For `:through` associations, the +given_preload_scope+ is already a
+      # +Relation+, that already has the +as_of_time+ getters and setters,
+      # so we use them here.
+      #
       def preload(records, associations, given_preload_scope = nil)
         if (as_of_time = options[:as_of_time])
+          preload_scope = if given_preload_scope.respond_to?(:as_of_time!)
+            given_preload_scope.as_of_time!(as_of_time)
+          else
+            null_relation_preload_scope(as_of_time, given_preload_scope)
+          end
+        end
+
+        super records, associations, preload_scope
+      end
+
+      private
+        def null_relation_preload_scope(as_of_time, given_preload_scope)
           preload_scope = AS_OF_PRELOAD_SCOPE.new
 
           preload_scope.as_of_time = as_of_time
@@ -85,12 +132,15 @@ module ChronoModel
           NULL_RELATION.members.each do |member|
             preload_scope[member] = given_preload_scope[member]
           end
+
+          return preload_scope
         end
 
-        super records, associations, preload_scope
-      end
-
       module Association
+        # Builds the preloader scope taking into account a potential
+        # +as_of_time+ set above in +Preloader#preload+ and coming from the
+        # user's query invocation.
+        #
         def build_scope
           scope = super
 

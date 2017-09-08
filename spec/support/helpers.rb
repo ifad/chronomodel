@@ -74,6 +74,11 @@ module ChronoTest::Helpers
           t.references :foo
         end
 
+        adapter.create_table 'sub_bars' do |t|
+          t.string     :name
+          t.references :bar
+        end
+
         adapter.create_table 'bazs' do |t|
           t.string     :name
           t.references :bar
@@ -104,15 +109,25 @@ module ChronoTest::Helpers
           include ChronoModel::TimeMachine
 
           has_many :bars
+          has_many :sub_bars, :through => :bars
         end
 
         class ::Bar < ActiveRecord::Base
           include ChronoModel::TimeMachine
 
           belongs_to :foo
+          has_many :sub_bars
           has_one :baz
 
           has_timeline :with => :foo
+        end
+
+        class ::SubBar < ActiveRecord::Base
+          include ChronoModel::TimeGate
+
+          belongs_to :bar
+
+          has_timeline :with => :bar
         end
 
         class ::Baz < ActiveRecord::Base
