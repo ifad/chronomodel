@@ -44,6 +44,11 @@ module ChronoModel
         super.tap do |arel|
 
           arel.join_sources.each do |join|
+            # This case happens with nested includes, where the below
+            # code has already replaced the join.left with a SqlLiteral.
+            #
+            next unless join.left.respond_to?(:table_name)
+
             model = TimeMachine.chrono_models[join.left.table_name]
             next unless model
 
