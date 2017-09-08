@@ -74,7 +74,7 @@ module ChronoTest::Helpers
           t.references :foo
         end
 
-        adapter.create_table 'sub_bars' do |t|
+        adapter.create_table 'sub_bars', :temporal => true do |t|
           t.string     :name
           t.references :bar
         end
@@ -123,7 +123,7 @@ module ChronoTest::Helpers
         end
 
         class ::SubBar < ActiveRecord::Base
-          include ChronoModel::TimeGate
+          include ChronoModel::TimeMachine
 
           belongs_to :bar
 

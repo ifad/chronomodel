@@ -85,7 +85,8 @@ describe ChronoModel::TimeMachine do
       'foos'     => Foo::History,
       'defoos'   => Defoo::History,
       'bars'     => Bar::History,
-      'elements' => Element::History
+      'elements' => Element::History,
+      'sub_bars' => SubBar::History,
     ) }
   end
 
@@ -183,6 +184,9 @@ describe ChronoModel::TimeMachine do
       it { expect(Bar.as_of(bar.ts[2]).includes(foo: :sub_bars).first.foo.name).to eq 'new foo' }
       it { expect(Bar.as_of(bar.ts[3]).includes(foo: :sub_bars).first.foo.name).to eq 'new foo' }
 
+      it { expect(Foo.as_of(foo.ts[0]).includes(bars: :sub_bars).first.sub_bars.count).to eq 0 }
+      it { expect(Foo.as_of(foo.ts[1]).includes(bars: :sub_bars).first.sub_bars.count).to eq 0 }
+      it { expect(Foo.as_of(foo.ts[2]).includes(bars: :sub_bars).first.sub_bars.count).to eq 1 }
     end
 
     it 'doesn\'t raise RecordNotFound when no history records are found' do
