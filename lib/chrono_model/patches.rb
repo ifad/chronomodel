@@ -77,6 +77,18 @@ module ChronoModel
 
       def preload(records, associations, given_preload_scope = nil)
         if (as_of_time = options[:as_of_time])
+          preload_scope = if given_preload_scope.respond_to?(:as_of_time!)
+            given_preload_scope.as_of_time!(as_of_time)
+          else
+            null_relation_preload_scope(as_of_time, given_preload_scope)
+          end
+        end
+
+        super records, associations, preload_scope
+      end
+
+      private
+        def null_relation_preload_scope(as_of_time, given_preload_scope)
           preload_scope = AS_OF_PRELOAD_SCOPE.new
 
           preload_scope.as_of_time = as_of_time
@@ -85,10 +97,9 @@ module ChronoModel
           NULL_RELATION.members.each do |member|
             preload_scope[member] = given_preload_scope[member]
           end
-        end
 
-        super records, associations, preload_scope
-      end
+          return preload_scope
+        end
 
       module Association
         def build_scope
