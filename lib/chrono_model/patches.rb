@@ -23,6 +23,33 @@ module ChronoModel
       end
     end
 
+    # This class supports the AR 4.2 code that expects to receive an
+    # Arel::Table as the left join node. We need to replace the node
+    # with a virtual table that fetches from the history at a given
+    # point in time, we replace the join node with a SqlLiteral node
+    # that does not respond to the methods that AR expects.
+    #
+    # This class provides AR with an object implementing the methods
+    # it expects, yet producing SQL that fetches from history tables
+    # as-of-time.
+    #
+    class JoinNode < Arel::Nodes::SqlLiteral
+      attr_reader :name, :table_name, :table_alias, :as_of_time
+
+      def initialize(join_node, history_model, as_of_time)
+        @name        = join_node.table_name
+        @table_name  = join_node.table_name
+        @table_alias = join_node.table_alias
+
+        @as_of_time  = as_of_time
+
+        virtual_table = history_model.
+          virtual_table_at(@as_of_time, @table_alias || @table_name)
+
+        super(virtual_table)
+      end
+    end
+
     module Relation
       include AsOfTimeHolder
 
@@ -45,17 +72,14 @@ module ChronoModel
 
           arel.join_sources.each do |join|
             # This case happens with nested includes, where the below
-            # code has already replaced the join.left with a SqlLiteral.
+            # code has already replaced the join.left with a JoinNode.
             #
-            next unless join.left.respond_to?(:table_name)
+            next if join.left.respond_to?(:as_of_time)
 
             model = TimeMachine.chrono_models[join.left.table_name]
             next unless model
 
-            join.left = Arel::Nodes::SqlLiteral.new(
-              model.history.virtual_table_at(@_as_of_time,
-                join.left.table_alias || join.left.table_name)
-            )
+            join.left = JoinNode.new(join.left, model.history, @_as_of_time)
           end
 
         end
@@ -185,27 +209,15 @@ module ChronoModel
           scope = scope.from(klass.history.virtual_table_at(owner.as_of_time))
         elsif respond_to?(:through_reflection) && through_reflection.klass.chrono?
 
-          # For through associations, replace the joined table name instead.
+          # For through associations, replace the joined table name instead
+          # with a virtual table that selects records from the history at
+          # the given +as_of_time+.
           #
           scope.join_sources.each do |join|
             if join.left.name == through_reflection.klass.table_name
-              v_table = through_reflection.klass.history.virtual_table_at(
-                owner.as_of_time, join.left.table_alias || join.left.table_name)
+              history_model = through_reflection.klass.history
 
-              # avoid problems in Rails when code down the line expects the
-              # join.left to respond to the following methods. we modify
-              # the instance of SqlLiteral to do just that.
-              table_name  = join.left.table_name
-              table_alias = join.left.table_alias
-              join.left   = Arel::Nodes::SqlLiteral.new(v_table)
-
-              class << join.left
-                attr_accessor :name, :table_name, :table_alias
-              end
-
-              join.left.name        = table_name
-              join.left.table_name  = table_name
-              join.left.table_alias = table_alias
+              join.left = JoinNode.new(join.left, history_model, owner.as_of_time)
             end
           end
         end
