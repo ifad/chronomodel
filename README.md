@@ -319,6 +319,12 @@ offers many more indexing abilities and better performance than JSON.
  4. Push to the branch (`git push origin my-new-feature`)
  5. Create new Pull Request
 
+## Testing
+
+1. Run `bundle install`
+2. Run `cp spec/database.yml.example spec/database.yml`
+3. Adjust `spec/database.yml` to your needs
+4. Run `bundle exec rspec`
 
 ## Special mention
 
