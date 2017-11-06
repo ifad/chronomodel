@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 describe 'rake tasks' do
-  before { FileUtils.cp_r(Dir.glob("#{dummy_app_directory}/*"), aruba_working_directory) }
+  before { copy_dummy_app_into_aruba_working_directory }
 
   describe 'rake -T', type: :aruba do
     before { run_simple('rake -T') }
