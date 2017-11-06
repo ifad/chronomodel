@@ -27,6 +27,7 @@ addons:
 
 before_script:
   - psql -c "CREATE DATABASE chronomodel;" -U postgres
+  - bundle exec rake dummy:create
 
 script:
   - bundle exec rake TEST_CONFIG=./spec/config.travis.yml
