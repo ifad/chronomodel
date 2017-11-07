@@ -7,6 +7,17 @@ RSpec::Core::RakeTask.new
 task :default => :spec
 
 
+# Source: https://stackoverflow.com/a/3273394/2069431
+def find_and_replace(dir)
+  Dir.glob(dir + '/*.rb').each do |name|
+    new_content = File.read(name)
+      .gsub('mount DummyEngine::Engine => "/dummy_engine"', '')
+      .gsub('dummy_engine', 'chrono_model')
+    File.write(name, new_content)
+  end
+  Dir.glob(dir + '/*/').each(&method(:find_and_replace))
+end
+
 namespace :dummy do
   desc 'Create a dummy rails application for testing in /tmp'
   task :create do
@@ -21,12 +32,9 @@ namespace :dummy do
       # Now require 'chrono_model' instead of 'dummy_engine'.
       # We can't do this just by creating a rails plugin called 'chrono_model'.
       # Rails would complain because of an existing constant 'ChronoModel'.
-      application_config_path = 'dummy_engine/test/dummy/config/application.rb'
-      content = File.read(application_config_path)
-      File.open(application_config_path, "w") do |f|
-        f.write(content.gsub('dummy_engine', 'chrono_model'))
-      end
+      find_and_replace('dummy_engine/test/dummy')
 
     end
+    FileUtils.cp('database.yml', 'tmp/dummy_engine/test/dummy/config/')
   end
 end

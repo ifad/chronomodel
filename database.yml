@@ -1,0 +1,9 @@
+default: &default
+  adapter: chronomodel
+  encoding: unicode
+  pool: 20
+
+development:
+  <<: *default
+  database: chronomodel
+
