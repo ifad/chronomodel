@@ -15,7 +15,7 @@ namespace :dummy do
       FileUtils.rm_rf('railsapp')
       sh 'rails new railsapp --skip-bundle'
     end
-    FileUtils.cp_r('overwrite/.', 'tmp/railsapp/')
+    FileUtils.cp_r('spec/aruba/fixtures/railsapp/.', 'tmp/railsapp/')
     FileUtils.rm('tmp/railsapp/Gemfile')
   end
 end
