@@ -21,6 +21,18 @@ describe 'rake tasks', type: :aruba do
       context 'with default username and password', issue: 55 do
         let(:database_yml) { 'fixtures/database_with_default_username_and_password.yml' }
 
+        # Handle Homebrew on MacOS, whose database superuser name is
+        # equal to the name of the current user.
+        #
+        before do
+          if which 'brew'
+            database_config = read('config/database.yml').join("\n").
+              sub('username: postgres', "username: #{Etc.getlogin}")
+
+            write_file 'config/database.yml', database_config
+          end
+        end
+
         specify { subject }
       end
 
