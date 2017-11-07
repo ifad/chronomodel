@@ -1,0 +1,14 @@
+default: &default
+  username: postgres
+  password: ""
+  adapter: chronomodel
+  encoding: unicode
+  pool: 20
+  database: chronomodel_railsapp
+
+development:
+  <<: *default
+
+test:
+  <<: *default
+
