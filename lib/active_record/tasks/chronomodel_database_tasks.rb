@@ -24,21 +24,24 @@ module ActiveRecord
 
       private
 
-      def remove_sql_header_comments(filename)
-        sql_comment_begin = '--'
-        removing_comments = true
-        tempfile = Tempfile.open("uncommented_structure.sql")
-        begin
-          File.foreach(filename) do |line|
-            unless removing_comments && (line.start_with?(sql_comment_begin) || line.blank?)
-              tempfile << line
-              removing_comments = false
+
+      unless method_defined? :remove_sql_header_comments
+        def remove_sql_header_comments(filename)
+          sql_comment_begin = '--'
+          removing_comments = true
+          tempfile = Tempfile.open("uncommented_structure.sql")
+          begin
+            File.foreach(filename) do |line|
+              unless removing_comments && (line.start_with?(sql_comment_begin) || line.blank?)
+                tempfile << line
+                removing_comments = false
+              end
             end
+          ensure
+            tempfile.close
           end
-        ensure
-          tempfile.close
+          FileUtils.mv(tempfile.path, filename)
         end
-        FileUtils.mv(tempfile.path, filename)
       end
 
     end
