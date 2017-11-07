@@ -16,7 +16,7 @@ module ChronoTest
       unless File.file?(Pathname.new(dummy_app_directory).join('Rakefile'))
         raise %q(
           The dummy application does not exist
-          Run `bundle exec rake dummy:create`
+          Run `bundle exec rake testapp:create`
         )
       end
       FileUtils.rm_rf(Dir.glob("#{aruba_working_directory}/*"))
