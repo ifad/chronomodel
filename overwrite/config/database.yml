@@ -5,5 +5,5 @@ default: &default
 
 development:
   <<: *default
-  database: chronomodel
+  database: chronomodel_railsapp
 
