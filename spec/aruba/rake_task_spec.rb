@@ -7,17 +7,21 @@ describe 'rake tasks', type: :aruba do
     it { is_expected.to have_output(/db:structure:load/) }
   end
 
+  describe 'db:structure:load' do
+    let(:action) { run('bundle exec rails db:structure:load') }
+    let(:last_command) { action && last_command_started }
 
-  context 'given a file db/structure.sql' do
-    let(:content) { File.read(File.expand_path('migrations/structure.sql', __dir__)) }
-    before { write_file('db/structure.sql', content) }
+    context 'given a file db/structure.sql' do
+      let(:structure_sql) { File.read(File.expand_path('fixtures/empty_structure.sql', __dir__)) }
+      before { write_file('db/structure.sql', structure_sql) }
 
-    describe 'db:structure:load' do
-      before { run_simple('bundle exec rake db:structure:load') }
-      subject { last_command_started }
+      specify { expect(last_command).to be_successfully_executed }
 
-      it { is_expected.to be_successfully_executed }
-      it { is_expected.to have_output /exit 0/ }
+      context 'without a specified username and password', issue: 55 do
+        let(:database_yml) { File.read(File.expand_path('fixtures/database_without_username_and_password.yml', __dir__)) }
+        before { write_file('config/database.yml', database_yml) }
+        specify { expect(last_command).to be_successfully_executed }
+      end
     end
   end
 end

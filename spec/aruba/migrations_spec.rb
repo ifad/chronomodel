@@ -5,10 +5,18 @@ describe 'database migrations' do
     before { run_simple('bundle exec rails g migration CreateModels name:string') }
 
     describe 'bundle exec rails db:migrate', type: :aruba do
-      before { run('bundle exec rails db:migrate') }
-      subject { last_command_started }
-      it { is_expected.to be_successfully_executed }
-      it { is_expected.to have_output /CreateModels: migrated/ }
+      let(:action) { run('bundle exec rails db:migrate') }
+      let(:last_command) { action && last_command_started }
+
+      specify { expect(last_command).to be_successfully_executed }
+      specify { expect(last_command).to have_output /CreateModels: migrated/ }
+
+      context 'without a specified username and password', issue: 55 do
+        let(:content) { File.read(File.expand_path('fixtures/database_without_username_and_password.yml', __dir__)) }
+        before { write_file('config/database.yml', content) }
+        specify { expect(last_command).to be_successfully_executed }
+        specify { expect(last_command).to have_output /CreateModels: migrated/ }
+      end
     end
   end
 end
