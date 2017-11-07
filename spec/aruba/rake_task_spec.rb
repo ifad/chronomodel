@@ -8,7 +8,7 @@ describe 'rake tasks', type: :aruba do
   end
 
   describe 'db:structure:load' do
-    let(:action) { run('bundle exec rails db:structure:load') }
+    let(:action) { run('bundle exec rake db:structure:load') }
     let(:last_command) { action && last_command_started }
 
     context 'given a file db/structure.sql' do

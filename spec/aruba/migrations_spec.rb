@@ -4,8 +4,8 @@ describe 'database migrations' do
   context 'after a migration was generated' do
     before { run_simple('bundle exec rails g migration CreateModels name:string') }
 
-    describe 'bundle exec rails db:migrate', type: :aruba do
-      let(:action) { run('bundle exec rails db:migrate') }
+    describe 'bundle exec rake db:migrate', type: :aruba do
+      let(:action) { run('bundle exec rake db:migrate') }
       let(:last_command) { action && last_command_started }
 
       specify { expect(last_command).to be_successfully_executed }
