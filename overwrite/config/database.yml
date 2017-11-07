@@ -1,6 +1,6 @@
 default: &default
-  username: chronomodel
-  password: chronomodel
+  username: postgres
+  password: ""
   adapter: chronomodel
   encoding: unicode
   pool: 20
