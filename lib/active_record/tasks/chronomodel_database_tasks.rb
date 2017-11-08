@@ -21,6 +21,23 @@ module ActiveRecord
         remove_sql_header_comments(filename)
       end
 
+      def data_dump(target)
+        set_psql_env
+
+        args = ['-c', '-f', target]
+        args << configuration['database']
+
+        run_cmd "pg_dump", args, 'dumping data'
+      end
+
+      def data_load(source)
+        set_psql_env
+
+        args = ['-f', source]
+        args << configuration['database']
+
+        run_cmd "psql", args, 'loading data'
+      end
 
       private
 

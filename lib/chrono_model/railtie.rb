@@ -8,7 +8,11 @@ module ChronoModel
         raise 'In order to use ChronoModel, config.active_record.schema_format must be :sql!'
       end
 
-      ActiveRecord::Tasks::DatabaseTasks.register_task /chronomodel/, ActiveRecord::Tasks::ChronomodelDatabaseTasks
+      tasks_class = ActiveRecord::Tasks::ChronomodelDatabaseTasks
+
+      # Register our database tasks under our adapter name
+      #
+      ActiveRecord::Tasks::DatabaseTasks.register_task(/chronomodel/, tasks_class)
 
       # Make schema:dump and schema:load invoke structure:dump and structure:load
       Rake::Task['db:schema:dump'].clear.enhance(['environment']) do
@@ -17,6 +21,23 @@ module ChronoModel
 
       Rake::Task['db:schema:load'].clear.enhance(['environment']) do
         Rake::Task['db:structure:load'].invoke
+      end
+
+      desc "Dumps database into db/data.NOW.sql or file specified via DUMP="
+      task 'db:data:dump' => :environment do
+        config = ActiveRecord::Tasks::DatabaseTasks.current_config
+        target = ENV['DUMP'] || Rails.root.join('db', "data.#{Time.now.to_f}.sql")
+
+        tasks_class.new(config).data_dump(target)
+      end
+
+      desc "Loads database dump from file specified via DUMP="
+      task 'db:data:load' => :environment do
+        config = ActiveRecord::Tasks::DatabaseTasks.current_config
+        source = ENV['DUMP'].presence or
+          raise ArgumentError, "Invoke as rake db:data:load DUMP=/path/to/data.sql"
+
+        tasks_class.new(config).data_load(source)
       end
     end
 

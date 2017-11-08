@@ -43,4 +43,26 @@ describe 'rake tasks', type: :aruba do
       end
     end
   end
+
+  describe 'db:data:dump' do
+    let(:database_yml) { 'fixtures/database_without_username_and_password.yml' }
+    before { write_file('config/database.yml', File.read(File.expand_path(database_yml, __dir__))) }
+
+    before { run_simple('bundle exec rake db:data:dump DUMP=db/test.sql') }
+
+    it { expect(last_command_started).to be_successfully_executed }
+    it { expect('db/test.sql').to be_an_existing_file }
+  end
+
+  describe 'db:data:load' do
+    let(:database_yml) { 'fixtures/database_without_username_and_password.yml' }
+    before { write_file('config/database.yml', File.read(File.expand_path(database_yml, __dir__))) }
+
+    let(:structure_sql) { 'fixtures/empty_structure.sql' }
+    before { write_file('db/test.sql', File.read(File.expand_path(structure_sql, __dir__))) }
+
+    before { run_simple('bundle exec rake db:data:load DUMP=db/test.sql') }
+
+    it { expect(last_command_started).to be_successfully_executed }
+  end
 end
