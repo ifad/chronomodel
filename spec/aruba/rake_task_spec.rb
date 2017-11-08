@@ -1,9 +1,13 @@
 require 'spec_helper'
 
+# add :announce_stdout, :announce_stderr, before the type: aruba tag in order
+# to see the commmands' stdout and stderr output.
+#
 describe 'rake tasks', type: :aruba do
   describe 'bundle exec rake -T' do
     before { run_simple('bundle exec rake -T') }
     subject { last_command_started }
+
     it { is_expected.to have_output(/db:structure:load/) }
   end
 
