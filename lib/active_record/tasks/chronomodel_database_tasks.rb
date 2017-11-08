@@ -8,6 +8,12 @@ module ActiveRecord
           super(*arguments)
         end
 
+        # The structure.sql includes CREATE SCHEMA statements, but as these are executed
+        # when the connection to the database is established, a db:structure:load fails.
+        #
+        # This code adds the IF NOT EXISTS clause to CREATE SCHEMA statements as long as
+        # it is not already present.
+        #
         filename = arguments.first
         sql = File.read(filename).gsub(/CREATE SCHEMA (?!IF NOT EXISTS)/, '\&IF NOT EXISTS ')
         File.open(filename, 'w') { |file| file << sql }
