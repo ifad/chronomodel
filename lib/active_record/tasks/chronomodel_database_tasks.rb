@@ -3,6 +3,27 @@ module ActiveRecord
     class ChronomodelDatabaseTasks < PostgreSQLDatabaseTasks
 
       def structure_dump(*arguments)
+
+        with_chronomodel_schema_search_path do
+          super(*arguments)
+        end
+
+        filename = arguments.first
+        sql = File.read(filename).gsub(/CREATE SCHEMA (?!IF NOT EXISTS)/, '\&IF NOT EXISTS ')
+        File.open(filename, 'w') { |file| file << sql }
+
+        remove_sql_header_comments(filename)
+      end
+
+
+      private
+
+      # If a schema search path is defined in the configuration file, it will
+      # be used by the database tasks class to dump only the specified search
+      # path. Here we add also ChronoModel's temporal and history schemas to
+      # the search path and yield.
+      #
+      def with_chronomodel_schema_search_path
         original_schema_search_path = configuration['schema_search_path']
 
         if original_schema_search_path.present?
@@ -12,18 +33,11 @@ module ActiveRecord
           ]).join(',')
         end
 
-        super(*arguments)
+        yield
 
-        filename = arguments.first
-        sql = File.read(filename).gsub(/CREATE SCHEMA (?!IF NOT EXISTS)/, '\&IF NOT EXISTS ')
-        File.open(filename, 'w') { |file| file << sql }
-        remove_sql_header_comments(filename)
-
+      ensure
         configuration['schema_search_path'] = original_schema_search_path
       end
-
-      private
-
 
       unless method_defined? :remove_sql_header_comments
         def remove_sql_header_comments(filename)
