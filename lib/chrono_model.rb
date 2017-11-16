@@ -67,3 +67,9 @@ end
 ActiveRecord::Associations::Preloader::Association.instance_eval do
   prepend ChronoModel::Patches::Preloader::Association
 end
+
+if defined?(Rails::DBConsole)
+  Rails::DBConsole.instance_eval do
+    prepend ChronoModel::Patches::DBConsole
+  end
+end
