@@ -19,6 +19,8 @@ Gem::Specification.new do |gem|
   gem.add_dependency "pg"
   gem.add_dependency "multi_json"
 
+  gem.add_development_dependency 'rails'
+  gem.add_development_dependency 'aruba'
   gem.add_development_dependency 'pry'
   gem.add_development_dependency 'hirb'
   gem.add_development_dependency 'byebug'
