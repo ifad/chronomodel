@@ -30,10 +30,9 @@ describe 'rake tasks', type: :aruba do
         #
         before do
           if which 'brew'
-            database_config = read('config/database.yml').join("\n").
-              sub('username: postgres', "username: #{Etc.getlogin}")
-
-            write_file 'config/database.yml', database_config
+            file_mangle!('config/database.yml') do |contents|
+              contents.sub('username: postgres', "username: #{Etc.getlogin}")
+            end
           end
         end
 
