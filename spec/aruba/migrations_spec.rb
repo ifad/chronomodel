@@ -30,6 +30,20 @@ describe 'database migrations', type: :aruba do
       )
     end
 
+    before do
+      # Alter migrations and remove the version specifier for Rails < 5.0
+      #
+      if gem_version('rails') < Gem::Version.new('5.0')
+        Dir['spec/aruba/fixtures/migrations/56/*rb'].each do |migration|
+          migration = File.basename(migration)
+
+          file_mangle! "db/migrate/#{migration}" do |contents|
+            contents.sub(/::Migration\[\d\.\d\]/, '::Migration')
+          end
+        end
+      end
+    end
+
     let(:action) { run(command) }
     let(:regex) { /-- change_table\(:impressions, {:temporal=>true, :copy_data=>true}\)/ }
 
