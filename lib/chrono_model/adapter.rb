@@ -46,8 +46,6 @@ module ChronoModel
         _on_history_schema { chrono_create_history_for(table_name) }
 
         chrono_create_view_for(table_name, options)
-
-        TableCache.add! table_name
       end
     end
 
@@ -115,9 +113,6 @@ module ChronoModel
         # Create view and functions
         #
         chrono_create_view_for(new_name)
-
-        TableCache.del! name
-        TableCache.add! new_name
       end
     end
 
@@ -147,8 +142,6 @@ module ChronoModel
             _on_history_schema { chrono_create_history_for(table_name) }
             chrono_create_view_for(table_name, options)
             copy_indexes_to_history_for(table_name)
-
-            TableCache.add! table_name
 
             # Optionally copy the plain table data, setting up history
             # retroactively.
@@ -191,8 +184,6 @@ module ChronoModel
 
               execute "ALTER TABLE #{table_name} SET SCHEMA #{default_schema}"
             end
-
-            TableCache.del! table_name
           end
 
           super table_name, options, &block
@@ -207,8 +198,6 @@ module ChronoModel
       return super unless is_chrono?(table_name)
 
       _on_temporal_schema { execute "DROP TABLE #{table_name} CASCADE" }
-
-      TableCache.del! table_name
     end
 
     # If adding an index to a temporal table, add it to the one in the
@@ -452,20 +441,11 @@ module ChronoModel
       @_on_schema_nesting -= 1
     end
 
-    TableCache = (Class.new(Hash) do
-      def all         ; keys;                      ; end
-      def add!  table ; self[table.to_s] = true    ; end
-      def del!  table ; self[table.to_s] = nil     ; end
-      def fetch table ; self[table.to_s] ||= yield ; end
-    end).new
-
     # Returns true if the given name references a temporal table.
     #
     def is_chrono?(table)
-      TableCache.fetch(table) do
-        _on_temporal_schema { chrono_data_source_exists?(table) } &&
+      _on_temporal_schema { chrono_data_source_exists?(table) } &&
         _on_history_schema { chrono_data_source_exists?(table) }
-      end
 
     rescue ActiveRecord::StatementInvalid => e
       # means that we could not change the search path to check for

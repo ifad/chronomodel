@@ -29,5 +29,21 @@ module ChronoTest
       connection.drop_database   database
       connection.create_database database
     end
+
+    def file_mangle!(file, &block)
+      # Read
+      file_contents = read(file).join("\n")
+
+      # Mangle
+      file_contents = block.call(file_contents)
+
+      # Write
+      write_file file, file_contents
+    end
+
+    def gem_version(name)
+      spec = Bundler.locked_gems.specs.find {|s| s.name == name }
+      return spec.version if spec
+    end
   end
 end
