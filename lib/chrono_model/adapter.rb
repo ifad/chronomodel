@@ -914,7 +914,7 @@ module ChronoModel
 
       def translate_exception(exception, message)
         if exception.message =~ /conflicting key value violates exclusion constraint/
-          ActiveRecord::RecordNotUnique.new(message, exception)
+          ActiveRecord::RecordNotUnique.new(message)
         else
           super
         end
