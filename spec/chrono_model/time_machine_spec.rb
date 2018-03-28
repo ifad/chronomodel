@@ -86,10 +86,12 @@ describe ChronoModel::TimeMachine do
     subject { ChronoModel.history_models }
 
     it { is_expected.to eq(
+      'articles' => Article::History,
       'foos'     => Foo::History,
       'defoos'   => Defoo::History,
       'bars'     => Bar::History,
       'elements' => Element::History,
+      'sections' => Section::History,
       'sub_bars' => SubBar::History,
     ) }
   end
