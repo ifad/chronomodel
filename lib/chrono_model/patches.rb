@@ -141,7 +141,7 @@ module ChronoModel
       # so we use it directly.
       #
       def preload(records, associations, given_preload_scope = nil)
-        if options.key?(:as_of_time)
+        if options[:as_of_time]
           preload_scope = given_preload_scope || NULL_RELATION.dup
           preload_scope.as_of_time!(options[:as_of_time])
         end
@@ -157,7 +157,7 @@ module ChronoModel
         def build_scope
           scope = super
 
-          if preload_scope.respond_to?(:as_of_time)
+          if preload_scope.respond_to?(:as_of_time) && preload_scope.as_of_time
             scope = scope.as_of(preload_scope.as_of_time)
           end
 
