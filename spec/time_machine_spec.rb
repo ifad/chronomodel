@@ -684,6 +684,13 @@ describe ChronoModel::TimeMachine do
     end
   end
 
+  describe '#preload' do
+    context 'as_of_time => nil'  do
+      subject { Foo.where(id: 42).preload(:translations) }
+      it { expect{ subject.to_a }.not_to raise_error } 
+    end
+  end
+
   # This group is below here to not to disturb the flow of the above specs.
   #
   context 'history modification' do
