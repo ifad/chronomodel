@@ -54,7 +54,7 @@ module ChronoModel
 
         extend TimeMachine::HistoryMethods
 
-        scope :chronological, -> { order(:recorded_at, :hid) }
+        scope :chronological, -> { order('lower(validity)') }
 
         # The history id is `hid`, but this cannot set as primary key
         # or temporal assocations will break. Solutions are welcome.
@@ -137,13 +137,13 @@ module ChronoModel
         # Returns the first history entry
         #
         def first
-          self.class.where(:id => rid).order('lower(validity)').first
+          self.class.where(:id => rid).chronological.first
         end
 
         # Returns the last history entry
         #
         def last
-          self.class.where(:id => rid).order('lower(validity)').last
+          self.class.where(:id => rid).chronological.last
         end
 
         # Returns this history entry's current record
@@ -270,7 +270,7 @@ module ChronoModel
         history.order('upper(validity) DESC').offset(1).first
       else
         return nil unless (ts = pred_timestamp(options))
-        self.class.as_of(ts).order(%[ #{options[:table] || self.class.quoted_table_name}."hid" DESC ]).find(options[:id] || id)
+        self.class.as_of(ts).order(%[ LOWER(#{options[:table] || self.class.quoted_table_name}."validity") DESC ]).find(options[:id] || id)
       end
     end
 
@@ -291,7 +291,7 @@ module ChronoModel
     def succ(options = {})
       unless self.class.timeline_associations.empty?
         return nil unless (ts = succ_timestamp(options))
-        self.class.as_of(ts).order(%[ #{options[:table] || self.class.quoted_table_name}."hid" DESC ]).find(options[:id] || id)
+        self.class.as_of(ts).order(%[ LOWER(#{options[:table] || self.class.quoted_table_name}."validity"_ DESC ]).find(options[:id] || id)
       end
     end
 
