@@ -198,6 +198,10 @@ module ChronoModel
       return super unless is_chrono?(table_name)
 
       _on_temporal_schema { execute "DROP TABLE #{table_name} CASCADE" }
+
+      %w( insert update delete ).each do |func|
+        execute "DROP FUNCTION IF EXISTS #{table_name}_#{func}()"
+      end
     end
 
     # If adding an index to a temporal table, add it to the one in the
