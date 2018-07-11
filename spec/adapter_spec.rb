@@ -9,6 +9,7 @@ shared_examples_for 'temporal table' do
   it { is_expected.to have_temporal_backing }
   it { is_expected.to have_history_backing }
   it { is_expected.to have_history_extra_columns }
+  it { is_expected.to have_history_functions }
   it { is_expected.to have_public_interface }
 
   it { is_expected.to have_columns(columns) }
@@ -23,6 +24,7 @@ shared_examples_for 'plain table' do
 
   it { is_expected.to_not have_temporal_backing }
   it { is_expected.to_not have_history_backing }
+  it { is_expected.to_not have_history_functions }
   it { is_expected.to_not have_public_interface }
 
   it { is_expected.to have_columns(columns) }
@@ -168,6 +170,7 @@ describe ChronoModel::Adapter do
     it { is_expected.to_not have_public_backing }
     it { is_expected.to_not have_temporal_backing }
     it { is_expected.to_not have_history_backing }
+    it { is_expected.to_not have_history_functions }
     it { is_expected.to_not have_public_interface }
   end
 

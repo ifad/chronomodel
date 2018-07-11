@@ -106,9 +106,7 @@ module ChronoModel
 
         # Drop functions
         #
-        %w( insert update delete ).each do |func|
-          execute "DROP FUNCTION chronomodel_#{name}_#{func}()"
-        end
+        chrono_drop_trigger_functions_for(name)
 
         # Create view and functions
         #
@@ -168,11 +166,7 @@ module ChronoModel
             #
             execute "DROP VIEW #{table_name}"
 
-            _on_temporal_schema do
-              %w( insert update delete ).each do |func|
-                execute "DROP FUNCTION IF EXISTS #{table_name}_#{func}() CASCADE"
-              end
-            end
+            chrono_drop_trigger_functions_for(table_name)
 
             _on_history_schema { execute "DROP TABLE #{table_name}" }
 
@@ -198,6 +192,8 @@ module ChronoModel
       return super unless is_chrono?(table_name)
 
       _on_temporal_schema { execute "DROP TABLE #{table_name} CASCADE" }
+
+      chrono_drop_trigger_functions_for(table_name)
     end
 
     # If adding an index to a temporal table, add it to the one in the
@@ -850,6 +846,12 @@ module ChronoModel
           CREATE TRIGGER chronomodel_delete INSTEAD OF DELETE ON #{table}
             FOR EACH ROW EXECUTE PROCEDURE chronomodel_#{table}_delete();
         SQL
+      end
+
+      def chrono_drop_trigger_functions_for(table_name)
+        %w( insert update delete ).each do |func|
+          execute "DROP FUNCTION IF EXISTS chronomodel_#{table_name}_#{func}()"
+        end
       end
 
       # In destructive changes, such as removing columns or changing column
