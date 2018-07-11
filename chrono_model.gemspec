@@ -15,7 +15,7 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
   gem.version       = ChronoModel::VERSION
 
-  gem.add_dependency 'activerecord', '>= 4.2.0', '< 5.3.0'
+  gem.add_dependency 'activerecord', '>= 4.2.0', '< 5.2.0'
   gem.add_dependency "pg"
   gem.add_dependency "multi_json"
 
