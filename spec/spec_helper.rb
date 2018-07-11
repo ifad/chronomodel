@@ -10,6 +10,7 @@ require 'support/matchers/schema'
 require 'support/matchers/table'
 require 'support/matchers/column'
 require 'support/matchers/index'
+require 'support/matchers/function'
 require 'support/aruba'
 
 # Rails 5 returns a True/FalseClass
