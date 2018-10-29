@@ -105,6 +105,10 @@ module ChronoModel
           def save!(*)
             self.class.with_hid_pkey { super }
           end
+
+          def update_columns(*)
+            self.class.with_hid_pkey { super }
+          end
         end
 
         # Returns the previous history entry, or nil if this
