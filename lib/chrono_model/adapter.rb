@@ -464,7 +464,17 @@ module ChronoModel
     def chrono_setup!
       chrono_create_schemas
 
-      chrono_upgrade_structure!
+      tables_to_upgrade = chrono_tables_needing_upgrade
+
+      if tables_to_upgrade.present?
+
+        if ENV['CHRONO_UPGRADE']
+          chrono_upgrade_structure!(tables_to_upgrade)
+        else
+          chrono_upgrade_warning(tables_to_upgrade)
+        end
+
+      end
     end
 
     # HACK: Redefine tsrange parsing support, as it is broken currently.
@@ -547,27 +557,56 @@ module ChronoModel
         end
       end
 
-      # Upgrades existing structure for each table, if required.
-      # TODO: allow upgrades from pre-0.6 structure with box() and stuff.
+      # Locate tables needing a structure upgrade
       #
-      def chrono_upgrade_structure!
+      def chrono_tables_needing_upgrade
+        tables = { }
+
+        _on_temporal_schema { self.tables }.each do |table_name|
+          next unless is_chrono?(table_name)
+          metadata = chrono_metadata_for(table_name)
+          version = metadata['chronomodel']
+
+          if version.blank?
+            tables[table_name] = { version: nil, priority: 'HIGH' }
+          elsif version != VERSION
+            tables[table_name] = { version: version, priority: 'LOW' }
+          end
+        end
+
+        return tables
+      end
+
+      # Emit a warning about tables needing an upgrade
+      #
+      def chrono_upgrade_warning(tables)
+        status = tables.map do |table, desc|
+          "#{table} - priority: #{desc[:priority]}"
+        end.join('; ')
+
+        logger.warn "ChronoModel: WARNING - there are tables needing a structure upgrade"
+        logger.warn "ChronoModel: Please run your app with the CHRONO_UPGRADE environment variable set to perform the upgrade"
+        logger.warn "ChronoModel: some features or even the whole library may not work correctly until the upgrade is complete"
+        logger.warn "ChronoModel: tables interested: #{status}"
+      end
+
+      # Upgrades existing structure for each table, if required.
+      #
+      def chrono_upgrade_structure!(tables)
         transaction do
-          current = VERSION
 
-          _on_temporal_schema { tables }.each do |table_name|
-            next unless is_chrono?(table_name)
-            metadata = chrono_metadata_for(table_name)
-            version = metadata['chronomodel']
+          tables.each do |table_name, desc|
 
-            if version.blank?
+            if desc[:version].blank?
+              logger.info "ChronoModel: Upgrading legacy table #{table_name} to #{VERSION}"
               upgrade_from_legacy(table_name)
+              logger.info "ChronoModel: legacy #{table_name} upgrade complete"
+            else
+              logger.info "ChronoModel: upgrading #{table_name} from #{version} to #{VERSION}"
+              chrono_create_view_for(table_name)
+              logger.info "ChronoModel: #{table_name} upgrade complete"
             end
 
-            next if version == current
-
-            logger.info "ChronoModel: upgrading #{table_name} from #{version} to #{current}"
-            chrono_create_view_for(table_name)
-            logger.info "ChronoModel: upgrade complete"
           end
         end
       rescue => e
