@@ -88,7 +88,8 @@ module ChronoModel
       # Build a preloader at the +as_of_time+ of this relation
       #
       def build_preloader
-        ActiveRecord::Associations::Preloader.new(as_of_time: as_of_time)
+        options = as_of_time ? {as_of_time: as_of_time} : {}
+        ActiveRecord::Associations::Preloader.new(options)
       end
     end
 
@@ -157,7 +158,7 @@ module ChronoModel
         def build_scope
           scope = super
 
-          if preload_scope.respond_to?(:as_of_time)
+          if preload_scope.respond_to?(:as_of_time) && preload_scope.as_of_time
             scope = scope.as_of(preload_scope.as_of_time)
           end
 

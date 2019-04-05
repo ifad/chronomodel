@@ -142,6 +142,10 @@ describe ChronoModel::TimeMachine do
       it { expect(bar.as_of(bar.ts[3]).foo.name).to eq 'new foo' }
     end
 
+    describe 'does not crash when includes() is used' do
+      it { expect(Foo.first.bars.includes(:sub_bars)).to eq [ bar ] }
+    end
+
     describe 'supports historical queries with includes()' do
       it { expect(Foo.as_of(foo.ts[0]).includes(:bars).first.bars).to eq [] }
       it { expect(Foo.as_of(foo.ts[1]).includes(:bars).first.bars).to eq [] }
