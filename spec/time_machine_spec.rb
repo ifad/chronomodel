@@ -29,6 +29,10 @@ describe ChronoModel::TimeMachine do
   ts_eval(subbar) { update_attributes! :name => 'new sub-bar' }
 
   #
+  foos = Array.new(2) {|i| ts_eval { Foo.create! :name => "foo #{i}" } }
+  bars = Array.new(2) {|i| ts_eval { Bar.create! :name => "bar #{i}", :foo => foos[i] } }
+
+  #
   baz = Baz.create :name => 'baz', :bar => bar
 
   # Specs start here
@@ -90,6 +94,28 @@ describe ChronoModel::TimeMachine do
     ) }
   end
 
+  describe 'does not interfere with AR standard behaviour' do
+    all_foos = [ foo ] + foos
+    all_bars = [ bar ] + bars
+
+    it { expect(Foo.count).to eq all_foos.size }
+    it { expect(Bar.count).to eq all_bars.size }
+
+    it { expect(Foo.includes(bars: :sub_bars)).to eq all_foos }
+    it { expect(Foo.includes(:bars).preload(bars: :sub_bars)).to eq all_foos }
+
+    it { expect(Foo.includes(:bars).first.name).to eq 'new foo' }
+    it { expect(Foo.includes(:bars).as_of(foo.ts[0]).first.name).to eq 'foo' }
+
+    it { expect(Foo.joins(:bars).map(&:bars).flatten).to eq all_bars }
+    it { expect(Foo.joins(:bars).first.bars.joins(:sub_bars).first.name).to eq 'new bar' }
+
+    it { expect(Foo.joins(bars: :sub_bars).first.bars.joins(:sub_bars).first.sub_bars.first.name).to eq 'new sub-bar' }
+
+    it { expect(Foo.first.bars.includes(:sub_bars)).to eq [ bar ] }
+
+  end
+
   describe '#as_of' do
     describe 'accepts a Time instance' do
       it { expect(foo.as_of(Time.now).name).to eq 'new foo' }
@@ -140,11 +166,6 @@ describe ChronoModel::TimeMachine do
       it { expect(bar.as_of(bar.ts[1]).foo.name).to eq 'foo bar' }
       it { expect(bar.as_of(bar.ts[2]).foo.name).to eq 'new foo' }
       it { expect(bar.as_of(bar.ts[3]).foo.name).to eq 'new foo' }
-    end
-
-    describe 'does not crash when includes() is used' do
-      it { expect(Foo.first.bars.includes(:sub_bars)).to eq [ bar ] }
-      it { expect(Foo.includes(:bars).as_of(foo.ts[0]).first.name).to eq 'foo' }
     end
 
     describe 'supports historical queries with includes()' do
@@ -269,7 +290,7 @@ describe ChronoModel::TimeMachine do
     end
 
     describe 'does not add as_of_time when there are aggregates' do
-      it { expect(foo.history.select('max(id)').to_sql).to_not match /as_of_time/ }
+      it { expect(foo.history.select('max(id)').to_sql).to_not match(/as_of_time/) }
 
       it { expect(foo.history.except(:order).select('max(id) as foo, min(id) as bar').group('id').first.attributes.keys).to eq %w( id foo bar ) }
     end
@@ -283,7 +304,7 @@ describe ChronoModel::TimeMachine do
 
     context '.sorted' do
       describe 'orders by recorded_at, hid' do
-        it { expect(foo.history.sorted.to_sql).to match /order by .+"recorded_at", .+"hid"/i }
+        it { expect(foo.history.sorted.to_sql).to match(/order by .+"recorded_at", .+"hid"/i) }
       end
     end
   end
@@ -421,7 +442,7 @@ describe ChronoModel::TimeMachine do
     split = lambda {|ts| ts.map!{|t| [t.to_i, t.usec]} }
 
     timestamps_from = lambda {|*records|
-      ts = records.map(&:history).flatten!.inject([]) {|ret, rec|
+      records.map(&:history).flatten!.inject([]) {|ret, rec|
         ret.push [rec.valid_from.to_i, rec.valid_from.usec] if rec.try(:valid_from)
         ret.push [rec.valid_to  .to_i, rec.valid_to  .usec] if rec.try(:valid_to)
         ret
@@ -575,11 +596,6 @@ describe ChronoModel::TimeMachine do
 
   # Class methods
   context do
-    foos = Array.new(2) {|i| ts_eval { Foo.create! :name => "foo #{i}" } }
-    bars = Array.new(2) {|i| ts_eval { Bar.create! :name => "bar #{i}", :foo => foos[i] } }
-
-    after(:all) { foos.each(&:destroy); bars.each(&:destroy) }
-
     describe '.as_of' do
       it { expect(Foo.as_of(1.month.ago)).to eq [] }
 
