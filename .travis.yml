@@ -30,7 +30,7 @@ before_script:
   - psql -c "CREATE DATABASE chronomodel_railsapp;" -U postgres
 
 script:
-  - bundle exec rake TEST_CONFIG=./spec/config.travis.yml
+  - bundle exec rake HAVE_PLPYTHON=1 TEST_CONFIG=./spec/config.travis.yml
 
 after_success:
   - bundle exec codeclimate-test-reporter
