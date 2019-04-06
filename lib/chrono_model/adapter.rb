@@ -35,8 +35,8 @@ module ChronoModel
       return super unless options[:temporal]
 
       if options[:id] == false
-        logger.warn "WARNING - Temporal Temporal tables require a primary key."
-        logger.warn "WARNING - Creating a \"__chrono_id\" primary key to fulfill the requirement"
+        logger.warn "ChronoModel: Temporal Temporal tables require a primary key."
+        logger.warn "ChronoModel: Adding a `__chrono_id' primary key to #{table_name} definition."
 
         options[:id] = '__chrono_id'
       end

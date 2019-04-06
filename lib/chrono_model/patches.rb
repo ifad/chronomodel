@@ -23,7 +23,7 @@ module ChronoModel
       end
     end
 
-    # This class supports the AR 4.2 code that expects to receive an
+    # This class supports the AR 5.0 code that expects to receive an
     # Arel::Table as the left join node. We need to replace the node
     # with a virtual table that fetches from the history at a given
     # point in time, we replace the join node with a SqlLiteral node

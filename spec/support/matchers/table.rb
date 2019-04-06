@@ -12,7 +12,7 @@ module ChronoTest::Matchers
           schema = options[:in]
           kind   = options[:kind] == :view ? 'v' : 'r'
 
-          select_value(<<-SQL, [ table, schema ], 'Check table exists') == AR_TRUE
+          select_value(<<-SQL, [ table, schema ], 'Check table exists') == true
             SELECT EXISTS (
               SELECT 1
                 FROM pg_class c
@@ -129,7 +129,7 @@ module ChronoTest::Matchers
         def inherits_from_temporal?
           binds = ["#{history_schema}.#{table}", "#{temporal_schema}.#{table}"]
 
-          @inheritance = select_value(<<-SQL, binds, 'Check inheritance') == AR_TRUE
+          @inheritance = select_value(<<-SQL, binds, 'Check inheritance') == true
             SELECT EXISTS (
               SELECT 1 FROM pg_catalog.pg_inherits
                WHERE inhrelid  = ?::regclass::oid
@@ -172,7 +172,7 @@ module ChronoTest::Matchers
             attname:      connection.primary_key(table)
           }
 
-          @constraint = select_value(<<-SQL, binds, 'Check Consistency Constraint') == AR_TRUE
+          @constraint = select_value(<<-SQL, binds, 'Check Consistency Constraint') == true
             SELECT EXISTS (
               SELECT 1 FROM pg_catalog.pg_constraint
               WHERE conname = :conname

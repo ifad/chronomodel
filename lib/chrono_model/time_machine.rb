@@ -9,8 +9,8 @@ module ChronoModel
 
     included do
       if table_exists? && !chrono?
-        puts "WARNING: #{table_name} is not a temporal table. " \
-          "Please use change_table :#{table_name}, :temporal => true"
+        puts  "ChronoModel: #{table_name} is not a temporal table. " \
+          "Please use `change_table :#{table_name}, temporal: true` in a migration."
       end
 
       history = TimeMachine.define_history_model_for(self)
@@ -85,30 +85,16 @@ module ChronoModel
           with_hid_pkey { super }
         end
 
-        if RUBY_VERSION.to_f < 2.0
-          # PLEASE UPDATE YOUR RUBY <3
-          #
-          def save_with_pkey(*)
-            self.class.with_hid_pkey { save_without_pkey }
-          end
+        def save(*)
+          self.class.with_hid_pkey { super }
+        end
 
-          def save_with_pkey!(*)
-            self.class.with_hid_pkey { save_without_pkey! }
-          end
+        def save!(*)
+          self.class.with_hid_pkey { super }
+        end
 
-          alias_method_chain :save, :pkey
-        else
-          def save(*)
-            self.class.with_hid_pkey { super }
-          end
-
-          def save!(*)
-            self.class.with_hid_pkey { super }
-          end
-
-          def update_columns(*)
-            self.class.with_hid_pkey { super }
-          end
+        def update_columns(*)
+          self.class.with_hid_pkey { super }
         end
 
         # Returns the previous history entry, or nil if this
@@ -284,9 +270,9 @@ module ChronoModel
     def pred_timestamp(options = {})
       if historical?
         options[:before] ||= as_of_time
-        timeline(options.merge(:limit => 1, :reverse => true)).first
+        timeline(options.merge(limit: 1, reverse: true)).first
       else
-        timeline(options.merge(:limit => 2, :reverse => true)).second
+        timeline(options.merge(limit: 2, reverse: true)).second
       end
     end
 
@@ -306,7 +292,7 @@ module ChronoModel
       return nil unless historical?
 
       options[:after] ||= as_of_time
-      timeline(options.merge(:limit => 1, :reverse => false)).first
+      timeline(options.merge(limit: 1, reverse: false)).first
     end
 
     # Returns the current history version

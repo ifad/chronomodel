@@ -17,11 +17,7 @@ module ActiveRecord
       conn_params[:dbname] = conn_params.delete(:database) if conn_params[:database]
 
       # Forward only valid config params to PG::Connection.connect.
-      valid_conn_param_keys = if ActiveRecord::VERSION::MAJOR == 4
-                                VALID_CONN_PARAMS
-                              else
-                                PG::Connection.conndefaults_hash.keys + [:requiressl]
-                              end
+      valid_conn_param_keys = PG::Connection.conndefaults_hash.keys + [:requiressl]
       conn_params.slice!(*valid_conn_param_keys)
 
       # The postgres drivers don't allow the creation of an unconnected PG::Connection object,

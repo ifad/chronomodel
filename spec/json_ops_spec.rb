@@ -14,11 +14,11 @@ describe 'JSON equality operator' do
     ChronoModel::Json.drop
   end
 
-  it { expect(adapter.select_value(%[ SELECT '{"a":1}'::json = '{"a":1}'::json ])).to eq AR_TRUE }
-  it { expect(adapter.select_value(%[ SELECT '{"a":1}'::json = '{"a" : 1}'::json ])).to eq AR_TRUE }
-  it { expect(adapter.select_value(%[ SELECT '{"a":1}'::json = '{"a":2}'::json ])).to eq AR_FALSE }
-  it { expect(adapter.select_value(%[ SELECT '{"a":1,"b":2}'::json = '{"b":2,"a":1}'::json ])).to eq AR_TRUE }
-  it { expect(adapter.select_value(%[ SELECT '{"a":1,"b":2,"x":{"c":4,"d":5}}'::json = '{"b":2, "x": { "d": 5, "c": 4}, "a":1}'::json ])).to eq AR_TRUE }
+  it { expect(adapter.select_value(%[ SELECT '{"a":1}'::json = '{"a":1}'::json ])).to eq true }
+  it { expect(adapter.select_value(%[ SELECT '{"a":1}'::json = '{"a" : 1}'::json ])).to eq true }
+  it { expect(adapter.select_value(%[ SELECT '{"a":1}'::json = '{"a":2}'::json ])).to eq false }
+  it { expect(adapter.select_value(%[ SELECT '{"a":1,"b":2}'::json = '{"b":2,"a":1}'::json ])).to eq true }
+  it { expect(adapter.select_value(%[ SELECT '{"a":1,"b":2,"x":{"c":4,"d":5}}'::json = '{"b":2, "x": { "d": 5, "c": 4}, "a":1}'::json ])).to eq true }
 
   context 'on a temporal table' do
     before :all do

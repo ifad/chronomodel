@@ -17,9 +17,6 @@ require 'support/aruba'
 
 puts "Testing against Active Record #{ActiveRecord::VERSION::STRING} with Arel #{Arel::VERSION}"
 
-# Rails 5 returns a True/FalseClass
-AR_TRUE, AR_FALSE  = ActiveRecord::VERSION::MAJOR == 4 ? ['t', 'f'] : [true, false]
-
 RSpec.configure do |config|
   config.include(ChronoTest::Matchers::Schema)
   config.include(ChronoTest::Matchers::Table)
