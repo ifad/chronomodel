@@ -6,8 +6,6 @@ module ChronoModel
     module AsOfTimeHolder
       # Sets the virtual 'as_of_time' attribute to the given time, converting to UTC.
       #
-      # See ChronoModel::Patches::AsOfTimeHolder
-      #
       def as_of_time!(time)
         @_as_of_time = time.utc
 
@@ -15,8 +13,6 @@ module ChronoModel
       end
 
       # Reads the virtual 'as_of_time' attribute
-      #
-      # See ChronoModel::Patches::AsOfTimeHolder
       #
       def as_of_time
         @_as_of_time
@@ -65,7 +61,7 @@ module ChronoModel
         super.as_of_time!(@_as_of_time)
       end
 
-      def build_arel
+      def build_arel(*)
         return super unless @_as_of_time
 
         super.tap do |arel|
@@ -85,11 +81,27 @@ module ChronoModel
         end
       end
 
-      # Build a preloader at the +as_of_time+ of this relation
+      # Build a preloader at the +as_of_time+ of this relation.
+      # Pass the current model to define Relation
       #
       def build_preloader
-        options = as_of_time ? {as_of_time: as_of_time} : {}
-        ActiveRecord::Associations::Preloader.new(options)
+        ActiveRecord::Associations::Preloader.new(
+          model: self.model, as_of_time: as_of_time
+        )
+      end
+    end
+
+    # This class is a dummy relation whose scope is only to pass around the
+    # as_of_time parameters across ActiveRecord call chains.
+    #
+    # With AR 5.2 a simple relation can be used, as the only required argument
+    # is the model. 5.0 and 5.1 require more arguments, that are passed here.
+    #
+    class AsOfTimeRelation < ActiveRecord::Relation
+      if ActiveRecord::VERSION::STRING.to_f < 5.2
+        def initialize(klass, table: klass.arel_table, predicate_builder: klass.predicate_builder, values: {})
+          super(klass, table, predicate_builder, values)
+        end
       end
     end
 
@@ -107,13 +119,6 @@ module ChronoModel
         @options = options.freeze
       end
 
-      # See +ActiveRecord::Associations::Preloader::NULL_RELATION+
-      NULL_RELATION = ActiveRecord::Associations::Preloader::NULL_RELATION
-
-      # Extend +NULL_RELATION+ by adding the +as_of_time!+ method.
-      # See +preload+ and +AsOfTimeHolder+.
-      NULL_RELATION.class.instance_eval { include AsOfTimeHolder }
-
       # Patches the AR Preloader (lib/active_record/associations/preloader.rb)
       # in order to carry around the +as_of_time+ of the original invocation.
       #
@@ -128,22 +133,18 @@ module ChronoModel
       # around the +as_of_time+ of the original query invocation, so that
       # preloaded records are preloaded honoring the +as_of_time+.
       #
-      # The +preload_scope+ is not nil only for through associations, but the
+      # The +preload_scope+ is present only in through associations, but the
       # preloader interfaces expect it to be always defined, for consistency.
-      #
-      # So, AR defines a +NULL_RELATION+ constant to pass around for the
-      # association types that do not have a preload_scope. It quacks like a
-      # Relation, and it contains only the methods that are used by the other
-      # preloader methods. We use this +NULL_RELATION+ to which we have added
-      # the `as_of_time!` holder method.
       #
       # For `:through` associations, the +given_preload_scope+ is already a
       # +Relation+, that already has the +as_of_time+ getters and setters,
       # so we use it directly.
       #
       def preload(records, associations, given_preload_scope = nil)
-        if options.key?(:as_of_time)
-          preload_scope = given_preload_scope || NULL_RELATION.dup
+        if options[:as_of_time]
+          preload_scope = given_preload_scope ||
+            AsOfTimeRelation.new(options[:model])
+
           preload_scope.as_of_time!(options[:as_of_time])
         end
 
@@ -152,13 +153,13 @@ module ChronoModel
 
       module Association
         # Builds the preloader scope taking into account a potential
-        # +as_of_time+ set above in +Preloader#preload+ and coming from the
-        # user's query invocation.
+        # +as_of_time+ passed down the call chain starting at the
+        # end user invocation.
         #
         def build_scope
           scope = super
 
-          if preload_scope.respond_to?(:as_of_time) && preload_scope.as_of_time
+          if preload_scope.try(:as_of_time)
             scope = scope.as_of(preload_scope.as_of_time)
           end
 
@@ -176,7 +177,7 @@ module ChronoModel
     # on the join model's (:through association) one.
     #
     module Association
-      def skip_statement_cache?
+      def skip_statement_cache?(*)
         super || _chrono_target?
       end
 

@@ -511,7 +511,7 @@ module ChronoModel
       end
     end
 
-    def initialize_type_map(type_map)
+    def initialize_type_map(m = type_map)
       super.tap do
         ar_type = type_map.fetch(TSRange::OID)
         cm_type = TSRange.new(ar_type.subtype, ar_type.type)
