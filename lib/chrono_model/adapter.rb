@@ -601,7 +601,7 @@ module ChronoModel
               upgrade_from_legacy(table_name)
               logger.info "ChronoModel: legacy #{table_name} upgrade complete"
             else
-              logger.info "ChronoModel: upgrading #{table_name} from #{version} to #{VERSION}"
+              logger.info "ChronoModel: upgrading #{table_name} from #{desc[:version]} to #{VERSION}"
               chrono_create_view_for(table_name)
               logger.info "ChronoModel: #{table_name} upgrade complete"
             end
