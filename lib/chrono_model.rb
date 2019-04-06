@@ -8,6 +8,16 @@ require 'chrono_model/utils'
 module ChronoModel
   class Error < ActiveRecord::ActiveRecordError #:nodoc:
   end
+
+  def self.upgrade!
+    connection = ActiveRecord::Base.connection
+
+    unless connection.is_a?(ChronoModel::Adapter)
+      raise ChronoModel::Error, "This database connection is not a ChronoModel::Adapter"
+    end
+
+    connection.chrono_upgrade!
+  end
 end
 
 if defined?(Rails)

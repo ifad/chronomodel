@@ -257,7 +257,23 @@ more information.
 
 ## History manipulation
 
-History objects can be changed and `.save`d just like any other record.
+History objects can be changed and `.save`d just like any other record. They
+cannot be deleted.
+
+## Upgrading
+
+ChronoModel currently performs upgrades by dropping and re-creating the views
+that give access to current data. If you have built other database objects on
+these views, the upgrade cannot be performed automatically as the dependant
+objects must be dropped first.
+
+When booting, ChronoModel will issue a warning in your logs about the need of
+a structure upgrade. Structure usually changes across versions. In this case,
+you need to set up a rake task that drops your dependant objects, runs
+ChronoModel.upgrade! and then re-creates them.
+
+A migration system should be introduced, but it is seen as overkill for now,
+given that usually database objects have creation and dropping scripts.
 
 
 ## Running tests

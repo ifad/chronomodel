@@ -462,19 +462,15 @@ module ChronoModel
     end
 
     def chrono_setup!
-      chrono_create_schemas
+      chrono_ensure_schemas
 
-      tables_to_upgrade = chrono_tables_needing_upgrade
+      chrono_upgrade_warning
+    end
 
-      if tables_to_upgrade.present?
+    def chrono_upgrade!
+      chrono_ensure_schemas
 
-        if ENV['CHRONO_UPGRADE']
-          chrono_upgrade_structure!(tables_to_upgrade)
-        else
-          chrono_upgrade_warning(tables_to_upgrade)
-        end
-
-      end
+      chrono_upgrade_structure!
     end
 
     # HACK: Redefine tsrange parsing support, as it is broken currently.
@@ -551,7 +547,7 @@ module ChronoModel
     private
       # Create the temporal and history schemas, unless they already exist
       #
-      def chrono_create_schemas
+      def chrono_ensure_schemas
         [TEMPORAL_SCHEMA, HISTORY_SCHEMA].each do |schema|
           execute "CREATE SCHEMA #{schema}" unless schema_exists?(schema)
         end
@@ -568,7 +564,7 @@ module ChronoModel
           version = metadata['chronomodel']
 
           if version.blank?
-            tables[table_name] = { version: nil, priority: 'HIGH' }
+            tables[table_name] = { version: nil, priority: 'CRITICAL' }
           elsif version != VERSION
             tables[table_name] = { version: version, priority: 'LOW' }
           end
@@ -579,23 +575,26 @@ module ChronoModel
 
       # Emit a warning about tables needing an upgrade
       #
-      def chrono_upgrade_warning(tables)
-        status = tables.map do |table, desc|
+      def chrono_upgrade_warning
+        upgrade = chrono_tables_needing_upgrade.map do |table, desc|
           "#{table} - priority: #{desc[:priority]}"
         end.join('; ')
 
-        logger.warn "ChronoModel: WARNING - there are tables needing a structure upgrade"
-        logger.warn "ChronoModel: Please run your app with the CHRONO_UPGRADE environment variable set to perform the upgrade"
-        logger.warn "ChronoModel: some features or even the whole library may not work correctly until the upgrade is complete"
-        logger.warn "ChronoModel: tables interested: #{status}"
+        return if upgrade.empty?
+
+        logger.warn "ChronoModel: There are tables needing a structure upgrade, and ChronoModel structures need to be recreated."
+        logger.warn "ChronoModel: Please run ChronoModel.upgrade! to attempt the upgrade. If you have dependant database objects"
+        logger.warn "ChronoModel: the upgrade will fail and you have to drop the dependent objects, run .upgrade! and create them"
+        logger.warn "ChronoModel: again. Sorry. Some features or the whole library may not work correctly until upgrade is complete."
+        logger.warn "ChronoModel: Tables pending upgrade: #{upgrade}"
       end
 
       # Upgrades existing structure for each table, if required.
       #
-      def chrono_upgrade_structure!(tables)
+      def chrono_upgrade_structure!
         transaction do
 
-          tables.each do |table_name, desc|
+          chrono_tables_needing_upgrade.each do |table_name, desc|
 
             if desc[:version].blank?
               logger.info "ChronoModel: Upgrading legacy table #{table_name} to #{VERSION}"
@@ -610,7 +609,7 @@ module ChronoModel
           end
         end
       rescue => e
-        message = "ChronoModel structure upgrade failed: #{e.message}. Please drop dependent objects and then run ActiveRecord::Base.connection.chrono_setup!"
+        message = "ChronoModel structure upgrade failed: #{e.message}. Please drop dependent objects first and then run ChronoModel.upgrade! again."
 
         # Quite important, output it also to stderr.
         #
