@@ -1,17 +1,17 @@
 rvm:
-  - 2.2.7
   - 2.3
   - 2.4
+  - 2.5
 
 gemfile:
-  - gemfiles/rails_4.2.gemfile
   - gemfiles/rails_5.0.gemfile
   - gemfiles/rails_5.1.gemfile
+  - gemfiles/rails_5.2.gemfile
 
-matrix:
-  exclude:
-    - rvm: 2.4
-      gemfile: gemfiles/rails_4.2.gemfile
+#matrix:
+#  exclude:
+#    - rvm: 2.4
+#      gemfile: gemfiles/rails_4.2.gemfile
 
 sudo: false
 
@@ -19,9 +19,9 @@ language: ruby
 cache: bundler
 
 addons:
-  postgresql: "9.4"
+  postgresql: "9.6"
   apt:
-    packages: postgresql-plpython-9.4
+    packages: postgresql-plpython-9.6
   code_climate:
     repo_token: dedfb7472ee410eec459bff3681d9a8fd8dd237e9bd7e8675a7c8eb7e253bba9
 

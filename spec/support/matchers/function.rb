@@ -31,7 +31,7 @@ module ChronoTest::Matchers
 
       protected
         def has_function?(name)
-          select_value(<<-SQL, [name], 'Check function') == AR_TRUE
+          select_value(<<-SQL, [name], 'Check function') == true
             SELECT EXISTS(
               SELECT 1
               FROM pg_catalog.pg_proc p, pg_catalog.pg_namespace n

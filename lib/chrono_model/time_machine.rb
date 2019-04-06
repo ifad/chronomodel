@@ -9,8 +9,8 @@ module ChronoModel
 
     included do
       if table_exists? && !chrono?
-        puts "WARNING: #{table_name} is not a temporal table. " \
-          "Please use change_table :#{table_name}, :temporal => true"
+        puts  "ChronoModel: #{table_name} is not a temporal table. " \
+          "Please use `change_table :#{table_name}, temporal: true` in a migration."
       end
 
       history = TimeMachine.define_history_model_for(self)
@@ -54,7 +54,7 @@ module ChronoModel
 
         extend TimeMachine::HistoryMethods
 
-        scope :chronological, -> { order('lower(validity)') }
+        scope :chronological, -> { order(Arel.sql('lower(validity) ASC')) }
 
         # The history id is `hid`, but this cannot set as primary key
         # or temporal assocations will break. Solutions are welcome.
@@ -85,30 +85,16 @@ module ChronoModel
           with_hid_pkey { super }
         end
 
-        if RUBY_VERSION.to_f < 2.0
-          # PLEASE UPDATE YOUR RUBY <3
-          #
-          def save_with_pkey(*)
-            self.class.with_hid_pkey { save_without_pkey }
-          end
+        def save(*)
+          self.class.with_hid_pkey { super }
+        end
 
-          def save_with_pkey!(*)
-            self.class.with_hid_pkey { save_without_pkey! }
-          end
+        def save!(*)
+          self.class.with_hid_pkey { super }
+        end
 
-          alias_method_chain :save, :pkey
-        else
-          def save(*)
-            self.class.with_hid_pkey { super }
-          end
-
-          def save!(*)
-            self.class.with_hid_pkey { super }
-          end
-
-          def update_columns(*)
-            self.class.with_hid_pkey { super }
-          end
+        def update_columns(*)
+          self.class.with_hid_pkey { super }
         end
 
         # Returns the previous history entry, or nil if this
@@ -271,10 +257,13 @@ module ChronoModel
     #
     def pred(options = {})
       if self.class.timeline_associations.empty?
-        history.order('upper(validity) DESC').offset(1).first
+        history.order(Arel.sql('upper(validity) DESC')).offset(1).first
       else
         return nil unless (ts = pred_timestamp(options))
-        self.class.as_of(ts).order(%[ LOWER(#{options[:table] || self.class.quoted_table_name}."validity") DESC ]).find(options[:id] || id)
+
+        order_clause = Arel.sql %[ LOWER(#{options[:table] || self.class.quoted_table_name}."validity") DESC ]
+
+        self.class.as_of(ts).order(order_clause).find(options[:id] || id)
       end
     end
 
@@ -284,9 +273,9 @@ module ChronoModel
     def pred_timestamp(options = {})
       if historical?
         options[:before] ||= as_of_time
-        timeline(options.merge(:limit => 1, :reverse => true)).first
+        timeline(options.merge(limit: 1, reverse: true)).first
       else
-        timeline(options.merge(:limit => 2, :reverse => true)).second
+        timeline(options.merge(limit: 2, reverse: true)).second
       end
     end
 
@@ -295,7 +284,10 @@ module ChronoModel
     def succ(options = {})
       unless self.class.timeline_associations.empty?
         return nil unless (ts = succ_timestamp(options))
-        self.class.as_of(ts).order(%[ LOWER(#{options[:table] || self.class.quoted_table_name}."validity"_ DESC ]).find(options[:id] || id)
+
+        order_clause = Arel.sql %[ LOWER(#{options[:table] || self.class.quoted_table_name}."validity"_ DESC ]
+
+        self.class.as_of(ts).order(order_clause).find(options[:id] || id)
       end
     end
 
@@ -306,7 +298,7 @@ module ChronoModel
       return nil unless historical?
 
       options[:after] ||= as_of_time
-      timeline(options.merge(:limit => 1, :reverse => false)).first
+      timeline(options.merge(limit: 1, reverse: false)).first
     end
 
     # Returns the current history version
@@ -444,9 +436,9 @@ module ChronoModel
 
         def build_time_query(time, range, op = '&&')
           if time.kind_of?(Array)
-            %[ #{range.type}(#{time.first}, #{time.last}) #{op} #{table_name}.#{range.name} ]
+            Arel.sql %[ #{range.type}(#{time.first}, #{time.last}) #{op} #{table_name}.#{range.name} ]
           else
-            %[ #{time} <@ #{table_name}.#{range.name} ]
+            Arel.sql %[ #{time} <@ #{table_name}.#{range.name} ]
           end
         end
     end
@@ -513,7 +505,7 @@ module ChronoModel
       # Returns the history sorted by recorded_at
       #
       def sorted
-        all.order(%[ #{quoted_table_name}."recorded_at", #{quoted_table_name}."hid" ])
+        all.order(Arel.sql(%[ #{quoted_table_name}."recorded_at" ASC, #{quoted_table_name}."hid" ASC ]))
       end
 
       # Fetches the given +object+ history, sorted by history record time
