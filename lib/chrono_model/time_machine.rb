@@ -54,7 +54,7 @@ module ChronoModel
 
         extend TimeMachine::HistoryMethods
 
-        scope :chronological, -> { order(Arel.sql('lower(validity)')) }
+        scope :chronological, -> { order(Arel.sql('lower(validity) ASC')) }
 
         # The history id is `hid`, but this cannot set as primary key
         # or temporal assocations will break. Solutions are welcome.
@@ -505,7 +505,7 @@ module ChronoModel
       # Returns the history sorted by recorded_at
       #
       def sorted
-        all.order(Arel.sql(%[ #{quoted_table_name}."recorded_at", #{quoted_table_name}."hid" ]))
+        all.order(Arel.sql(%[ #{quoted_table_name}."recorded_at" ASC, #{quoted_table_name}."hid" ASC ]))
       end
 
       # Fetches the given +object+ history, sorted by history record time

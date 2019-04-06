@@ -304,7 +304,7 @@ describe ChronoModel::TimeMachine do
 
     context '.sorted' do
       describe 'orders by recorded_at, hid' do
-        it { expect(foo.history.sorted.to_sql).to match(/order by .+"recorded_at", .+"hid"/i) }
+        it { expect(foo.history.sorted.to_sql).to match(/order by .+"recorded_at" ASC, .+"hid" ASC/i) }
       end
     end
   end
