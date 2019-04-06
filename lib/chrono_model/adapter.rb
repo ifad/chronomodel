@@ -597,8 +597,8 @@ module ChronoModel
           chrono_tables_needing_upgrade.each do |table_name, desc|
 
             if desc[:version].blank?
-              logger.info "ChronoModel: Upgrading legacy table #{table_name} to #{VERSION}"
-              upgrade_from_legacy(table_name)
+              logger.info "ChronoModel: Upgrading legacy PG 9.0 table #{table_name} to #{VERSION}"
+              upgrade_from_postgres_9_0(table_name)
               logger.info "ChronoModel: legacy #{table_name} upgrade complete"
             else
               logger.info "ChronoModel: upgrading #{table_name} from #{desc[:version]} to #{VERSION}"
@@ -617,7 +617,7 @@ module ChronoModel
         $stderr.puts message
       end
 
-      def upgrade_from_legacy(table_name)
+      def upgrade_from_postgres_9_0(table_name)
         # roses are red
         # violets are blue
         # and this is the most boring piece of code ever
@@ -699,11 +699,7 @@ module ChronoModel
         chrono_create_history_indexes_for(table, p_pkey)
       end
 
-      def chrono_create_history_indexes_for(table, p_pkey = nil)
-        # Duplicate because of Migrate.upgrade_indexes_for
-        # TODO remove me.
-        p_pkey ||= primary_key("#{TEMPORAL_SCHEMA}.#{table}")
-
+      def chrono_create_history_indexes_for(table, p_pkey)
         add_temporal_indexes table, :validity, :on_current_schema => true
 
         execute "CREATE INDEX #{table}_inherit_pkey     ON #{table} ( #{p_pkey} )"
