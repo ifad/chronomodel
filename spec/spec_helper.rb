@@ -15,6 +15,8 @@ require 'support/matchers/index'
 require 'support/matchers/function'
 require 'support/aruba'
 
+puts "Testing against Active Record #{ActiveRecord::VERSION::STRING} with Arel #{Arel::VERSION}"
+
 # Rails 5 returns a True/FalseClass
 AR_TRUE, AR_FALSE  = ActiveRecord::VERSION::MAJOR == 4 ? ['t', 'f'] : [true, false]
 
