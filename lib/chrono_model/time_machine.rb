@@ -54,7 +54,7 @@ module ChronoModel
 
         extend TimeMachine::HistoryMethods
 
-        scope :chronological, -> { order('lower(validity)') }
+        scope :chronological, -> { order(Arel.sql('lower(validity)')) }
 
         # The history id is `hid`, but this cannot set as primary key
         # or temporal assocations will break. Solutions are welcome.
@@ -257,10 +257,13 @@ module ChronoModel
     #
     def pred(options = {})
       if self.class.timeline_associations.empty?
-        history.order('upper(validity) DESC').offset(1).first
+        history.order(Arel.sql('upper(validity) DESC')).offset(1).first
       else
         return nil unless (ts = pred_timestamp(options))
-        self.class.as_of(ts).order(%[ LOWER(#{options[:table] || self.class.quoted_table_name}."validity") DESC ]).find(options[:id] || id)
+
+        order_clause = Arel.sql %[ LOWER(#{options[:table] || self.class.quoted_table_name}."validity") DESC ]
+
+        self.class.as_of(ts).order(order_clause).find(options[:id] || id)
       end
     end
 
@@ -281,7 +284,10 @@ module ChronoModel
     def succ(options = {})
       unless self.class.timeline_associations.empty?
         return nil unless (ts = succ_timestamp(options))
-        self.class.as_of(ts).order(%[ LOWER(#{options[:table] || self.class.quoted_table_name}."validity"_ DESC ]).find(options[:id] || id)
+
+        order_clause = Arel.sql %[ LOWER(#{options[:table] || self.class.quoted_table_name}."validity"_ DESC ]
+
+        self.class.as_of(ts).order(order_clause).find(options[:id] || id)
       end
     end
 
@@ -430,9 +436,9 @@ module ChronoModel
 
         def build_time_query(time, range, op = '&&')
           if time.kind_of?(Array)
-            %[ #{range.type}(#{time.first}, #{time.last}) #{op} #{table_name}.#{range.name} ]
+            Arel.sql %[ #{range.type}(#{time.first}, #{time.last}) #{op} #{table_name}.#{range.name} ]
           else
-            %[ #{time} <@ #{table_name}.#{range.name} ]
+            Arel.sql %[ #{time} <@ #{table_name}.#{range.name} ]
           end
         end
     end
@@ -499,7 +505,7 @@ module ChronoModel
       # Returns the history sorted by recorded_at
       #
       def sorted
-        all.order(%[ #{quoted_table_name}."recorded_at", #{quoted_table_name}."hid" ])
+        all.order(Arel.sql(%[ #{quoted_table_name}."recorded_at", #{quoted_table_name}."hid" ]))
       end
 
       # Fetches the given +object+ history, sorted by history record time
