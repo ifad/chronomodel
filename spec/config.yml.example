@@ -5,4 +5,5 @@ hostname: localhost
 username: chronomodel
 password: chronomodel
 database: chronomodel
+pool: 11
 #

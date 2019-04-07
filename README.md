@@ -177,6 +177,19 @@ This is visible in `psql` if you issue a `\d+`. Example after a test run:
      public | test_table    | view     | chronomodel | 0 bytes    | {"temporal":true,"journal":["foo"],"chronomodel":"0.7.0.alpha"}
 
 
+**IMPORTANT**: Rails counter cache issues an UPDATE on the parent record
+table, thus triggering new history entries creation. You are **strongly**
+advised to NOT journal the counter cache columns, or race conditions will
+occur (see https://github.com/ifad/chronomodel/issues/71).
+
+In such cases, ensure to add `no_journal: %w( your_counter_cache_column_name )`
+to your `create_table`. Example:
+
+    create_table 'sections', temporal: true, no_journal: %w( articles_count ) do |t|
+      t.string :name
+      t.integer :articles_count, default: 0
+    end
+
 ## Data querying
 
 Include the `ChronoModel::TimeMachine` module in your model.

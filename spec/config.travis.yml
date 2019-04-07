@@ -2,3 +2,4 @@ hostname: localhost
 username: postgres
 password: ""
 database: chronomodel
+pool: 11
