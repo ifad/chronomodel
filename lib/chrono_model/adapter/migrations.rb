@@ -142,14 +142,16 @@ module ChronoModel
           #
           block ||= proc { }
 
-          if options[:temporal] == true
+          case options[:temporal]
+          when true
             if !is_chrono?(table_name)
               chrono_make_temporal_table(table_name, options)
             end
 
             chrono_alter(table_name, options) { super table_name, options, &block }
-          else
-            if options[:temporal] == false && is_chrono?(table_name)
+
+          when false
+            if is_chrono?(table_name)
               chrono_undo_temporal_table(table_name)
             end
 
