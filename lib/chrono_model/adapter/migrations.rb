@@ -81,7 +81,9 @@ module ChronoModel
               chrono_make_temporal_table(table_name, options)
             end
 
-            chrono_alter(table_name, options) { super table_name, options, &block }
+            chrono_alter(table_name, options) do
+              super table_name, options, &block
+            end
 
           when false
             if is_chrono?(table_name)
@@ -92,57 +94,6 @@ module ChronoModel
           end
         end
       end
-
-      def chrono_make_temporal_table(table_name, options)
-        # Add temporal features to this table
-        #
-        if !primary_key(table_name)
-          execute "ALTER TABLE #{table_name} ADD __chrono_id SERIAL PRIMARY KEY"
-        end
-
-        execute "ALTER TABLE #{table_name} SET SCHEMA #{TEMPORAL_SCHEMA}"
-        on_history_schema { chrono_create_history_for(table_name) }
-        chrono_create_view_for(table_name, options)
-        copy_indexes_to_history_for(table_name)
-
-        # Optionally copy the plain table data, setting up history
-        # retroactively.
-        #
-        if options[:copy_data]
-          seq  = on_history_schema { serial_sequence(table_name, primary_key(table_name)) }
-          from = options[:validity] || '0001-01-01 00:00:00'
-
-          execute %[
-            INSERT INTO #{HISTORY_SCHEMA}.#{table_name}
-            SELECT *,
-              nextval('#{seq}')        AS hid,
-              tsrange('#{from}', NULL) AS validity,
-              timezone('UTC', now())   AS recorded_at
-            FROM #{TEMPORAL_SCHEMA}.#{table_name}
-          ]
-        end
-      end
-      private :chrono_make_temporal_table
-
-      def chrono_undo_temporal_table(table_name)
-        # Remove temporal features from this table
-        #
-        execute "DROP VIEW #{table_name}"
-
-        chrono_drop_trigger_functions_for(table_name)
-
-        on_history_schema { execute "DROP TABLE #{table_name}" }
-
-        default_schema = select_value 'SELECT current_schema()'
-        on_temporal_schema do
-          if primary_key(table_name) == '__chrono_id'
-            execute "ALTER TABLE #{table_name} DROP __chrono_id"
-          end
-
-          execute "ALTER TABLE #{table_name} SET SCHEMA #{default_schema}"
-        end
-      end
-      private :chrono_undo_temporal_table
 
       # If dropping a temporal table, drops it from the temporal schema
       # adding the CASCADE option so to delete the history, view and triggers.
@@ -264,6 +215,60 @@ module ChronoModel
             chrono_create_view_for(table_name, options)
           end
         end
+
+        def chrono_make_temporal_table(table_name, options)
+          # Add temporal features to this table
+          #
+          if !primary_key(table_name)
+            execute "ALTER TABLE #{table_name} ADD __chrono_id SERIAL PRIMARY KEY"
+          end
+
+          execute "ALTER TABLE #{table_name} SET SCHEMA #{TEMPORAL_SCHEMA}"
+          on_history_schema { chrono_create_history_for(table_name) }
+          chrono_create_view_for(table_name, options)
+          copy_indexes_to_history_for(table_name)
+
+          # Optionally copy the plain table data, setting up history
+          # retroactively.
+          #
+          if options[:copy_data]
+            chrono_copy_current_to_history(table_name)
+          end
+        end
+
+        def chrono_copy_current_to_history(table_name)
+          seq  = on_history_schema { serial_sequence(table_name, primary_key(table_name)) }
+          from = options[:validity] || '0001-01-01 00:00:00'
+
+          execute %[
+              INSERT INTO #{HISTORY_SCHEMA}.#{table_name}
+              SELECT *,
+                nextval('#{seq}')        AS hid,
+                tsrange('#{from}', NULL) AS validity,
+                timezone('UTC', now())   AS recorded_at
+              FROM #{TEMPORAL_SCHEMA}.#{table_name}
+          ]
+        end
+
+        def chrono_undo_temporal_table(table_name)
+          # Remove temporal features from this table
+          #
+          execute "DROP VIEW #{table_name}"
+
+          chrono_drop_trigger_functions_for(table_name)
+
+          on_history_schema { execute "DROP TABLE #{table_name}" }
+
+          default_schema = select_value 'SELECT current_schema()'
+          on_temporal_schema do
+            if primary_key(table_name) == '__chrono_id'
+              execute "ALTER TABLE #{table_name} DROP __chrono_id"
+            end
+
+            execute "ALTER TABLE #{table_name} SET SCHEMA #{default_schema}"
+          end
+        end
+
       # private
     end
 
