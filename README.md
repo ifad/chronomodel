@@ -1,7 +1,6 @@
 # Temporal database system on PostgreSQL using [updatable views][pg-updatable-views], [table inheritance][pg-table-inheritance] and [INSTEAD OF triggers][pg-instead-of-triggers].
 
 [![Build Status][build-status-badge]][build-status]
-[![Dependency Status][deps-status-badge]][deps-status]
 [![Code Climate][code-analysis-badge]][code-analysis]
 [![Test Coverage][test-coverage-badge]][test-coverage]
 [![Inlinedocs][docs-analysis-badge]][docs-analysis]
@@ -361,8 +360,6 @@ This software is Made in Italy :it: :smile:.
 
 [build-status]: https://travis-ci.org/ifad/chronomodel
 [build-status-badge]: https://travis-ci.org/ifad/chronomodel.svg
-[deps-status]: https://gemnasium.com/ifad/chronomodel
-[deps-status-badge]: https://gemnasium.com/ifad/chronomodel.svg
 [code-analysis]: https://codeclimate.com/github/ifad/chronomodel
 [code-analysis-badge]: https://codeclimate.com/github/ifad/chronomodel.svg
 [docs-analysis]: http://inch-ci.org/github/ifad/chronomodel
