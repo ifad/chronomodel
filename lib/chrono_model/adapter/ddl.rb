@@ -5,30 +5,6 @@ module ChronoModel
 
     module DDL
       private
-        def chrono_metadata_for(table)
-          comment = select_value(
-            "SELECT obj_description(#{quote(table)}::regclass)",
-            "ChronoModel metadata for #{table}") if data_source_exists?(table)
-
-          MultiJson.load(comment || '{}').with_indifferent_access
-        end
-
-        def chrono_metadata_set(table, metadata)
-          comment = MultiJson.dump(metadata)
-
-          execute %[
-            COMMENT ON VIEW #{table} IS #{quote(comment)}
-          ]
-        end
-
-        def add_history_validity_constraint(table, pkey)
-          add_timeline_consistency_constraint(table, :validity, :id => pkey, :on_current_schema => true)
-        end
-
-        def remove_history_validity_constraint(table, options = {})
-          remove_timeline_consistency_constraint(table, options.merge(:on_current_schema => true))
-        end
-
         # Create the history table in the history schema
         def chrono_create_history_for(table)
           parent = "#{TEMPORAL_SCHEMA}.#{table}"
@@ -47,6 +23,14 @@ module ChronoModel
           chrono_create_history_indexes_for(table, p_pkey)
         end
 
+        def add_history_validity_constraint(table, pkey)
+          add_timeline_consistency_constraint(table, :validity, id: pkey, on_current_schema: true)
+        end
+
+        def remove_history_validity_constraint(table, options = {})
+          remove_timeline_consistency_constraint(table, options.merge(on_current_schema: true))
+        end
+
         def chrono_create_history_indexes_for(table, p_pkey)
           add_temporal_indexes table, :validity, :on_current_schema => true
 
@@ -61,7 +45,6 @@ module ChronoModel
           pk      = primary_key(table)
           current = [TEMPORAL_SCHEMA, table].join('.')
           history = [HISTORY_SCHEMA,  table].join('.')
-          seq     = serial_sequence(current, pk)
 
           options ||= chrono_metadata_for(table)
 
@@ -70,19 +53,15 @@ module ChronoModel
           execute "DROP VIEW #{table}" if data_source_exists? table
           execute "CREATE VIEW #{table} AS SELECT * FROM ONLY #{current}"
 
-          # Set default values on the view (closes #12)
-          #
           chrono_metadata_set(table, options.merge(:chronomodel => VERSION))
 
+          # Set default values on the view (closes #12)
+          #
           columns(table).each do |column|
             default = if column.default.nil?
               column.default_function
             else
-              if ActiveRecord::VERSION::MAJOR == 4
-                quote(column.default, column)
-              else # Rails 5 and beyond
-                quote(column.default)
-              end
+              quote(column.default)
             end
 
             next if column.name == pk || default.nil?
@@ -90,33 +69,40 @@ module ChronoModel
             execute "ALTER VIEW #{table} ALTER COLUMN #{quote_column_name(column.name)} SET DEFAULT #{default}"
           end
 
-          columns = columns(table).map {|c| quote_column_name(c.name)}
+          columns = self.columns(table).map {|c| quote_column_name(c.name)}
           columns.delete(quote_column_name(pk))
 
           fields, values = columns.join(', '), columns.map {|c| "NEW.#{c}"}.join(', ')
 
-          # Columns to be journaled. By default everything except updated_at (GH #7)
-          #
-          journal = if options[:journal]
-            options[:journal].map {|col| quote_column_name(col)}
+          chrono_create_INSERT_trigger(table, pk, current, history, fields, values)
+          chrono_create_UPDATE_trigger(table, pk, current, history, fields, values, options, columns)
+          chrono_create_DELETE_trigger(table, pk, current, history)
+        end
 
-          elsif options[:no_journal]
-            columns - options[:no_journal].map {|col| quote_column_name(col)}
+        def chrono_metadata_for(table)
+          comment = select_value(
+            "SELECT obj_description(#{quote(table)}::regclass)",
+            "ChronoModel metadata for #{table}") if data_source_exists?(table)
 
-          elsif options[:full_journal]
-            columns
+          MultiJson.load(comment || '{}').with_indifferent_access
+        end
 
-          else
-            columns - [ quote_column_name('updated_at') ]
-          end
+        def chrono_metadata_set(table, metadata)
+          comment = MultiJson.dump(metadata)
 
-          journal &= columns
+          execute %[
+            COMMENT ON VIEW #{table} IS #{quote(comment)}
+          ]
+        end
 
-          # INSERT - insert data both in the temporal table and in the history one.
-          #
-          # The serial sequence is invoked manually only if the PK is NULL, to
-          # allow setting the PK to a specific value (think migration scenario).
-          #
+        # INSERT - insert data both in the temporal table and in the history one.
+        #
+        # The serial sequence is invoked manually only if the PK is NULL, to
+        # allow setting the PK to a specific value (think migration scenario).
+        #
+        def chrono_create_INSERT_trigger(table, pk, current, history, fields, values)
+          seq = serial_sequence(current, pk)
+
           execute <<-SQL
             CREATE OR REPLACE FUNCTION chronomodel_#{table}_insert() RETURNS TRIGGER AS $$
               BEGIN
@@ -139,20 +125,39 @@ module ChronoModel
             CREATE TRIGGER chronomodel_insert INSTEAD OF INSERT ON #{table}
               FOR EACH ROW EXECUTE PROCEDURE chronomodel_#{table}_insert();
           SQL
+        end
 
-          # UPDATE - set the last history entry validity to now, save the current data
-          # in a new history entry and update the temporal table with the new data.
+        # UPDATE - set the last history entry validity to now, save the current data
+        # in a new history entry and update the temporal table with the new data.
+        #
+        # If there are no changes, this trigger suppresses redundant updates.
+        #
+        # If a row in the history with the current ID and current timestamp already
+        # exists, update it with new data. This logic makes possible to "squash"
+        # together changes made in a transaction in a single history row.
+        #
+        # If you want to disable this behaviour, set the CHRONOMODEL_NO_SQUASH
+        # environment variable. This is useful when running scenarios inside
+        # cucumber, in which everything runs in the same transaction.
+        #
+        def chrono_create_UPDATE_trigger(table, pk, current, history, fields, values, options, columns)
+          # Columns to be journaled. By default everything except updated_at (GH #7)
           #
-          # If there are no changes, this trigger suppresses redundant updates.
-          #
-          # If a row in the history with the current ID and current timestamp already
-          # exists, update it with new data. This logic makes possible to "squash"
-          # together changes made in a transaction in a single history row.
-          #
-          # If you want to disable this behaviour, set the CHRONOMODEL_NO_SQUASH
-          # environment variable. This is useful when running scenarios inside
-          # cucumber, in which everything runs in the same transaction.
-          #
+          journal = if options[:journal]
+            options[:journal].map {|col| quote_column_name(col)}
+
+          elsif options[:no_journal]
+            columns - options[:no_journal].map {|col| quote_column_name(col)}
+
+          elsif options[:full_journal]
+            columns
+
+          else
+            columns - [ quote_column_name('updated_at') ]
+          end
+
+          journal &= columns
+
           execute <<-SQL
             CREATE OR REPLACE FUNCTION chronomodel_#{table}_update() RETURNS TRIGGER AS $$
               DECLARE _now timestamp;
@@ -198,12 +203,14 @@ module ChronoModel
             CREATE TRIGGER chronomodel_update INSTEAD OF UPDATE ON #{table}
               FOR EACH ROW EXECUTE PROCEDURE chronomodel_#{table}_update();
           SQL
+        end
 
-          # DELETE - save the current data in the history and eventually delete the
-          # data from the temporal table.
-          # The first DELETE is required to remove history for records INSERTed and
-          # DELETEd in the same transaction.
-          #
+        # DELETE - save the current data in the history and eventually delete the
+        # data from the temporal table.
+        # The first DELETE is required to remove history for records INSERTed and
+        # DELETEd in the same transaction.
+        #
+        def chrono_create_DELETE_trigger(table, pk, current, history)
           execute <<-SQL
             CREATE OR REPLACE FUNCTION chronomodel_#{table}_delete() RETURNS TRIGGER AS $$
               DECLARE _now timestamp;
@@ -235,51 +242,8 @@ module ChronoModel
             execute "DROP FUNCTION IF EXISTS chronomodel_#{table_name}_#{func}()"
           end
         end
-
-        # In destructive changes, such as removing columns or changing column
-        # types, the view must be dropped and recreated, while the change has
-        # to be applied to the table in the temporal schema.
-        #
-        def chrono_alter(table_name, opts = {})
-          transaction do
-            options = chrono_metadata_for(table_name).merge(opts)
-
-            execute "DROP VIEW #{table_name}"
-
-            _on_temporal_schema { yield }
-
-            # Recreate the triggers
-            chrono_create_view_for(table_name, options)
-          end
-        end
-
-        # Generic alteration of history tables, where changes have to be
-        # propagated both on the temporal table and the history one.
-        #
-        # Internally, the :on_current_schema bypasses the +is_chrono?+
-        # check, as some temporal indexes and constraints are created
-        # only on the history table, and the creation methods already
-        # run scoped into the correct schema.
-        #
-        def chrono_alter_index(table_name, options)
-          if is_chrono?(table_name) && !options[:on_current_schema]
-            _on_temporal_schema { yield }
-            _on_history_schema { yield }
-          else
-            yield
-          end
-        end
-
-        def chrono_alter_constraint(table_name, options)
-          if is_chrono?(table_name) && !options[:on_current_schema]
-            _on_temporal_schema { yield }
-          else
-            yield
-          end
-        end
       # private
     end
 
   end
 end
-

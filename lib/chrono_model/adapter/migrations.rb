@@ -295,6 +295,50 @@ module ChronoModel
         return super unless is_chrono?(table_name)
         chrono_alter(table_name) { super }
       end
+
+      private
+        # In destructive changes, such as removing columns or changing column
+        # types, the view must be dropped and recreated, while the change has
+        # to be applied to the table in the temporal schema.
+        #
+        def chrono_alter(table_name, opts = {})
+          transaction do
+            options = chrono_metadata_for(table_name).merge(opts)
+
+            execute "DROP VIEW #{table_name}"
+
+            _on_temporal_schema { yield }
+
+            # Recreate the triggers
+            chrono_create_view_for(table_name, options)
+          end
+        end
+
+        # Generic alteration of history tables, where changes have to be
+        # propagated both on the temporal table and the history one.
+        #
+        # Internally, the :on_current_schema bypasses the +is_chrono?+
+        # check, as some temporal indexes and constraints are created
+        # only on the history table, and the creation methods already
+        # run scoped into the correct schema.
+        #
+        def chrono_alter_index(table_name, options)
+          if is_chrono?(table_name) && !options[:on_current_schema]
+            _on_temporal_schema { yield }
+            _on_history_schema { yield }
+          else
+            yield
+          end
+        end
+
+        def chrono_alter_constraint(table_name, options)
+          if is_chrono?(table_name) && !options[:on_current_schema]
+            _on_temporal_schema { yield }
+          else
+            yield
+          end
+        end
+      # private
     end
 
   end
