@@ -395,7 +395,12 @@ describe ChronoModel::Adapter do
 
   describe '.on_schema' do
     before(:all) do
+      adapter.execute 'BEGIN'
       5.times {|i| adapter.execute "CREATE SCHEMA test_#{i}"}
+    end
+
+    after(:all) do
+      adapter.execute 'ROLLBACK'
     end
 
     context 'by default' do
@@ -412,6 +417,29 @@ describe ChronoModel::Adapter do
         }
 
         is_expected.to be_in_schema(:default)
+      end
+
+      context 'when errors occur' do
+        subject do
+          adapter.on_schema('test_1') do
+
+            adapter.on_schema('test_2') do
+              adapter.execute 'BEGIN'
+              adapter.execute 'ERRORING ON PURPOSE'
+            end
+
+          end
+        end
+
+        it {
+          expect { subject }.
+            to raise_error(/current transaction is aborted/).
+            and change { adapter.instance_variable_get(:@schema_search_path) }
+        }
+
+        after do
+          adapter.execute 'ROLLBACK'
+        end
       end
     end
 
