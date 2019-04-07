@@ -4,8 +4,27 @@ require 'support/helpers'
 describe ChronoModel::TimeMachine do
   include ChronoTest::Helpers::TimeMachine
 
-  setup_schema!
-  define_models!
+    adapter.create_table 'sections', temporal: true do |t|
+      t.string :name
+      t.integer :articles_count, default: 0
+    end
+
+    adapter.create_table 'articles', temporal: true do |t|
+      t.string :title
+      t.references :section
+    end
+
+  class ::Section < ActiveRecord::Base
+    include ChronoModel::TimeMachine
+
+    has_many :articles
+  end
+
+  class ::Article < ActiveRecord::Base
+    include ChronoModel::TimeMachine
+
+    belongs_to :section, counter_cache: true
+  end
 
   describe 'race condition' do
     specify do
@@ -16,7 +35,6 @@ describe ChronoModel::TimeMachine do
 
       expect(section.reload.articles_count).to eq(1)
 
-
       num_threads = 10
       expect do
         Array.new(num_threads).map do
@@ -26,8 +44,6 @@ describe ChronoModel::TimeMachine do
           end
         end.each(&:join)
       end.to_not raise_error
-
-
     end
   end
 end

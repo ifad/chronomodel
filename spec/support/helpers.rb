@@ -102,17 +102,6 @@ module ChronoTest::Helpers
           t.string :name
           t.daterange :interval
         end
-
-        adapter.create_table 'sections', :temporal => true do |t|
-          t.string :name
-          t.integer :articles_count, default: 0
-        end
-
-        adapter.create_table 'articles', :temporal => true do |t|
-          t.string :title
-          t.references :section
-        end
-
       end
 
       Models = lambda {
@@ -169,19 +158,6 @@ module ChronoTest::Helpers
         class ::Event < ActiveRecord::Base
           extend ChronoModel::TimeMachine::TimeQuery
         end
-
-        class ::Section < ActiveRecord::Base
-          include ChronoModel::TimeMachine
-
-          has_many :articles
-        end
-
-        class ::Article < ActiveRecord::Base
-          include ChronoModel::TimeMachine
-
-          belongs_to :section, counter_cache: true
-        end
-
       }
 
       @@models_defined = false
