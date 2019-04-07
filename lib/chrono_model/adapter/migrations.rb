@@ -2,39 +2,6 @@ module ChronoModel
   class Adapter < ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
 
     module Migrations
-      extend ActiveSupport::Concern
-
-      included do
-        # Runs primary_key, indexes and default_sequence_name in the temporal schema,
-        # as the table there defined is the source for this information.
-        #
-        # Moreover, the PostgreSQLAdapter +indexes+ method uses current_schema(),
-        # thus this is the only (and cleanest) way to make injection work.
-        #
-        # Schema nesting is disabled on these calls, make sure to fetch metadata
-        # from the first caller's selected schema and not from the current one.
-        #
-        [:primary_key, :indexes, :default_sequence_name].each do |method|
-          define_method(method) do |*args|
-            table_name = args.first
-            return super(*args) unless is_chrono?(table_name)
-            on_temporal_schema(false) { super(*args) }
-          end
-        end
-
-        # Runs column_definitions in the temporal schema, as the table there
-        # defined is the source for this information.
-        #
-        # The default search path is included however, since the table
-        # may reference types defined in other schemas, which result in their
-        # names becoming schema qualified, which will cause type resolutions to fail.
-        #
-        define_method(:column_definitions) do |table_name|
-          return super(table_name) unless is_chrono?(table_name)
-          on_schema(TEMPORAL_SCHEMA + ',' + self.schema_search_path, false) { super(table_name) }
-        end
-      end
-
       # Creates the given table, possibly creating the temporal schema
       # objects if the `:temporal` option is given and set to true.
       #

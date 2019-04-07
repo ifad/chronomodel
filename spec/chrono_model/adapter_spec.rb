@@ -398,8 +398,7 @@ describe ChronoModel::Adapter do
       5.times {|i| adapter.execute "CREATE SCHEMA test_#{i}"}
     end
 
-    context 'with nesting' do
-
+    context 'by default' do
       it 'saves the schema at each recursion' do
         is_expected.to be_in_schema(:default)
 
@@ -414,16 +413,15 @@ describe ChronoModel::Adapter do
 
         is_expected.to be_in_schema(:default)
       end
-
     end
 
-    context 'without nesting' do
+    context 'with recurse: :ignore' do
       it 'ignores recursive calls' do
         is_expected.to be_in_schema(:default)
 
-        adapter.on_schema('test_1', false) { is_expected.to be_in_schema('test_1')
-          adapter.on_schema('test_2', false) { is_expected.to be_in_schema('test_1')
-            adapter.on_schema('test_3', false) { is_expected.to be_in_schema('test_1')
+        adapter.on_schema('test_1', recurse: :ignore) { is_expected.to be_in_schema('test_1')
+          adapter.on_schema('test_2', recurse: :ignore) { is_expected.to be_in_schema('test_1')
+            adapter.on_schema('test_3', recurse: :ignore) { is_expected.to be_in_schema('test_1')
         } } }
 
         is_expected.to be_in_schema(:default)
