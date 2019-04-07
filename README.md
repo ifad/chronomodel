@@ -177,6 +177,8 @@ This is visible in `psql` if you issue a `\d+`. Example after a test run:
      public | test_table    | view     | chronomodel | 0 bytes    | {"temporal":true,"journal":["foo"],"chronomodel":"0.7.0.alpha"}
 
 
+## Using Rails Counter Cache
+
 **IMPORTANT**: Rails counter cache issues an UPDATE on the parent record
 table, thus triggering new history entries creation. You are **strongly**
 advised to NOT journal the counter cache columns, or race conditions will
