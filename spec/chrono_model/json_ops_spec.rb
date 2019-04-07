@@ -7,7 +7,7 @@ if ENV['HAVE_PLPYTHON'] == '1'
 require 'spec_helper'
 require 'support/helpers'
 
-require 'chronomodel/json'
+require 'chrono_model/json'
 
 describe 'JSON equality operator' do
   include ChronoTest::Helpers::Adapter
