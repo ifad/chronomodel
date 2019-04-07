@@ -4,7 +4,7 @@ require 'support/helpers'
 describe ChronoModel::TimeMachine do
   include ChronoTest::Helpers::TimeMachine
 
-    adapter.create_table 'sections', temporal: true do |t|
+    adapter.create_table 'sections', temporal: true, no_journal: %w( articles_count ) do |t|
       t.string :name
       t.integer :articles_count, default: 0
     end
