@@ -117,7 +117,7 @@ module ChronoModel
         attribute_names_for_history_changes.concat(attributes.map(&:to_s))
       end
 
-      delegate :timeline_associations, :to => :history
+      delegate :timeline_associations, to: :history
     end
 
     # Returns a read-only representation of this record as it was +time+ ago.
@@ -134,12 +134,12 @@ module ChronoModel
       _as_of(time).first!
     end
 
-    # Delegates to +HistoryMethods.as_of+ to fetch this instance as it was on
-    # +time+. Used both by +as_of+ and +as_of!+ for performance reasons, to
-    # avoid a `rescue` (@lleirborras).
+    # Delegates to +HistoryModel::ClassMethods.as_of+ to fetch this instance
+    # as it was on +time+. Used both by +as_of+ and +as_of!+ for performance
+    # reasons, to avoid a `rescue` (@lleirborras).
     #
     def _as_of(time)
-      self.class.as_of(time).where(:id => self.id)
+      self.class.as_of(time).where(id: self.id)
     end
     protected :_as_of
 

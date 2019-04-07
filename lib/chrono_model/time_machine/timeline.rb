@@ -30,7 +30,7 @@ module ChronoModel
           order('ts ' << (options[:reverse] ? 'DESC' : 'ASC'))
 
         relation = relation.from(%["public".#{quoted_table_name}]) unless self.chrono?
-        relation = relation.where(:id => rid) if rid
+        relation = relation.where(id: rid) if rid
 
         sql = "SELECT ts FROM ( #{relation.to_sql} ) foo WHERE ts IS NOT NULL"
 

@@ -100,7 +100,7 @@ module ChronoModel
         # is maximum.
         #
         def of(object)
-          where(:id => object)
+          where(id: object)
         end
       end
 
@@ -137,7 +137,7 @@ module ChronoModel
         if self.class.timeline_associations.empty?
           self.class.where('id = ? AND upper(validity) = ?', rid, valid_from).first
         else
-          super(:id => rid, :before => valid_from, :table => self.class.superclass.quoted_table_name)
+          super(id: rid, before: valid_from, table: self.class.superclass.quoted_table_name)
         end
       end
 
@@ -150,7 +150,7 @@ module ChronoModel
         if self.class.timeline_associations.empty?
           self.class.where('id = ? AND lower(validity) = ?', rid, valid_to).first
         else
-          super(:id => rid, :after => valid_to, :table => self.class.superclass.quoted_table_name)
+          super(id: rid, after: valid_to, table: self.class.superclass.quoted_table_name)
         end
       end
       alias :next :succ
@@ -158,13 +158,13 @@ module ChronoModel
       # Returns the first history entry
       #
       def first
-        self.class.where(:id => rid).chronological.first
+        self.class.where(id: rid).chronological.first
       end
 
       # Returns the last history entry
       #
       def last
-        self.class.where(:id => rid).chronological.last
+        self.class.where(id: rid).chronological.last
       end
 
       # Returns this history entry's current record

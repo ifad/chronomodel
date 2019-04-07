@@ -32,7 +32,7 @@ module ChronoModel
         end
 
         def chrono_create_history_indexes_for(table, p_pkey)
-          add_temporal_indexes table, :validity, :on_current_schema => true
+          add_temporal_indexes table, :validity, on_current_schema: true
 
           execute "CREATE INDEX #{table}_inherit_pkey     ON #{table} ( #{p_pkey} )"
           execute "CREATE INDEX #{table}_recorded_at      ON #{table} ( recorded_at )"
@@ -53,7 +53,7 @@ module ChronoModel
           execute "DROP VIEW #{table}" if data_source_exists? table
           execute "CREATE VIEW #{table} AS SELECT * FROM ONLY #{current}"
 
-          chrono_metadata_set(table, options.merge(:chronomodel => VERSION))
+          chrono_metadata_set(table, options.merge(chronomodel: VERSION))
 
           # Set default values on the view (closes #12)
           #
