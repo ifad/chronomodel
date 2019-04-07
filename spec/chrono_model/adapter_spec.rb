@@ -474,7 +474,9 @@ describe ChronoModel::Adapter do
         adapter.add_timeline_consistency_constraint(:meetings, :interval)
       end
 
-      it { expect(adapter.indexes(:meetings).map(&:name)).to eq [ 'meetings_timeline_consistency' ] }
+      it { expect(adapter.indexes(:meetings).map(&:name)).to eq [
+        'meetings_timeline_consistency'
+      ] }
 
       after do
         adapter.remove_timeline_consistency_constraint(:meetings)

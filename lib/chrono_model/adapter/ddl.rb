@@ -5,35 +5,9 @@ module ChronoModel
 
     module DDL
       private
-        # Create the history table in the history schema
-        def chrono_create_history_for(table)
-          parent = "#{TEMPORAL_SCHEMA}.#{table}"
-          p_pkey = primary_key(parent)
-
-          execute <<-SQL
-            CREATE TABLE #{table} (
-              hid         SERIAL PRIMARY KEY,
-              validity    tsrange NOT NULL,
-              recorded_at timestamp NOT NULL DEFAULT timezone('UTC', now())
-            ) INHERITS ( #{parent} )
-          SQL
-
-          add_history_validity_constraint(table, p_pkey)
-
-          chrono_create_history_indexes_for(table, p_pkey)
-        end
-
-        def add_history_validity_constraint(table, pkey)
-          add_timeline_consistency_constraint(table, :validity, id: pkey, on_current_schema: true)
-        end
-
-        def remove_history_validity_constraint(table, options = {})
-          remove_timeline_consistency_constraint(table, options.merge(on_current_schema: true))
-        end
-
         # Create the public view and its INSTEAD OF triggers
         #
-        def chrono_create_view_for(table, options = nil)
+        def chrono_public_view_ddl(table, options = nil)
           pk      = primary_key(table)
           current = [TEMPORAL_SCHEMA, table].join('.')
           history = [HISTORY_SCHEMA,  table].join('.')
@@ -71,20 +45,30 @@ module ChronoModel
           chrono_create_DELETE_trigger(table, pk, current, history)
         end
 
-        def chrono_metadata_for(table)
-          comment = select_value(
-            "SELECT obj_description(#{quote(table)}::regclass)",
-            "ChronoModel metadata for #{table}") if data_source_exists?(table)
+        # Create the history table in the history schema
+        def chrono_history_table_ddl(table)
+          parent = "#{TEMPORAL_SCHEMA}.#{table}"
+          p_pkey = primary_key(parent)
 
-          MultiJson.load(comment || '{}').with_indifferent_access
+          execute <<-SQL
+            CREATE TABLE #{table} (
+              hid         SERIAL PRIMARY KEY,
+              validity    tsrange NOT NULL,
+              recorded_at timestamp NOT NULL DEFAULT timezone('UTC', now())
+            ) INHERITS ( #{parent} )
+          SQL
+
+          add_history_validity_constraint(table, p_pkey)
+
+          chrono_create_history_indexes_for(table, p_pkey)
         end
 
-        def chrono_metadata_set(table, metadata)
-          comment = MultiJson.dump(metadata)
+        def add_history_validity_constraint(table, pkey)
+          add_timeline_consistency_constraint(table, :validity, id: pkey, on_current_schema: true)
+        end
 
-          execute %[
-            COMMENT ON VIEW #{table} IS #{quote(comment)}
-          ]
+        def remove_history_validity_constraint(table, options = {})
+          remove_timeline_consistency_constraint(table, options.merge(on_current_schema: true))
         end
 
         # INSERT - insert data both in the temporal table and in the history one.

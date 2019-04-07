@@ -18,9 +18,9 @@ module ChronoModel
 
         transaction do
           on_temporal_schema { super }
-          on_history_schema { chrono_create_history_for(table_name) }
+          on_history_schema { chrono_history_table_ddl(table_name) }
 
-          chrono_create_view_for(table_name, options)
+          chrono_public_view_ddl(table_name, options)
         end
       end
 
@@ -34,16 +34,11 @@ module ChronoModel
         transaction do
           # Rename tables
           #
-          [TEMPORAL_SCHEMA, HISTORY_SCHEMA].each do |schema|
-            on_schema(schema) do
-              seq     = serial_sequence(name, primary_key(name))
-              new_seq = seq.sub(name.to_s, new_name.to_s).split('.').last
+          on_temporal_schema { rename_table_and_pk(name, new_name) }
+          on_history_schema  { rename_table_and_pk(name, new_name) }
 
-              execute "ALTER SEQUENCE #{seq}  RENAME TO #{new_seq}"
-              execute "ALTER TABLE    #{name} RENAME TO #{new_name}"
-            end
-          end
-
+          # Rename indexes
+          #
           chrono_rename_history_indexes(name, new_name)
           chrono_rename_temporal_indexes(name, new_name)
 
@@ -57,7 +52,7 @@ module ChronoModel
 
           # Create view and functions
           #
-          chrono_create_view_for(new_name)
+          chrono_public_view_ddl(new_name)
         end
       end
 
@@ -81,7 +76,7 @@ module ChronoModel
               chrono_make_temporal_table(table_name, options)
             end
 
-            chrono_alter(table_name, options) do
+            drop_and_recreate_public_view(table_name, options) do
               super table_name, options, &block
             end
 
@@ -92,6 +87,7 @@ module ChronoModel
 
             super table_name, options, &block
           end
+
         end
       end
 
@@ -146,7 +142,7 @@ module ChronoModel
           on_temporal_schema { super }
 
           # Update the triggers
-          chrono_create_view_for(table_name)
+          chrono_public_view_ddl(table_name)
         end
       end
 
@@ -162,7 +158,7 @@ module ChronoModel
           super
 
           # Update the triggers
-          chrono_create_view_for(table_name)
+          chrono_public_view_ddl(table_name)
         end
       end
 
@@ -172,7 +168,7 @@ module ChronoModel
       #
       def change_column(table_name, *)
         return super unless is_chrono?(table_name)
-        chrono_alter(table_name) { super }
+        drop_and_recreate_public_view(table_name) { super }
       end
 
       # Change the default on the temporal schema table.
@@ -195,7 +191,7 @@ module ChronoModel
       #
       def remove_column(table_name, *)
         return super unless is_chrono?(table_name)
-        chrono_alter(table_name) { super }
+        drop_and_recreate_public_view(table_name) { super }
       end
 
       private
@@ -203,7 +199,7 @@ module ChronoModel
         # types, the view must be dropped and recreated, while the change has
         # to be applied to the table in the temporal schema.
         #
-        def chrono_alter(table_name, opts = {})
+        def drop_and_recreate_public_view(table_name, opts = {})
           transaction do
             options = chrono_metadata_for(table_name).merge(opts)
 
@@ -212,7 +208,7 @@ module ChronoModel
             on_temporal_schema { yield }
 
             # Recreate the triggers
-            chrono_create_view_for(table_name, options)
+            chrono_public_view_ddl(table_name, options)
           end
         end
 
@@ -224,19 +220,19 @@ module ChronoModel
           end
 
           execute "ALTER TABLE #{table_name} SET SCHEMA #{TEMPORAL_SCHEMA}"
-          on_history_schema { chrono_create_history_for(table_name) }
-          chrono_create_view_for(table_name, options)
-          copy_indexes_to_history_for(table_name)
+          on_history_schema { chrono_history_table_ddl(table_name) }
+          chrono_public_view_ddl(table_name, options)
+          chrono_copy_indexes_to_history(table_name)
 
           # Optionally copy the plain table data, setting up history
           # retroactively.
           #
           if options[:copy_data]
-            chrono_copy_current_to_history(table_name)
+            chrono_copy_temporal_to_history(table_name)
           end
         end
 
-        def chrono_copy_current_to_history(table_name)
+        def chrono_copy_temporal_to_history(table_name)
           seq  = on_history_schema { serial_sequence(table_name, primary_key(table_name)) }
           from = options[:validity] || '0001-01-01 00:00:00'
 
@@ -250,9 +246,9 @@ module ChronoModel
           ]
         end
 
+        # Removes temporal features from this table
+        #
         def chrono_undo_temporal_table(table_name)
-          # Remove temporal features from this table
-          #
           execute "DROP VIEW #{table_name}"
 
           chrono_drop_trigger_functions_for(table_name)
@@ -267,6 +263,16 @@ module ChronoModel
 
             execute "ALTER TABLE #{table_name} SET SCHEMA #{default_schema}"
           end
+        end
+
+        # Renames a table and its primary key sequence name
+        #
+        def rename_table_and_pk(name, new_name)
+          seq     = serial_sequence(name, primary_key(name))
+          new_seq = seq.sub(name.to_s, new_name.to_s).split('.').last
+
+          execute "ALTER SEQUENCE #{seq}  RENAME TO #{new_seq}"
+          execute "ALTER TABLE    #{name} RENAME TO #{new_name}"
         end
 
       # private

@@ -51,6 +51,8 @@ module ChronoModel
     # metadata from the first caller's selected schema and not from
     # the current one.
     #
+    # NOTE: These methods are dynamically defined, see the source.
+    #
     def primary_key(table_name)
     end
 
@@ -69,6 +71,11 @@ module ChronoModel
     # may reference types defined in other schemas, which result in their
     # names becoming schema qualified, which will cause type resolutions to fail.
     #
+    # NOTE: This method is dynamically defined, see the source.
+    #
+    def column_definitions
+    end
+
     define_method(:column_definitions) do |table_name|
       return super(table_name) unless is_chrono?(table_name)
       on_schema(TEMPORAL_SCHEMA + ',' + self.schema_search_path, recurse: :ignore) { super(table_name) }
@@ -138,15 +145,37 @@ module ChronoModel
       end
     end
 
-    def is_exception_class?(e, *klasses)
-      if e.respond_to?(:original_exception)
-        klasses.any? { |k| e.is_a?(k) }
-      else
-        klasses.any? { |k| e.message =~ /#{k.name}/ }
-      end
+    # Reads the Gem metadata from the COMMENT set on the given PostgreSQL
+    # view name.
+    #
+    def chrono_metadata_for(view_name)
+      comment = select_value(
+        "SELECT obj_description(#{quote(view_name)}::regclass)",
+        "ChronoModel metadata for #{view_name}") if data_source_exists?(view_name)
+
+        MultiJson.load(comment || '{}').with_indifferent_access
+    end
+
+    # Writes Gem metadata on the COMMENT field in the given VIEW name.
+    #
+    def chrono_metadata_set(view_name, metadata)
+      comment = MultiJson.dump(metadata)
+
+      execute %[ COMMENT ON VIEW #{view_name} IS #{quote(comment)} ]
     end
 
     private
+      # Checks whether this exception or the one that generated this
+      # one is one of the classes provided.
+      #
+      def is_exception_class?(e, *classes)
+        if e.respond_to?(:original_exception)
+          classes.any? { |k| e.is_a?(k) }
+        else
+          classes.any? { |k| e.message =~ /#{k.name}/ }
+        end
+      end
+
       # Counts the number of recursions in a thread local variable
       #
       def count_recursions # yield
@@ -164,14 +193,6 @@ module ChronoModel
       def chrono_ensure_schemas
         [TEMPORAL_SCHEMA, HISTORY_SCHEMA].each do |schema|
           execute "CREATE SCHEMA #{schema}" unless schema_exists?(schema)
-        end
-      end
-
-      def translate_exception(exception, message)
-        if exception.message =~ /conflicting key value violates exclusion constraint/
-          ActiveRecord::RecordNotUnique.new(message)
-        else
-          super
         end
       end
   end

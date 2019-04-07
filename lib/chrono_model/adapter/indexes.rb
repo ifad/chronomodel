@@ -128,7 +128,7 @@ module ChronoModel
         #
         # Ref: GitHub pull #21.
         #
-        def copy_indexes_to_history_for(table_name)
+        def chrono_copy_indexes_to_history(table_name)
           history_indexes  = on_history_schema  { indexes(table_name) }.map(&:name)
           temporal_indexes = on_temporal_schema { indexes(table_name) }
 
