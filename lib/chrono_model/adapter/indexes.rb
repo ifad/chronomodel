@@ -72,7 +72,7 @@ module ChronoModel
         end
       end
 
-      def remove_timeline_consistency_constraint(table)
+      def remove_timeline_consistency_constraint(table, options = {})
         name = timeline_consistency_constraint_name(table)
 
         chrono_alter_constraint(table, options) do
