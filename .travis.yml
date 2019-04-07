@@ -17,12 +17,11 @@ addons:
   code_climate:
     repo_token: dedfb7472ee410eec459bff3681d9a8fd8dd237e9bd7e8675a7c8eb7e253bba9
 
-  postgresql: "10"
+  postgresql: "11"
   apt:
     packages:
-      - postgresql-10
-      - postgresql-plpython-10
-      - postgresql-client-10
+      - postgresql-11
+      - postgresql-client-11
 
 before_install:
   - sudo sed -i -e '/local.*peer/s/postgres/all/' -e 's/peer\|md5/trust/g' /etc/postgresql/*/main/pg_hba.conf
@@ -36,7 +35,7 @@ env:
     - PGPORT=5433
 
 script:
-  - bundle exec rake HAVE_PLPYTHON=1 TEST_CONFIG=./spec/config.travis.yml
+  - bundle exec rake TEST_CONFIG=./spec/config.travis.yml
 
 after_success:
   - bundle exec codeclimate-test-reporter

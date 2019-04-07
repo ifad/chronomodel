@@ -72,11 +72,11 @@ All timestamps are _forcibly_ stored in as UTC, bypassing the
 
 With Homebrew:
 
-    brew install --with-python postgres
+    brew install postgres
 
-With Apt:
+With apt:
 
-    apt-get install postgresql-plpython
+    apt-get install postgresql-11
 
 ## Installation
 
@@ -291,7 +291,8 @@ in your output, use `rake VERBOSE=true`.
 
 **DEPRECATED**: Please migrate to JSONB. It has an equality operator built-in,
 it's faster and stricter, and offers many more indexing abilities and better
-performance than JSON.
+performance than JSON. It is going to be desupported soon because PostgreSQL 10
+does not support these anymore.
 
 The [JSON][pg-json-type] does not provide an [equality operator][pg-json-func].
 As both unnecessary update suppression and selective journaling require
