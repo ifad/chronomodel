@@ -145,7 +145,7 @@ module ChronoModel
         "SELECT obj_description(#{quote(view_name)}::regclass)",
         "ChronoModel metadata for #{view_name}") if data_source_exists?(view_name)
 
-        MultiJson.load(comment || '{}').with_indifferent_access
+      MultiJson.load(comment || '{}').with_indifferent_access
     end
 
     # Writes Gem metadata on the COMMENT field in the given VIEW name.
