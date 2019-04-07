@@ -19,9 +19,19 @@ language: ruby
 cache: bundler
 
 addons:
-  postgresql: "9.6"
+  postgresql: "10"
   apt:
-    packages: postgresql-plpython-10
+    packages:
+      - postgresql-10
+      - postgresql-plpython-10
+      - postgresql-client-10
+    before_install:
+      - sudo cp /etc/postgresql/{9.6,10}/main/pg_hba.conf
+      - sudo /etc/init.d/postgresql restart
+    env:
+      global:
+        - PGPORT=5433
+
   code_climate:
     repo_token: dedfb7472ee410eec459bff3681d9a8fd8dd237e9bd7e8675a7c8eb7e253bba9
 
