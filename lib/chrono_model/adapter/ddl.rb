@@ -31,14 +31,6 @@ module ChronoModel
           remove_timeline_consistency_constraint(table, options.merge(on_current_schema: true))
         end
 
-        def chrono_create_history_indexes_for(table, p_pkey)
-          add_temporal_indexes table, :validity, on_current_schema: true
-
-          execute "CREATE INDEX #{table}_inherit_pkey     ON #{table} ( #{p_pkey} )"
-          execute "CREATE INDEX #{table}_recorded_at      ON #{table} ( recorded_at )"
-          execute "CREATE INDEX #{table}_instance_history ON #{table} ( #{p_pkey}, recorded_at )"
-        end
-
         # Create the public view and its INSTEAD OF triggers
         #
         def chrono_create_view_for(table, options = nil)

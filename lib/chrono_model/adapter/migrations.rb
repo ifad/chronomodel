@@ -61,40 +61,6 @@ module ChronoModel
         end
       end
 
-      # Rename indexes on history schema
-      #
-      def chrono_rename_history_indexes(name, new_name)
-        on_history_schema do
-          standard_index_names = %w(
-            inherit_pkey instance_history pkey
-            recorded_at timeline_consistency )
-
-          old_names = temporal_index_names(name, :validity) +
-            standard_index_names.map {|i| [name, i].join('_') }
-
-          new_names = temporal_index_names(new_name, :validity) +
-            standard_index_names.map {|i| [new_name, i].join('_') }
-
-          old_names.zip(new_names).each do |old, new|
-            execute "ALTER INDEX #{old} RENAME TO #{new}"
-          end
-        end
-      end
-
-      # Rename indexes on temporal schema
-      #
-      def chrono_rename_temporal_indexes(name, new_name)
-        on_temporal_schema do
-          temporal_indexes =  indexes(new_name)
-          temporal_indexes.map(&:name).each do |old_idx_name|
-            if old_idx_name =~ /^index_#{name}_on_(?<columns>.+)/
-              new_idx_name = "index_#{new_name}_on_#{$~['columns']}"
-              execute "ALTER INDEX #{old_idx_name} RENAME TO #{new_idx_name}"
-            end
-          end
-        end
-      end
-
       # If changing a temporal table, redirect the change to the table in the
       # temporal schema and recreate views.
       #
@@ -296,31 +262,6 @@ module ChronoModel
 
             # Recreate the triggers
             chrono_create_view_for(table_name, options)
-          end
-        end
-
-        # Generic alteration of history tables, where changes have to be
-        # propagated both on the temporal table and the history one.
-        #
-        # Internally, the :on_current_schema bypasses the +is_chrono?+
-        # check, as some temporal indexes and constraints are created
-        # only on the history table, and the creation methods already
-        # run scoped into the correct schema.
-        #
-        def chrono_alter_index(table_name, options)
-          if is_chrono?(table_name) && !options[:on_current_schema]
-            on_temporal_schema { yield }
-            on_history_schema { yield }
-          else
-            yield
-          end
-        end
-
-        def chrono_alter_constraint(table_name, options)
-          if is_chrono?(table_name) && !options[:on_current_schema]
-            on_temporal_schema { yield }
-          else
-            yield
           end
         end
       # private
