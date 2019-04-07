@@ -196,26 +196,10 @@ module ChronoModel
       end
     end
 
-    # Returns the next record in the history timeline.
+    # This is a current record, so its next instance is always nil.
     #
-    def succ(options = {})
-      unless self.class.timeline_associations.empty?
-        return nil unless (ts = succ_timestamp(options))
-
-        order_clause = Arel.sql %[ LOWER(#{options[:table] || self.class.quoted_table_name}."validity"_ DESC ]
-
-        self.class.as_of(ts).order(order_clause).find(options[:id] || id)
-      end
-    end
-
-    # Returns the next timestamp in this record's timeline. Includes temporal
-    # associations.
-    #
-    def succ_timestamp(options = {})
-      return nil unless historical?
-
-      options[:after] ||= as_of_time
-      timeline(options.merge(limit: 1, reverse: false)).first
+    def succ
+      nil
     end
 
     # Returns the current history version
