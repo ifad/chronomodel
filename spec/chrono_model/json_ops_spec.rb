@@ -1,12 +1,13 @@
-require 'spec_helper'
-require 'support/helpers'
-
 ##########################################################
 ### DEPRECATED: JSON operators are an hack and there is no
 ### reason not to use jsonb other than migrating your data
 ##########################################################
 if ENV['HAVE_PLPYTHON'] == '1'
 
+require 'spec_helper'
+require 'support/helpers'
+
+require 'chronomodel/json'
 
 describe 'JSON equality operator' do
   include ChronoTest::Helpers::Adapter

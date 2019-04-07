@@ -67,9 +67,8 @@ All timestamps are _forcibly_ stored in as UTC, bypassing the
 
 * Ruby >= 2.3
 * Active Record >= 5.0. See the [detailed supported versions matrix on travis](https://travis-ci.org/ifad/chronomodel)
-* PostgreSQL >= 9.3
+* PostgreSQL >= 9.4 (legacy support for 9.3)
 * The `btree_gist` PostgreSQL extension
-* The `plpython` PostgreSQL extension if you have *JSON* (*not* JSONB) columns
 
 With Homebrew:
 
@@ -278,7 +277,7 @@ given that usually database objects have creation and dropping scripts.
 
 ## Running tests
 
-You need a running PostgreSQL >= 9.3 instance. Create `spec/config.yml` with the
+You need a running PostgreSQL >= 9.4 instance. Create `spec/config.yml` with the
 connection authentication details (use `spec/config.yml.example` as template).
 
 You need to connect as  a database superuser, because specs need to create the
@@ -290,23 +289,33 @@ in your output, use `rake VERBOSE=true`.
 
 ## Usage with JSON (*not* JSONB) columns
 
-[JSON][pg-json-type] does not provide an [equality operator][pg-json-func].
+**DEPRECATED**: Please migrate to JSONB. It has an equality operator built-in,
+it's faster and stricter, and offers many more indexing abilities and better
+performance than JSON.
+
+The [JSON][pg-json-type] does not provide an [equality operator][pg-json-func].
 As both unnecessary update suppression and selective journaling require
 comparing the OLD and NEW rows fields, this fails by default.
 
-ChronoModel provides a naive JSON equality operator using a naive
-comparison of JSON objects [implemented in pl/python][pg-json-opclass].
+ChronoModel provides a naive and heavyweight JSON equality operator using
+[pl/python][pg-json-opclass] and associated Postgres objects.
 
-To load the opclass you can use the `ChronoModel::Json.create`
-convenience method. If you don't use JSON don't bother doing this.
+You need to install the plpython language in your database using
 
-If you are on Postgres 9.4, you are **strongly encouraged to use JSONB**,
-as it has an equality operator built-in, it's faster and stricter, and
-offers many more indexing abilities and better performance than JSON.
+```
+CREATE LANGUAGE plpythonu;
+```
+
+Then to load the opclass you can use
+
+```ruby
+require 'chronomodel/json'
+ChronoModel::Json.create
+```
 
 ## Caveats
 
- * Rails 4 support requires disabling tsrange parsing support, as it
+ * Rails 4+ support requires disabling tsrange parsing support, as it
    [is broken][r4-tsrange-broken] and  [incomplete][r4-tsrange-incomplete]
    as of now, mainly due to a [design clash with ruby][pg-tsrange-and-ruby].
 

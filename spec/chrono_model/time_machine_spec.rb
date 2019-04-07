@@ -82,8 +82,8 @@ describe ChronoModel::TimeMachine do
     it { is_expected.to include(Publication) }
   end
 
-  describe '.chrono_models' do
-    subject { ChronoModel::TimeMachine.chrono_models }
+  describe '.history_models' do
+    subject { ChronoModel.history_models }
 
     it { is_expected.to eq(
       'foos'     => Foo::History,

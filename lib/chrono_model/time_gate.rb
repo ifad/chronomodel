@@ -6,18 +6,18 @@ module ChronoModel
   module TimeGate
     extend ActiveSupport::Concern
 
+    include ChronoModel::Patches::AsOfTimeHolder
+
     module ClassMethods
+      include ChronoModel::TimeMachine::Timeline
+
       def as_of(time)
         all.as_of_time!(time)
       end
-
-      include TimeMachine::HistoryMethods::Timeline
     end
 
-    include Patches::AsOfTimeHolder
-
     def as_of(time)
-      self.class.as_of(time).where(:id => self.id).first!
+      self.class.as_of(time).where(id: self.id).first!
     end
 
     def timeline
