@@ -19,9 +19,9 @@ language: ruby
 cache: bundler
 
 addons:
-  postgresql: "9.6"
+  postgresql: "11"
   apt:
-    packages: postgresql-plpython-9.6
+    packages: postgresql-plpython-11
   code_climate:
     repo_token: dedfb7472ee410eec459bff3681d9a8fd8dd237e9bd7e8675a7c8eb7e253bba9
 
