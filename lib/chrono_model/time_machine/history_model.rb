@@ -4,6 +4,12 @@ module ChronoModel
     module HistoryModel
       extend ActiveSupport::Concern
 
+      included do
+        self.table_name = [Adapter::HISTORY_SCHEMA, superclass.table_name].join('.')
+
+        scope :chronological, -> { order(Arel.sql('lower(validity) ASC')) }
+      end
+
       # Methods that make up the history interface of the companion History
       # model, automatically built for each Model that includes TimeMachine
       #

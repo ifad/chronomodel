@@ -45,13 +45,7 @@ module ChronoModel
     end
 
     def self.define_history_model_for(model)
-      history = Class.new(model) do
-        include ChronoModel::TimeMachine::HistoryModel
-
-        self.table_name = [Adapter::HISTORY_SCHEMA, model.table_name].join('.')
-
-        scope :chronological, -> { order(Arel.sql('lower(validity) ASC')) }
-      end
+      history = Class.new(model) { include ChronoModel::TimeMachine::HistoryModel }
 
       model.singleton_class.instance_eval do
         define_method(:history) { history }
