@@ -210,9 +210,17 @@ describe ChronoModel::TimeMachine do
       it { expect(Bar.as_of(bar.ts[2]).includes(foo: :sub_bars).first.foo.name).to eq 'new foo' }
       it { expect(Bar.as_of(bar.ts[3]).includes(foo: :sub_bars).first.foo.name).to eq 'new foo' }
 
-      it { expect(Foo.as_of(foo.ts[0]).includes(bars: :sub_bars).first.sub_bars.count).to eq 0 }
-      it { expect(Foo.as_of(foo.ts[1]).includes(bars: :sub_bars).first.sub_bars.count).to eq 0 }
-      it { expect(Foo.as_of(foo.ts[2]).includes(bars: :sub_bars).first.sub_bars.count).to eq 1 }
+      it { expect(Foo.as_of(foo.ts[0]).includes(:bars, :sub_bars).first.sub_bars.count).to eq 0 }
+      it { expect(Foo.as_of(foo.ts[1]).includes(:bars, :sub_bars).first.sub_bars.count).to eq 0 }
+      it { expect(Foo.as_of(foo.ts[2]).includes(:bars, :sub_bars).first.sub_bars.count).to eq 1 }
+
+      it { expect(Foo.as_of(foo.ts[0]).includes(:bars, :sub_bars).first.sub_bars.first).to be nil }
+      it { expect(Foo.as_of(foo.ts[1]).includes(:bars, :sub_bars).first.sub_bars.first).to be nil }
+
+      it { expect(Foo.as_of(subbar.ts[0]).includes(:bars, :sub_bars).first.sub_bars.first.name).to eq 'sub-bar' }
+      it { expect(Foo.as_of(subbar.ts[1]).includes(:bars, :sub_bars).first.sub_bars.first.name).to eq 'bar sub-bar' }
+      it { expect(Foo.as_of(subbar.ts[2]).includes(:bars, :sub_bars).first.sub_bars.first.name).to eq 'sub-bar sub-bar' }
+      it { expect(Foo.as_of(subbar.ts[3]).includes(:bars, :sub_bars).first.sub_bars.first.name).to eq 'new sub-bar' }
     end
 
     it 'doesn\'t raise RecordNotFound when no history records are found' do

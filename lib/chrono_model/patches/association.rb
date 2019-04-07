@@ -26,10 +26,6 @@ module ChronoModel
           # as-of table name at the owner's as-of-time
           #
           scope = scope.from(klass.history.virtual_table_at(owner.as_of_time))
-
-        elsif respond_to?(:through_reflection) && through_reflection.klass.chrono?
-
-          _chrono_scope_has_many_through_joins(scope)
         end
 
         scope.as_of_time!(owner.as_of_time)
@@ -38,21 +34,6 @@ module ChronoModel
       end
 
       private
-        # For through associations, replace the joined table name with a
-        # virtual table that selects records from the history at the given
-        # +as_of_time+.
-        #
-        def _chrono_scope_has_many_through_joins(scope)
-          scope.join_sources.each do |join|
-            if join.left.name == through_reflection.klass.table_name
-              history_model = through_reflection.klass.history
-
-              join.left = ChronoModel::Patches::JoinNode.new(
-                join.left, history_model, owner.as_of_time)
-            end
-          end
-        end
-
         def _chrono_record?
           owner.respond_to?(:as_of_time) && owner.as_of_time.present?
         end
