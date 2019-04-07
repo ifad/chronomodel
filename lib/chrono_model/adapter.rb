@@ -135,15 +135,6 @@ module ChronoModel
     def is_chrono?(table)
       on_temporal_schema { data_source_exists?(table) } &&
         on_history_schema { data_source_exists?(table) }
-
-    rescue ActiveRecord::StatementInvalid => e
-      # means that we could not change the search path to check for
-      # table existence
-      if is_exception_class?(e, PG::InvalidSchemaName, PG::InvalidParameterValue)
-        return false
-      else
-        raise e
-      end
     end
 
     # Reads the Gem metadata from the COMMENT set on the given PostgreSQL
@@ -166,17 +157,6 @@ module ChronoModel
     end
 
     private
-      # Checks whether this exception or the one that generated this
-      # one is one of the classes provided.
-      #
-      def is_exception_class?(e, *classes)
-        if e.respond_to?(:original_exception)
-          classes.any? { |k| e.is_a?(k) }
-        else
-          classes.any? { |k| e.message =~ /#{k.name}/ }
-        end
-      end
-
       # Counts the number of recursions in a thread local variable
       #
       def count_recursions # yield
