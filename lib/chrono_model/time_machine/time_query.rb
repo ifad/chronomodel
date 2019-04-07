@@ -8,29 +8,30 @@ module ChronoModel
       def time_query(match, time, options)
         range = columns_hash.fetch(options[:on].to_s)
 
-        query = case match
-        when :at
-          build_time_query_at(time, range)
-
-        when :not
-          "NOT (#{build_time_query_at(time, range)})"
-
-        when :before
-          op = options.fetch(:inclusive, true) ? '&&' : '@>'
-          build_time_query(['NULL', time_for_time_query(time, range)], range, op)
-
-        when :after
-          op = options.fetch(:inclusive, true) ? '&&' : '@>'
-          build_time_query([time_for_time_query(time, range), 'NULL'], range, op)
-
-        else
-          raise ArgumentError, "Invalid time_query: #{match}"
-        end
-
-        where(query)
+        where(time_query_sql(match, time, range, options))
       end
 
       private
+        def time_query_sql(match, time, range, options)
+          case match
+          when :at
+            build_time_query_at(time, range)
+
+          when :not
+            "NOT (#{build_time_query_at(time, range)})"
+
+          when :before
+            op = options.fetch(:inclusive, true) ? '&&' : '@>'
+            build_time_query(['NULL', time_for_time_query(time, range)], range, op)
+
+          when :after
+            op = options.fetch(:inclusive, true) ? '&&' : '@>'
+            build_time_query([time_for_time_query(time, range), 'NULL'], range, op)
+
+          else
+            raise ChronoModel::Error, "Invalid time_query: #{match}"
+          end
+        end
 
         def time_for_time_query(t, column)
           if t == :now || t == :today
