@@ -78,6 +78,33 @@ describe ChronoModel::Adapter do
     native
   end
 
+  describe '.is_chrono?' do
+    with_temporal_table do
+      it { expect(adapter.is_chrono?(table)).to be(true) }
+    end
+
+    with_plain_table do
+      it { expect(adapter.is_chrono?(table)).to be(false) }
+    end
+
+    context 'when schemas are not there yet' do
+      before(:all) do
+        adapter.execute 'BEGIN'
+        adapter.execute 'DROP SCHEMA temporal CASCADE'
+        adapter.execute 'DROP SCHEMA history CASCADE'
+        adapter.execute 'CREATE TABLE test_table (id integer)'
+      end
+
+      after(:all) do
+        adapter.execute 'ROLLBACK'
+      end
+
+      it { expect { adapter.is_chrono?(table) }.to_not raise_error }
+
+      it { expect(adapter.is_chrono?(table)).to be(false) }
+    end
+  end
+
   describe '.create_table' do
     with_temporal_table do
       it_should_behave_like 'temporal table'
