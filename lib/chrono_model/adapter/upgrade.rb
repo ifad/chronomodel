@@ -14,7 +14,7 @@ module ChronoModel
         def chrono_tables_needing_upgrade
           tables = { }
 
-          _on_temporal_schema { self.tables }.each do |table_name|
+          on_temporal_schema { self.tables }.each do |table_name|
             next unless is_chrono?(table_name)
             metadata = chrono_metadata_for(table_name)
             version = metadata['chronomodel']
@@ -109,8 +109,8 @@ module ChronoModel
           execute "CREATE EXTENSION IF NOT EXISTS btree_gist;"
 
           chrono_create_view_for(table_name)
-          _on_history_schema { add_history_validity_constraint(table_name, p_pkey) }
-          _on_history_schema { chrono_create_history_indexes_for(table_name, p_pkey) }
+          on_history_schema { add_history_validity_constraint(table_name, p_pkey) }
+          on_history_schema { chrono_create_history_indexes_for(table_name, p_pkey) }
         end
       # private
     end

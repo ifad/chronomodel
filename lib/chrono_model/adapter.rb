@@ -77,8 +77,8 @@ module ChronoModel
     # Returns true if the given name references a temporal table.
     #
     def is_chrono?(table)
-      _on_temporal_schema { data_source_exists?(table) } &&
-        _on_history_schema { data_source_exists?(table) }
+      on_temporal_schema { data_source_exists?(table) } &&
+        on_history_schema { data_source_exists?(table) }
 
     rescue ActiveRecord::StatementInvalid => e
       # means that we could not change the search path to check for
@@ -107,11 +107,11 @@ module ChronoModel
         end
       end
 
-      def _on_temporal_schema(nesting = true, &block)
+      def on_temporal_schema(nesting = true, &block)
         on_schema(TEMPORAL_SCHEMA, nesting, &block)
       end
 
-      def _on_history_schema(nesting = true, &block)
+      def on_history_schema(nesting = true, &block)
         on_schema(HISTORY_SCHEMA, nesting, &block)
       end
 

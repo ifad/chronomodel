@@ -95,13 +95,13 @@ module ChronoModel
       # Ref: GitHub pull #21.
       #
       def copy_indexes_to_history_for(table_name)
-        history_indexes  = _on_history_schema  { indexes(table_name) }.map(&:name)
-        temporal_indexes = _on_temporal_schema { indexes(table_name) }
+        history_indexes  = on_history_schema  { indexes(table_name) }.map(&:name)
+        temporal_indexes = on_temporal_schema { indexes(table_name) }
 
         temporal_indexes.each do |index|
           next if history_indexes.include?(index.name)
 
-          _on_history_schema do
+          on_history_schema do
             execute %[
               CREATE INDEX #{index.name} ON #{table_name}
               USING #{index.using} ( #{index.columns.join(', ')} )

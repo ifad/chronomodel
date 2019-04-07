@@ -18,7 +18,7 @@ module ChronoModel
           define_method(method) do |*args|
             table_name = args.first
             return super(*args) unless is_chrono?(table_name)
-            _on_temporal_schema(false) { super(*args) }
+            on_temporal_schema(false) { super(*args) }
           end
         end
 
@@ -50,8 +50,8 @@ module ChronoModel
         end
 
         transaction do
-          _on_temporal_schema { super }
-          _on_history_schema { chrono_create_history_for(table_name) }
+          on_temporal_schema { super }
+          on_history_schema { chrono_create_history_for(table_name) }
 
           chrono_create_view_for(table_name, options)
         end
@@ -97,7 +97,7 @@ module ChronoModel
       # Rename indexes on history schema
       #
       def chrono_rename_history_indexes(name, new_name)
-        _on_history_schema do
+        on_history_schema do
           standard_index_names = %w(
             inherit_pkey instance_history pkey
             recorded_at timeline_consistency )
@@ -117,7 +117,7 @@ module ChronoModel
       # Rename indexes on temporal schema
       #
       def chrono_rename_temporal_indexes(name, new_name)
-        _on_temporal_schema do
+        on_temporal_schema do
           temporal_indexes =  indexes(new_name)
           temporal_indexes.map(&:name).each do |old_idx_name|
             if old_idx_name =~ /^index_#{name}_on_(?<columns>.+)/
@@ -168,7 +168,7 @@ module ChronoModel
         end
 
         execute "ALTER TABLE #{table_name} SET SCHEMA #{TEMPORAL_SCHEMA}"
-        _on_history_schema { chrono_create_history_for(table_name) }
+        on_history_schema { chrono_create_history_for(table_name) }
         chrono_create_view_for(table_name, options)
         copy_indexes_to_history_for(table_name)
 
@@ -176,7 +176,7 @@ module ChronoModel
         # retroactively.
         #
         if options[:copy_data]
-          seq  = _on_history_schema { serial_sequence(table_name, primary_key(table_name)) }
+          seq  = on_history_schema { serial_sequence(table_name, primary_key(table_name)) }
           from = options[:validity] || '0001-01-01 00:00:00'
 
           execute %[
@@ -198,10 +198,10 @@ module ChronoModel
 
         chrono_drop_trigger_functions_for(table_name)
 
-        _on_history_schema { execute "DROP TABLE #{table_name}" }
+        on_history_schema { execute "DROP TABLE #{table_name}" }
 
         default_schema = select_value 'SELECT current_schema()'
-        _on_temporal_schema do
+        on_temporal_schema do
           if primary_key(table_name) == '__chrono_id'
             execute "ALTER TABLE #{table_name} DROP __chrono_id"
           end
@@ -217,7 +217,7 @@ module ChronoModel
       def drop_table(table_name, *)
         return super unless is_chrono?(table_name)
 
-        _on_temporal_schema { execute "DROP TABLE #{table_name} CASCADE" }
+        on_temporal_schema { execute "DROP TABLE #{table_name} CASCADE" }
 
         chrono_drop_trigger_functions_for(table_name)
       end
@@ -230,12 +230,12 @@ module ChronoModel
         return super unless is_chrono?(table_name)
 
         transaction do
-          _on_temporal_schema { super }
+          on_temporal_schema { super }
 
           # Uniqueness constraints do not make sense in the history table
           options = options.dup.tap {|o| o.delete(:unique)} if options[:unique].present?
 
-          _on_history_schema { super table_name, column_name, options }
+          on_history_schema { super table_name, column_name, options }
         end
       end
 
@@ -246,8 +246,8 @@ module ChronoModel
         return super unless is_chrono?(table_name)
 
         transaction do
-          _on_temporal_schema { super }
-          _on_history_schema { super }
+          on_temporal_schema { super }
+          on_history_schema { super }
         end
       end
 
@@ -259,7 +259,7 @@ module ChronoModel
 
         transaction do
           # Add the column to the temporal table
-          _on_temporal_schema { super }
+          on_temporal_schema { super }
 
           # Update the triggers
           chrono_create_view_for(table_name)
@@ -274,7 +274,7 @@ module ChronoModel
 
         # Rename the column in the temporal table and in the view
         transaction do
-          _on_temporal_schema { super }
+          on_temporal_schema { super }
           super
 
           # Update the triggers
@@ -295,14 +295,14 @@ module ChronoModel
       #
       def change_column_default(table_name, *)
         return super unless is_chrono?(table_name)
-        _on_temporal_schema { super }
+        on_temporal_schema { super }
       end
 
       # Change the null constraint on the temporal schema table.
       #
       def change_column_null(table_name, *)
         return super unless is_chrono?(table_name)
-        _on_temporal_schema { super }
+        on_temporal_schema { super }
       end
 
       # If removing a column from a temporal table, we are forced to drop the
@@ -325,7 +325,7 @@ module ChronoModel
 
             execute "DROP VIEW #{table_name}"
 
-            _on_temporal_schema { yield }
+            on_temporal_schema { yield }
 
             # Recreate the triggers
             chrono_create_view_for(table_name, options)
@@ -342,8 +342,8 @@ module ChronoModel
         #
         def chrono_alter_index(table_name, options)
           if is_chrono?(table_name) && !options[:on_current_schema]
-            _on_temporal_schema { yield }
-            _on_history_schema { yield }
+            on_temporal_schema { yield }
+            on_history_schema { yield }
           else
             yield
           end
@@ -351,7 +351,7 @@ module ChronoModel
 
         def chrono_alter_constraint(table_name, options)
           if is_chrono?(table_name) && !options[:on_current_schema]
-            _on_temporal_schema { yield }
+            on_temporal_schema { yield }
           else
             yield
           end
