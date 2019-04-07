@@ -22,19 +22,26 @@ module ChronoModel
         super.tap do |arel|
 
           arel.join_sources.each do |join|
-            # This case happens with nested includes, where the below
-            # code has already replaced the join.left with a JoinNode.
-            #
-            next if join.left.respond_to?(:as_of_time)
-
-            model = ChronoModel.history_models[join.left.table_name]
-            next unless model
-
-            join.left = ChronoModel::Patches::JoinNode.new(
-              join.left, model.history, @_as_of_time)
+            chrono_join_history(join)
           end
 
         end
+      end
+
+      # Replaces a join with the current data with another that
+      # loads records As-Of time against the history data.
+      #
+      def chrono_join_history(join)
+        # This case happens with nested includes, where the below
+        # code has already replaced the join.left with a JoinNode.
+        #
+        return if join.left.respond_to?(:as_of_time)
+
+        model = ChronoModel.history_models[join.left.table_name]
+        return unless model
+
+        join.left = ChronoModel::Patches::JoinNode.new(
+          join.left, model.history, @_as_of_time)
       end
 
       # Build a preloader at the +as_of_time+ of this relation.

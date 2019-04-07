@@ -77,36 +77,8 @@ module ChronoModel
             end
           end
 
-
-          # Rename indexes on history schema
-          #
-          _on_history_schema do
-            standard_index_names = %w(
-              inherit_pkey instance_history pkey
-              recorded_at timeline_consistency )
-
-            old_names = temporal_index_names(name, :validity) +
-              standard_index_names.map {|i| [name, i].join('_') }
-
-            new_names = temporal_index_names(new_name, :validity) +
-              standard_index_names.map {|i| [new_name, i].join('_') }
-
-            old_names.zip(new_names).each do |old, new|
-              execute "ALTER INDEX #{old} RENAME TO #{new}"
-            end
-          end
-
-          # Rename indexes on temporal schema
-          #
-          _on_temporal_schema do
-            temporal_indexes =  indexes(new_name)
-            temporal_indexes.map(&:name).each do |old_idx_name|
-              if old_idx_name =~ /^index_#{name}_on_(?<columns>.+)/
-                new_idx_name = "index_#{new_name}_on_#{$~['columns']}"
-                execute "ALTER INDEX #{old_idx_name} RENAME TO #{new_idx_name}"
-              end
-            end
-          end
+          chrono_rename_history_indexes(name, new_name)
+          chrono_rename_temporal_indexes(name, new_name)
 
           # Drop view
           #
@@ -119,6 +91,40 @@ module ChronoModel
           # Create view and functions
           #
           chrono_create_view_for(new_name)
+        end
+      end
+
+      # Rename indexes on history schema
+      #
+      def chrono_rename_history_indexes(name, new_name)
+        _on_history_schema do
+          standard_index_names = %w(
+            inherit_pkey instance_history pkey
+            recorded_at timeline_consistency )
+
+          old_names = temporal_index_names(name, :validity) +
+            standard_index_names.map {|i| [name, i].join('_') }
+
+          new_names = temporal_index_names(new_name, :validity) +
+            standard_index_names.map {|i| [new_name, i].join('_') }
+
+          old_names.zip(new_names).each do |old, new|
+            execute "ALTER INDEX #{old} RENAME TO #{new}"
+          end
+        end
+      end
+
+      # Rename indexes on temporal schema
+      #
+      def chrono_rename_temporal_indexes(name, new_name)
+        _on_temporal_schema do
+          temporal_indexes =  indexes(new_name)
+          temporal_indexes.map(&:name).each do |old_idx_name|
+            if old_idx_name =~ /^index_#{name}_on_(?<columns>.+)/
+              new_idx_name = "index_#{new_name}_on_#{$~['columns']}"
+              execute "ALTER INDEX #{old_idx_name} RENAME TO #{new_idx_name}"
+            end
+          end
         end
       end
 
