@@ -300,16 +300,10 @@ comparing the OLD and NEW rows fields, this fails by default.
 ChronoModel provides a naive and heavyweight JSON equality operator using
 [pl/python][pg-json-opclass] and associated Postgres objects.
 
-You need to install the plpython language in your database using
-
-```
-CREATE LANGUAGE plpythonu;
-```
-
-Then to load the opclass you can use
+To set up you can use
 
 ```ruby
-require 'chronomodel/json'
+require 'chrono_model/json'
 ChronoModel::Json.create
 ```
 
