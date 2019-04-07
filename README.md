@@ -282,9 +282,20 @@ connection authentication details (use `spec/config.yml.example` as template).
 You need to connect as  a database superuser, because specs need to create the
 `btree_gist` extension.
 
-Run `rake`. SQL queries are logged to `spec/debug.log`. If you want to see them
-in your output, use `rake VERBOSE=true`.
+To run the full test suite, use
 
+    rake
+
+SQL queries are logged to `spec/debug.log`. If you want to see them in your
+output, set the `VERBOSE=true` environment variable.
+
+Some tests check the nominal execution of rake tasks within a test Rails app,
+and those are quite time consuming. You can run the full ChronoModel tests
+only against ActiveRecord by using
+
+    rspec spec/chrono_model
+
+Ensure to run the full test suite before pushing.
 
 ## Usage with JSON (*not* JSONB) columns
 
