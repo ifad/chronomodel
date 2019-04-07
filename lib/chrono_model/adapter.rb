@@ -74,10 +74,24 @@ module ChronoModel
       on_schema(TEMPORAL_SCHEMA + ',' + self.schema_search_path, recurse: :ignore) { super(table_name) }
     end
 
+    # Evaluates the given block in the temporal schema.
+    #
+    def on_temporal_schema(&block)
+      on_schema(TEMPORAL_SCHEMA, &block)
+    end
+
+    # Evaluates the given block in the history schema.
+    #
+    def on_history_schema(&block)
+      on_schema(HISTORY_SCHEMA, &block)
+    end
+
     # Evaluates the given block in the given +schema+ search path.
     #
     # Recursion works by saving the old_path the function closure
     # at each recursive call.
+    #
+    # See specs for examples and behaviour.
     #
     def on_schema(schema, recurse: :follow)
       old_path = self.schema_search_path
@@ -151,14 +165,6 @@ module ChronoModel
         [TEMPORAL_SCHEMA, HISTORY_SCHEMA].each do |schema|
           execute "CREATE SCHEMA #{schema}" unless schema_exists?(schema)
         end
-      end
-
-      def on_temporal_schema(nesting = true, &block)
-        on_schema(TEMPORAL_SCHEMA, nesting, &block)
-      end
-
-      def on_history_schema(nesting = true, &block)
-        on_schema(HISTORY_SCHEMA, nesting, &block)
       end
 
       def translate_exception(exception, message)
