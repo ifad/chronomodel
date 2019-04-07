@@ -228,11 +228,11 @@ module ChronoModel
           # retroactively.
           #
           if options[:copy_data]
-            chrono_copy_temporal_to_history(table_name)
+            chrono_copy_temporal_to_history(table_name, options)
           end
         end
 
-        def chrono_copy_temporal_to_history(table_name)
+        def chrono_copy_temporal_to_history(table_name, options)
           seq  = on_history_schema { serial_sequence(table_name, primary_key(table_name)) }
           from = options[:validity] || '0001-01-01 00:00:00'
 
