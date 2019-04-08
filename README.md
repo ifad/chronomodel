@@ -5,10 +5,7 @@
 [![Test Coverage][test-coverage-badge]][test-coverage]
 [![Inlinedocs][docs-analysis-badge]][docs-analysis]
 
-![{chronos - greek god of time}][chronos-image]
-
-> Chronos, the greek god of time.
-> Courtesy of [REBELLE SOCIETY][rebelle-society]
+![{A Delorean that we all love}][delorean-image]
 
 ChronoModel implements what Oracle sells as "Flashback Queries", with standard
 SQL on free PostgreSQL. Academically speaking, ChronoModel implements a
@@ -387,7 +384,7 @@ This software is Made in Italy :it: :smile:.
 [test-coverage]: https://codeclimate.com/github/ifad/chronomodel
 [test-coverage-badge]: https://codeclimate.com/github/ifad/chronomodel/badges/coverage.svg
 
-[chronos-image]: http://i.imgur.com/8NObYiZl.jpg
+[delorean-image]: https://i.imgur.com/DD77F4s.jpg
 [rebelle-society]: http://www.rebellesociety.com/2012/10/11/the-writers-way-week-two-facing-procrastination/chronos_oeuvre_grand1/
 
 [wp-scd-2]: http://en.wikipedia.org/wiki/Slowly_changing_dimension#Type_2
