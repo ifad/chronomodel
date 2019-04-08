@@ -1,3 +1,8 @@
+# The db consle does not work on Rails 5.0
+#
+unless Bundler.default_gemfile.to_s =~ /rails_5.0/
+
+
 require 'spec_helper'
 
 describe 'rails dbconsole' do
@@ -14,4 +19,7 @@ describe 'rails dbconsole' do
     specify { expect(last_command).to be_successfully_executed }
     specify { expect(last_command).to have_output(/\bfoo_column\b/) }
   end
+end
+
+
 end

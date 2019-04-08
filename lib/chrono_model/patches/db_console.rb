@@ -3,7 +3,7 @@ module ChronoModel
 
     module DBConsole
       def config
-        super.tap {|config| config['adapter'] = 'postgresql/chronomodel' }
+        super.dup.tap {|config| config['adapter'] = 'postgresql/chronomodel' }
       end
     end
 
