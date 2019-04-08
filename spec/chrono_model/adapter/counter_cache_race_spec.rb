@@ -29,22 +29,18 @@ describe 'models with counter cache' do
   describe 'are not subject to race condition if no_journal is set on the counter cache column' do
     specify do
       section = Section.create!
+
       expect(section.articles_count).to eq(0)
-
       Article.create!(section_id: section.id)
-
       expect(section.reload.articles_count).to eq(1)
 
       num_threads = 10
 
-      expect do
+      expect {
         Array.new(num_threads).map do
-          Thread.new do
-            # sleep(rand) # With the sleep statement everything works
-            Article.create!(section_id: section.id)
-          end
+          Thread.new { Article.create!(section_id: section.id) }
         end.each(&:join)
-      end.to_not raise_error
+      }.to_not raise_error
     end
   end
 end
