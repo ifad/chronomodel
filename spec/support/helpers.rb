@@ -102,6 +102,10 @@ module ChronoTest::Helpers
           t.string :name
           t.daterange :interval
         end
+
+        adapter.create_table 'animals', temporal: true do |t|
+          t.string :type
+        end
       end
 
       Models = lambda {
@@ -158,6 +162,12 @@ module ChronoTest::Helpers
         class ::Event < ActiveRecord::Base
           extend ChronoModel::TimeMachine::TimeQuery
         end
+
+        class ::Animal < ActiveRecord::Base
+          include ChronoModel::TimeMachine
+        end
+
+        class ::Dog < Animal; end
       }
 
       @@models_defined = false
