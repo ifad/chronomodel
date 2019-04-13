@@ -4,8 +4,16 @@ require 'support/helpers'
 describe 'models with STI' do
   include ChronoTest::Helpers::TimeMachine
 
-  setup_schema!
-  define_models!
+  adapter.create_table 'animals', temporal: true do |t|
+    t.string :type
+  end
+
+  class ::Animal < ActiveRecord::Base
+    include ChronoModel::TimeMachine
+  end
+
+  class ::Dog < Animal
+  end
 
   describe 'it generates the right queries' do
     before do
