@@ -145,6 +145,10 @@ module ChronoModel
         self.class.with_hid_pkey { super }
       end
 
+      def historical?
+        true
+      end
+
       # Inhibit destroy of historical records
       #
       def destroy
