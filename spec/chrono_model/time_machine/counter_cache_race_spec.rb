@@ -1,5 +1,6 @@
 require 'spec_helper'
 require 'support/helpers'
+require 'spec/chrono_model/time_machine/schema'
 
 describe 'models with counter cache' do
   include ChronoTest::Helpers::TimeMachine

@@ -1,5 +1,6 @@
 require 'spec_helper'
 require 'support/helpers'
+require 'spec/chrono_model/time_machine/schema'
 
 # STI cases
 #
@@ -35,14 +36,18 @@ describe 'models with STI' do
     it { is_expected.to include(Publication) }
   end
 
-  describe 'history timeline' do
-    pub = ts_eval { Publication.create! :title => 'wrong title' }
-    ts_eval(pub) { update_attributes! :title => 'correct title' }
+  describe 'timeline' do
+    let(:publication) do
+      pub = ts_eval { Publication.create! :title => 'wrong title' }
+      ts_eval(pub) { update_attributes! :title => 'correct title' }
 
-    it { expect(pub.history.map(&:title)).to eq ['wrong title', 'correct title'] }
+      pub
+    end
+
+    it { expect(publication.history.map(&:title)).to eq ['wrong title', 'correct title'] }
   end
 
-  describe 'associations' do
+  describe 'identity' do
     adapter.create_table 'animals', temporal: true do |t|
       t.string :type
     end
@@ -69,8 +74,17 @@ describe 'models with STI' do
     end
 
     specify "select" do
-      expect(Animal.first).to_not be_nil
-      expect(Animal.as_of(@later).first).to_not be_nil
+      expect(Animal.first).to be_a(Animal)
+      expect(Animal.as_of(@later).first).to be_a(Animal)
+
+      expect(Animal.where(type: 'Dog').first).to be_a(Dog)
+      expect(Dog.first).to be_a(Dog)
+      expect(Dog.as_of(@later).first).to be_a(Dog)
+
+      expect(Animal.where(type: 'Goat').first).to be_a(Goat)
+      expect(Goat.first).to be_a(Goat)
+      expect(Goat.as_of(@later).first).to be(nil)
+      expect(Goat.as_of(Time.now).first).to be_a(Goat)
     end
 
     specify "count" do
