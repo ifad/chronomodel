@@ -93,6 +93,7 @@ describe ChronoModel::TimeMachine do
       'elements' => Element::History,
       'sections' => Section::History,
       'sub_bars' => SubBar::History,
+      'animals'  => Animal::History,
     ) }
   end
 

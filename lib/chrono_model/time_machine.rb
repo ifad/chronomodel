@@ -29,64 +29,37 @@ module ChronoModel
           descendants_with_history.reject(&:history?)
         end
 
-        # STI support. TODO: more thorough testing
+        # STI support.
         #
         def inherited(subclass)
           super
 
-          # Do not smash stack: as the below method is defining a
-          # new anonymous class, without this check this leads to
-          # infinite recursion.
+          # Do not smash stack. The below +define_history_model_for+ method
+          # defines a new inherited class via Class.new(), thus +inherited+
+          # is going to be called again. By that time the subclass is still
+          # an anonymous one, so its +name+ method returns nil. We use this
+          # condition to avoid infinite recursion.
+          #
+          # Sadly, we can't avoid it by calling +.history?+, because in the
+          # subclass the HistoryModel hasn't been included yet.
+          #
           unless subclass.name.nil?
-            ChronoModel::TimeMachine.define_inherited_history_model_for(subclass)
+            ChronoModel::TimeMachine.define_history_model_for(subclass)
           end
         end
       end
     end
 
     def self.define_history_model_for(model)
-      history = Class.new(model) { include ChronoModel::TimeMachine::HistoryModel }
+      history = Class.new(model) do
+        include ChronoModel::TimeMachine::HistoryModel
+      end
 
       model.singleton_class.instance_eval do
         define_method(:history) { history }
       end
 
-      history.singleton_class.instance_eval do
-        define_method(:sti_name) { model.sti_name }
-      end
-
       model.const_set :History, history
-
-      return history
-    end
-
-    def self.define_inherited_history_model_for(subclass)
-      # Define history model for the subclass
-      history = Class.new(subclass.superclass.history)
-      history.table_name = subclass.superclass.history.table_name
-
-      # Override the STI name on the history subclass
-      history.singleton_class.instance_eval do
-        define_method(:sti_name) { subclass.sti_name }
-      end
-
-      # Return the subclass history via the .history method
-      subclass.singleton_class.instance_eval do
-        define_method(:history) { history }
-      end
-
-      # Define the History constant inside the subclass
-      subclass.const_set :History, history
-
-      history.instance_eval do
-        # Monkey patch of ActiveRecord::Inheritance.
-        # STI fails when a Foo::History record has Foo as type in the
-        # inheritance column; AR expects the type to be an instance of the
-        # current class or a descendant (or self).
-        def find_sti_class(type_name)
-          super(type_name + "::History")
-        end
-      end
     end
 
     module ClassMethods

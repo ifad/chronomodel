@@ -4,15 +4,15 @@ require 'support/helpers'
 describe 'models with counter cache' do
   include ChronoTest::Helpers::TimeMachine
 
-    adapter.create_table 'sections', temporal: true, no_journal: %w( articles_count ) do |t|
-      t.string :name
-      t.integer :articles_count, default: 0
-    end
+  adapter.create_table 'sections', temporal: true, no_journal: %w( articles_count ) do |t|
+    t.string :name
+    t.integer :articles_count, default: 0
+  end
 
-    adapter.create_table 'articles', temporal: true do |t|
-      t.string :title
-      t.references :section
-    end
+  adapter.create_table 'articles', temporal: true do |t|
+    t.string :title
+    t.references :section
+  end
 
   class ::Section < ActiveRecord::Base
     include ChronoModel::TimeMachine
