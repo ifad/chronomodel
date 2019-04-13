@@ -89,19 +89,10 @@ module ChronoTest::Helpers
           t.boolean :active
         end
 
-        adapter.create_table 'elements', :temporal => true do |t|
-          t.string :title
-          t.string :type
-        end
-
         adapter.create_table 'plains' do |t|
           t.string :foo
         end
 
-        adapter.create_table 'events' do |t|
-          t.string :name
-          t.daterange :interval
-        end
       end
 
       Models = lambda {
@@ -144,19 +135,7 @@ module ChronoTest::Helpers
           default_scope proc { where(:active => true) }
         end
 
-        # STI case (https://github.com/ifad/chronomodel/issues/5)
-        class ::Element < ActiveRecord::Base
-          include ChronoModel::TimeMachine
-        end
-
-        class ::Publication < Element
-        end
-
         class ::Plain < ActiveRecord::Base
-        end
-
-        class ::Event < ActiveRecord::Base
-          extend ChronoModel::TimeMachine::TimeQuery
         end
       }
 

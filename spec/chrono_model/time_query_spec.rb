@@ -4,8 +4,14 @@ require 'support/helpers'
 describe ChronoModel::TimeMachine::TimeQuery do
   include ChronoTest::Helpers::TimeMachine
 
-  setup_schema!
-  define_models!
+  adapter.create_table 'events' do |t|
+    t.string :name
+    t.daterange :interval
+  end
+
+  class ::Event < ActiveRecord::Base
+    extend ChronoModel::TimeMachine::TimeQuery
+  end
 
   # Create a set of events
   #

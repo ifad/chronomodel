@@ -70,18 +70,6 @@ describe ChronoModel::TimeMachine do
     end
   end
 
-  describe '.descendants' do
-    subject { Element.descendants }
-    it { is_expected.to_not include(Element::History) }
-    it { is_expected.to     include(Publication) }
-  end
-
-  describe '.descendants_with_history' do
-    subject { Element.descendants_with_history }
-    it { is_expected.to include(Element::History) }
-    it { is_expected.to include(Publication) }
-  end
-
   describe '.history_models' do
     subject { ChronoModel.history_models }
 
@@ -90,10 +78,8 @@ describe ChronoModel::TimeMachine do
       'foos'     => Foo::History,
       'defoos'   => Defoo::History,
       'bars'     => Bar::History,
-      'elements' => Element::History,
       'sections' => Section::History,
       'sub_bars' => SubBar::History,
-      'animals'  => Animal::History,
     ) }
   end
 
@@ -304,13 +290,6 @@ describe ChronoModel::TimeMachine do
       it { expect(foo.history.select('max(id)').to_sql).to_not match(/as_of_time/) }
 
       it { expect(foo.history.except(:order).select('max(id) as foo, min(id) as bar').group('id').first.attributes.keys).to eq %w( id foo bar ) }
-    end
-
-    context 'with STI models' do
-      pub = ts_eval { Publication.create! :title => 'wrong title' }
-      ts_eval(pub) { update_attributes! :title => 'correct title' }
-
-      it { expect(pub.history.map(&:title)).to eq ['wrong title', 'correct title'] }
     end
 
     context '.sorted' do
