@@ -60,7 +60,7 @@ module ChronoModel
           superclass.from(virtual_table_at(time)).as_of_time!(time)
         end
 
-        def virtual_table_at(time, table_name = nil)
+        def virtual_table_at(time, table_name: nil)
           virtual_name = table_name ?
             connection.quote_table_name(table_name) :
             superclass.quoted_table_name

@@ -22,7 +22,7 @@ module ChronoModel
         @as_of_time  = as_of_time
 
         virtual_table = history_model.
-          virtual_table_at(@as_of_time, @table_alias || @table_name)
+          virtual_table_at(@as_of_time, table_name: @table_alias || @table_name)
 
         super(virtual_table)
       end
