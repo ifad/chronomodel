@@ -50,21 +50,6 @@ module ChronoModel
           true
         end
 
-        # Getting the correct quoted_table_name can be tricky when
-        # STI is involved. If Orange < Fruit, then Orange::History < Fruit::History
-        # (see define_inherited_history_model_for).
-        # This means that the superclass method returns Fruit::History, which
-        # will give us the wrong table name. What we actually want is the
-        # superclass of Fruit::History, which is Fruit. So, we use
-        # non_history_superclass instead. -npj
-        def non_history_superclass(klass = self)
-          if klass.superclass.history?
-            non_history_superclass(klass.superclass)
-          else
-            klass.superclass
-          end
-        end
-
         def relation
           super.as_of_time!(Time.now)
         end
@@ -72,14 +57,15 @@ module ChronoModel
         # Fetches as of +time+ records.
         #
         def as_of(time)
-          non_history_superclass.from(virtual_table_at(time)).as_of_time!(time)
+          superclass.from(virtual_table_at(time)).as_of_time!(time)
         end
 
-        def virtual_table_at(time, name = nil)
-          name = name ? connection.quote_table_name(name) :
-            non_history_superclass.quoted_table_name
+        def virtual_table_at(time, table_name = nil)
+          virtual_name = table_name ?
+            connection.quote_table_name(table_name) :
+            superclass.quoted_table_name
 
-          "(#{at(time).to_sql}) #{name}"
+          "(#{at(time).to_sql}) #{virtual_name}"
         end
 
         # Fetches history record at the given time
@@ -102,6 +88,37 @@ module ChronoModel
         def of(object)
           where(id: object)
         end
+
+        # The `sti_name` method returns the contents of the inheritance
+        # column, and it is usually the class name. The inherited class
+        # name has the "::History" suffix but that is never going to be
+        # present in the data.
+        #
+        # As such it is overriden here to return the same contents that
+        # the parent would have returned.
+        def sti_name
+          superclass.sti_name
+        end
+
+        # For STI to work, the history model needs to have the exact same
+        # semantics as the model it inherits from. However given it is
+        # actually inherited, the original AR implementation would return
+        # false here. But for STI sake, the history model is located in the
+        # same exact hierarchy location as its parent, thus this is defined in
+        # this override.
+        #
+        def descends_from_active_record?
+          superclass.descends_from_active_record?
+        end
+
+        private
+          # STI fails when a Foo::History record has Foo as type in the
+          # inheritance column; AR expects the type to be an instance of the
+          # current class or a descendant (or self).
+          #
+          def find_sti_class(type_name)
+            super(type_name + "::History")
+          end
       end
 
       # The history id is `hid`, but this cannot set as primary key
@@ -170,7 +187,7 @@ module ChronoModel
       # Returns this history entry's current record
       #
       def current_version
-        self.class.non_history_superclass.find(rid)
+        self.class.superclass.find(rid)
       end
 
       def record #:nodoc:

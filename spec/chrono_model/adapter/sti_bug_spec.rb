@@ -15,10 +15,14 @@ describe 'models with STI' do
   class ::Dog < Animal
   end
 
+  class ::Goat < Animal
+  end
+
   describe 'it generates the right queries' do
     before do
       Dog.create!
       @later = Time.new
+      Goat.create!
     end
 
     after do
@@ -32,8 +36,14 @@ describe 'models with STI' do
     end
 
     specify "count" do
-      expect(Animal.count).to eq(1)
+      expect(Animal.count).to eq(2)
       expect(Animal.as_of(@later).count).to eq(1)
+
+      expect(Dog.count).to eq(1)
+      expect(Dog.as_of(@later).count).to eq(1)
+
+      expect(Goat.count).to eq(1)
+      expect(Goat.as_of(@later).count).to eq(0)
     end
   end
 end
