@@ -1,6 +1,20 @@
 require 'support/helpers/time_machine'
 
-module ChronoTest::Schema
+# This module contains the test DDL and models used by most of the
+# +TimeMachine+ specs.
+#
+# The models exercise different ActiveRecord features.
+#
+# They look candidate of unwinding by their respective specs, however this
+# test suite aims also at testing within a "real" use case scenario, in which
+# multiple models are defined and they interact - with their AR side effects,
+# still ChronoModel should provide the expected results.
+#
+# The +$t+ global variable holds a timeline of events that have happened in
+# the form of .create! and update_attributes, that aim to mimic the most of
+# AR with the least of the effort. Full coverage exercises are most welcome.
+#
+module ChronoTest::TimeMachine
   include ChronoTest::Helpers::TimeMachine
 
   # Set up database structure
