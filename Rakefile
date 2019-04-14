@@ -3,8 +3,9 @@ require "bundler/gem_tasks"
 
 # RSpec
 require 'rspec/core/rake_task'
-spec_task = RSpec::Core::RakeTask.new
-spec_task.rspec_opts = '-f doc'
+RSpec::Core::RakeTask.new do |spec|
+  spec.rspec_opts = '-f doc'
+end
 task :default => ['testapp:create', :spec]
 
 # Create a test Rails app in tmp/railsapp for testing the rake
