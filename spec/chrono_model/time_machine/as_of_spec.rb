@@ -17,6 +17,8 @@ describe ChronoModel::TimeMachine do
     it { expect(Bar.as_of($t.bars[1].ts[0])).to eq [$t.bar, $t.bars[0], $t.bars[1]] }
     it { expect(Bar.as_of(Time.now     )).to eq [$t.bar, $t.bars[0], $t.bars[1]] }
 
+    it { expect(Foo.as_of($t.foos[0].ts[0]).first).to be_a(Foo) }
+    it { expect(Bar.as_of($t.foos[0].ts[0]).first).to be_a(Bar) }
 
     # Associations
     context do
@@ -27,10 +29,10 @@ describe ChronoModel::TimeMachine do
       it { expect(Foo.as_of($t.bars[0].ts[0]).find(subject).bars).to eq [$t.bars[0]] }
       it { expect(Foo.as_of($t.bars[1].ts[0]).find(subject).bars).to eq [$t.bars[0]] }
       it { expect(Foo.as_of(Time.now        ).find(subject).bars).to eq [$t.bars[0]] }
+
+      it { expect(Foo.as_of($t.bars[0].ts[0]).find(subject).bars.first).to be_a(Bar) }
     end
 
-
-    # find() on history relations
     context do
       subject { $t.foos[1].id }
 

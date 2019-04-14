@@ -15,6 +15,9 @@ describe ChronoModel::TimeMachine do
 
     it { expect(Foo.history.all.map(&:name)).to eq foo_history }
     it { expect(Bar.history.all.map(&:name)).to eq bar_history }
+
+    it { expect(Foo.history.first).to be_a(Foo::History) }
+    it { expect(Bar.history.first).to be_a(Bar::History) }
   end
 
 
