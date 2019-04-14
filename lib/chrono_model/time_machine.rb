@@ -135,6 +135,13 @@ module ChronoModel
       self.as_of_time.present?
     end
 
+    # Inhibit destroy of historical records
+    #
+    def destroy
+      raise ActiveRecord::ReadOnlyRecord, 'Cannot delete historical records' if historical?
+      super
+    end
+
     # Returns the previous record in the history, or nil if this is the only
     # recorded entry.
     #

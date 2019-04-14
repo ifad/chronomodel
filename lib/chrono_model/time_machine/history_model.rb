@@ -149,12 +149,6 @@ module ChronoModel
         true
       end
 
-      # Inhibit destroy of historical records
-      #
-      def destroy
-        raise ActiveRecord::ReadOnlyRecord, 'Cannot delete historical records'
-      end
-
       # Returns the previous history entry, or nil if this
       # is the first one.
       #
