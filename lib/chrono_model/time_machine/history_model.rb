@@ -145,6 +145,10 @@ module ChronoModel
         self.class.with_hid_pkey { super }
       end
 
+      def historical?
+        true
+      end
+
       # Returns the previous history entry, or nil if this
       # is the first one.
       #

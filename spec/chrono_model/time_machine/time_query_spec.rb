@@ -1,13 +1,30 @@
 require 'spec_helper'
-require 'support/helpers'
+require 'support/time_machine/structure'
 
 describe ChronoModel::TimeMachine::TimeQuery do
-  include ChronoTest::Helpers::TimeMachine
+  include ChronoTest::TimeMachine::Helpers
 
-  setup_schema!
-  define_models!
+  adapter.create_table 'events' do |t|
+    t.string :name
+    t.daterange :interval
+  end
 
-  # Create a set of events
+  class ::Event < ActiveRecord::Base
+    extend ChronoModel::TimeMachine::TimeQuery
+  end
+
+  # Main timeline quick test
+  #
+  it { expect(Foo.history.time_query(:after,  :now, inclusive: true ).count).to eq 3 }
+  it { expect(Foo.history.time_query(:after,  :now, inclusive: false).count).to eq 0 }
+  it { expect(Foo.history.time_query(:before, :now, inclusive: true ).count).to eq 5 }
+  it { expect(Foo.history.time_query(:before, :now, inclusive: false).count).to eq 2 }
+
+  it { expect(Foo.history.past.size).to eq 2 }
+
+  # Extended thorough test.
+  #
+  # Create a set of events and then run time queries on them.
   #
   think   = Event.create! name: 'think',   interval: (15.days.ago.to_date...13.days.ago.to_date)
   plan    = Event.create! name: 'plan',    interval: (14.days.ago.to_date...12.days.ago.to_date)
