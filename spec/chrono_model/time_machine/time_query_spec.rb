@@ -1,6 +1,5 @@
 require 'spec_helper'
-require 'support/helpers'
-require 'spec/chrono_model/time_machine/schema'
+require 'chrono_model/time_machine/test_models'
 
 describe ChronoModel::TimeMachine::TimeQuery do
   include ChronoTest::Helpers::TimeMachine

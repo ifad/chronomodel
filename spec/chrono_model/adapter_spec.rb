@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'support/helpers'
+require 'support/helpers/adapter'
 
 shared_examples_for 'temporal table' do
   it { expect(adapter.is_chrono?(subject)).to be(true) }

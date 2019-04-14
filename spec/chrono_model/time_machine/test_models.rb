@@ -1,4 +1,4 @@
-require 'support/helpers'
+require 'support/helpers/time_machine'
 
 module ChronoTest::Schema
   include ChronoTest::Helpers::TimeMachine
