@@ -1,6 +1,9 @@
-module ChronoTest::Helpers
+module ChronoTest::TimeMachine
 
-  module TimeMachine
+  # This module contains helpers used throughout the
+  # +ChronoModel::TimeMachine+ specs.
+  #
+  module Helpers
     def self.included(base)
       base.extend(self)
     end

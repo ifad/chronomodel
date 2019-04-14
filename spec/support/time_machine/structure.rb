@@ -1,4 +1,4 @@
-require 'support/helpers/time_machine'
+require 'support/time_machine/helpers'
 
 # This module contains the test DDL and models used by most of the
 # +TimeMachine+ specs.
@@ -15,7 +15,7 @@ require 'support/helpers/time_machine'
 # AR with the least of the effort. Full coverage exercises are most welcome.
 #
 module ChronoTest::TimeMachine
-  include ChronoTest::Helpers::TimeMachine
+  include ChronoTest::TimeMachine::Helpers
 
   # Set up database structure
   #

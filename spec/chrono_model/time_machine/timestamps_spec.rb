@@ -1,8 +1,8 @@
 require 'spec_helper'
-require 'chrono_model/time_machine/test_models'
+require 'support/time_machine/structure'
 
 describe ChronoModel::TimeMachine do
-  include ChronoTest::Helpers::TimeMachine
+  include ChronoTest::TimeMachine::Helpers
 
   history_methods = %w( valid_from valid_to recorded_at )
   current_methods = %w( as_of_time )

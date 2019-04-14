@@ -1,8 +1,8 @@
 require 'spec_helper'
-require 'chrono_model/time_machine/test_models'
+require 'support/time_machine/structure'
 
 describe ChronoModel::TimeMachine do
-  include ChronoTest::Helpers::TimeMachine
+  include ChronoTest::TimeMachine::Helpers
 
   describe '#save' do
     subject { $t.bar.history.first }

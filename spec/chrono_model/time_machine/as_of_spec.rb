@@ -1,8 +1,8 @@
 require 'spec_helper'
-require 'chrono_model/time_machine/test_models'
+require 'support/time_machine/structure'
 
 describe ChronoModel::TimeMachine do
-  include ChronoTest::Helpers::TimeMachine
+  include ChronoTest::TimeMachine::Helpers
 
   describe '.as_of' do
     it { expect(Foo.as_of(1.month.ago)).to eq [] }

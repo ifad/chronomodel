@@ -1,6 +1,6 @@
-module ChronoTest::Helpers
+module ChronoTest::Adapter
 
-  module Adapter
+  module Helpers
     def self.included(base)
       base.extend DSL
 

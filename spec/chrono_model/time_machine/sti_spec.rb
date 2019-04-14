@@ -1,5 +1,5 @@
 require 'spec_helper'
-require 'chrono_model/time_machine/test_models'
+require 'support/time_machine/structure'
 
 # STI cases
 #
@@ -7,7 +7,7 @@ require 'chrono_model/time_machine/test_models'
 # - https://github.com/ifad/chronomodel/issues/47
 #
 describe 'models with STI' do
-  include ChronoTest::Helpers::TimeMachine
+  include ChronoTest::TimeMachine::Helpers
 
   adapter.create_table 'elements', :temporal => true do |t|
     t.string :title
