@@ -20,7 +20,7 @@ module ChronoModel
       raise ChronoModel::Error, "This database connection is not a ChronoModel::Adapter"
     end
 
-    connection.chrono_upgrade!
+    connection.send :chrono_upgrade!
   end
 
   # Returns an Hash keyed by table name of ChronoModels.
