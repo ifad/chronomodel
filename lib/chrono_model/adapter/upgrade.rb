@@ -2,13 +2,13 @@ module ChronoModel
   class Adapter < ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
 
     module Upgrade
+      def chrono_upgrade!
+        chrono_ensure_schemas
+
+        chrono_upgrade_structure!
+      end
+
       private
-        def chrono_upgrade!
-          chrono_ensure_schemas
-
-          chrono_upgrade_structure!
-        end
-
         # Locate tables needing a structure upgrade
         #
         def chrono_tables_needing_upgrade
