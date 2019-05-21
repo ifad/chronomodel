@@ -75,6 +75,16 @@ module ChronoTest::TimeMachine
     has_timeline :with => :bar
   end
 
+  adapter.create_table 'jekos', :temporal => true do |t|
+    t.string :name
+  end
+
+  class ::Marcello < ActiveRecord::Base
+    include ChronoModel::TimeMachine
+
+    self.table_name = 'jekos'
+  end
+
   # Master timeline, used in multiple specs. It is defined here
   # as a global variable to be able to be shared across specs.
   #
