@@ -86,6 +86,14 @@ module ChronoModel
             end
 
             super table_name, options, &block
+          else
+            if is_chrono?(table_name)
+              drop_and_recreate_public_view(table_name, options) do
+                super table_name, options, &block
+              end
+            else
+              super table_name, options, &block
+            end
           end
 
         end
