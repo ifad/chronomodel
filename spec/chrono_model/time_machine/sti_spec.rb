@@ -38,7 +38,7 @@ describe 'models with STI' do
   describe 'timeline' do
     let(:publication) do
       pub = ts_eval { Publication.create! :title => 'wrong title' }
-      ts_eval(pub) { update_attributes! :title => 'correct title' }
+      ts_eval(pub) { update! :title => 'correct title' }
 
       pub
     end
