@@ -25,6 +25,7 @@ addons:
 
 before_install:
   - sudo sed -i -e '/local.*peer/s/postgres/all/' -e 's/peer\|md5/trust/g' /etc/postgresql/*/main/pg_hba.conf
+  - sudo sed -i -e 's/^port =.*/port = 5433/' /etc/postgresql/*/main/postgresql.conf
   - sudo /etc/init.d/postgresql restart
   - sleep 2
   - psql -c "CREATE DATABASE chronomodel;" -U postgres

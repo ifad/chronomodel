@@ -3,3 +3,4 @@ username: postgres
 password: ""
 database: chronomodel
 pool: 11
+port: 5433
