@@ -31,12 +31,12 @@ module ChronoTest::Matchers
 
       protected
         def has_function?(name)
-          select_value(<<-SQL, [name], 'Check function') == true
+          select_value(<<-SQL, [@schema, name], 'Check function') == true
             SELECT EXISTS(
               SELECT 1
               FROM pg_catalog.pg_proc p, pg_catalog.pg_namespace n
               WHERE p.pronamespace = n.oid
-                AND n.nspname = 'public'
+                AND n.nspname = ?
                 AND p.proname = ?
             )
           SQL
@@ -44,8 +44,8 @@ module ChronoTest::Matchers
 
       private
         def message_matches(message)
-          (message << ' ').tap do |message|
-            message << @matches.map do |name, match|
+          (message << ' ').tap do |m|
+            m << @matches.map do |name, match|
               "a #{name} function"
             end.compact.to_sentence
           end
@@ -57,12 +57,13 @@ module ChronoTest::Matchers
     end
 
     class HaveHistoryFunctions < HaveFunctions
-      def initialize
+      def initialize(schema = 'public')
         @function_templates = [
           'chronomodel_%s_insert',
           'chronomodel_%s_update',
           'chronomodel_%s_delete',
         ]
+        @schema = schema
       end
 
       def matches?(table)
