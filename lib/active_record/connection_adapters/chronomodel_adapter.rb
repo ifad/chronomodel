@@ -34,10 +34,6 @@ module ActiveRecord
       return adapter
     end
 
-    module Connectionadapters
-      ChronoModelAdapter = ::ChronoModel::Adapter
-    end
-
   end
 end
 
