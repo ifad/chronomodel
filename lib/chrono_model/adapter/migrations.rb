@@ -232,7 +232,7 @@ module ChronoModel
         end
 
         def chrono_copy_temporal_to_history(table_name, options)
-          seq  = on_history_schema { serial_sequence(table_name, primary_key(table_name)) }
+          seq  = on_history_schema { pk_and_sequence_for(table_name).last.to_s }
           from = options[:validity] || '0001-01-01 00:00:00'
 
           execute %[
@@ -267,7 +267,7 @@ module ChronoModel
         # Renames a table and its primary key sequence name
         #
         def rename_table_and_pk(name, new_name)
-          seq     = serial_sequence(name, primary_key(name))
+          seq     = pk_and_sequence_for(name).last.to_s
           new_seq = seq.sub(name.to_s, new_name.to_s).split('.').last
 
           execute "ALTER SEQUENCE #{seq}  RENAME TO #{new_seq}"

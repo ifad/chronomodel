@@ -77,7 +77,7 @@ module ChronoModel
         # allow setting the PK to a specific value (think migration scenario).
         #
         def chrono_create_INSERT_trigger(table, pk, current, history, fields, values)
-          seq = serial_sequence(current, pk)
+          seq = pk_and_sequence_for(current).last.to_s
 
           execute <<-SQL
             CREATE OR REPLACE FUNCTION chronomodel_#{table}_insert() RETURNS TRIGGER AS $$
