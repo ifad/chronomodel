@@ -82,7 +82,6 @@ describe ChronoModel::Adapter do
   end
 
   describe '.change_table' do
-
     with_temporal_table do
       before :all do
         adapter.change_table table, :temporal => false

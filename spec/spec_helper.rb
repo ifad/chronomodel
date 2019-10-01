@@ -22,6 +22,7 @@ RSpec.configure do |config|
   config.include(ChronoTest::Matchers::Table)
   config.include(ChronoTest::Matchers::Column)
   config.include(ChronoTest::Matchers::Index)
+  config.include(ChronoTest::Matchers::Function)
   config.include(ChronoTest::Aruba, type: :aruba)
 
   ChronoTest.recreate_database!

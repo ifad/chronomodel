@@ -1,6 +1,6 @@
 module ChronoTest::Matchers
 
-  module Column
+  module Function
     class HaveFunctions < ChronoTest::Matchers::Base
       def initialize(functions, schema = 'public')
         @functions = functions
