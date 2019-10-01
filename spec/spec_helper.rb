@@ -13,6 +13,7 @@ require 'support/matchers/table'
 require 'support/matchers/column'
 require 'support/matchers/index'
 require 'support/matchers/function'
+require 'support/matchers/source'
 require 'support/aruba'
 
 puts "Testing against Active Record #{ActiveRecord::VERSION::STRING} with Arel #{Arel::VERSION}"
@@ -22,6 +23,8 @@ RSpec.configure do |config|
   config.include(ChronoTest::Matchers::Table)
   config.include(ChronoTest::Matchers::Column)
   config.include(ChronoTest::Matchers::Index)
+  config.include(ChronoTest::Matchers::Function)
+  config.include(ChronoTest::Matchers::Source)
   config.include(ChronoTest::Aruba, type: :aruba)
 
   ChronoTest.recreate_database!

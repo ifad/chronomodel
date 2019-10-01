@@ -82,7 +82,6 @@ describe ChronoModel::Adapter do
   end
 
   describe '.change_table' do
-
     with_temporal_table do
       before :all do
         adapter.change_table table, :temporal => false
@@ -126,6 +125,37 @@ describe ChronoModel::Adapter do
       it_should_behave_like 'plain table'
 
       it { is_expected.to have_columns([['frupper', 'character varying']]) }
+    end
+
+    # https://github.com/ifad/chronomodel/issues/91
+    context 'given a table using a sequence not owned by a column' do
+      before :all do
+        adapter.execute 'create sequence temporal.foobar owned by none'
+        adapter.execute "create table #{table} (id integer primary key default nextval('temporal.foobar'::regclass), label character varying)"
+      end
+
+      after :all do
+        adapter.execute "drop table if exists #{table}"
+        adapter.execute "drop sequence temporal.foobar"
+      end
+
+      it { is_expected.to have_columns([['id', 'integer'], ['label', 'character varying']]) }
+
+      context 'when moving to temporal' do
+        before :all do
+          adapter.change_table table, temporal: true
+        end
+
+        after :all do
+          adapter.drop_table table
+        end
+
+        it { is_expected.to have_columns([['id', 'integer'], ['label', 'character varying']]) }
+        it { is_expected.to have_temporal_columns([['id', 'integer'], ['label', 'character varying']]) }
+        it { is_expected.to have_history_columns([['id', 'integer'], ['label', 'character varying']]) }
+
+        it { is_expected.to have_function_source("chronomodel_#{table}_insert", /NEW\.id := nextval\('temporal.foobar'\)/) }
+      end
     end
   end
 
