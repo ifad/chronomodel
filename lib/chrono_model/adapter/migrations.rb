@@ -70,8 +70,7 @@ module ChronoModel
           #
           block ||= proc { }
 
-          case options[:temporal]
-          when true
+          if options[:temporal]
             if !is_chrono?(table_name)
               chrono_make_temporal_table(table_name, options)
             end
@@ -80,7 +79,7 @@ module ChronoModel
               super table_name, options, &block
             end
 
-          when false
+          else
             if is_chrono?(table_name)
               chrono_undo_temporal_table(table_name)
             end

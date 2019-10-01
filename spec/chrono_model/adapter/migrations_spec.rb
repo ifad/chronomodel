@@ -82,6 +82,7 @@ describe ChronoModel::Adapter do
   end
 
   describe '.change_table' do
+
     with_temporal_table do
       before :all do
         adapter.change_table table, :temporal => false
@@ -113,6 +114,18 @@ describe ChronoModel::Adapter do
       it "copies unique index to history without uniqueness constraint" do
         expect(history_indexes.find {|i| i.columns == ['bar'] && i.unique == false}).to be_present
       end
+    end
+
+    with_plain_table do
+      before :all do
+        adapter.change_table table do |t|
+          adapter.add_column table, :frupper, :string
+        end
+      end
+
+      it_should_behave_like 'plain table'
+
+      it { is_expected.to have_columns([['frupper', 'character varying']]) }
     end
   end
 
