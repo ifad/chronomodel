@@ -195,7 +195,7 @@ to your `create_table`. Example:
 Include the `ChronoModel::TimeMachine` module in your model.
 
 ```ruby
-module Country < ActiveRecord::Base
+class Country < ActiveRecord::Base
   include ChronoModel::TimeMachine
 
   has_many :compositions
