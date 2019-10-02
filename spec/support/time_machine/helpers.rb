@@ -38,8 +38,15 @@ module ChronoTest::TimeMachine
           define_method(:ts) { @_ts ||= [] }
         end unless obj.methods.include?(:ts)
 
-        now = ChronoTest.connection.select_value('select now()::timestamp') + 'Z'
-        obj.ts.push(Time.parse(now))
+        now = ChronoTest.connection.select_value('select now()::timestamp')
+        case now
+        when Time # Already parsed, thanks AR
+          obj.ts.push(now)
+        when String # ISO8601 Timestamp
+          obj.ts.push(Time.parse(now+'Z'))
+        else
+          raise "Don't know how to deal with #{now.inspect}"
+        end
       end
     end
   end

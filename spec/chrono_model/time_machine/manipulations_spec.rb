@@ -44,7 +44,7 @@ describe ChronoModel::TimeMachine do
       rec = nil
       before(:all) do
         rec = ts_eval { Foo.create!(:name => 'alive foo', :fooity => 42) }
-        ts_eval(rec) { update_attributes!(:name => 'dying foo') }
+        ts_eval(rec) { update!(:name => 'dying foo') }
       end
       after(:all) do
         rec.history.delete_all

@@ -42,6 +42,9 @@ module ChronoModel
             ChronoModel::Patches::AsOfTimeRelation.new(options[:model])
 
           preload_scope.as_of_time!(options[:as_of_time])
+        elsif given_preload_scope.respond_to?(:as_of_time)
+          preload_scope = given_preload_scope
+
         end
 
         super records, associations, preload_scope

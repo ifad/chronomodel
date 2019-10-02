@@ -6,13 +6,13 @@ require 'support/time_machine/helpers'
 # The models exercise different ActiveRecord features.
 #
 # They look candidate of unwinding by their respective specs, however this
-# test suite aims also at testing within a "real" use case scenario, in which
-# multiple models are defined and they interact - with their AR side effects,
-# still ChronoModel should provide the expected results.
+# test suite aims testing within a "real" use case scenario, with multiple
+# interacting models are defined, with their AR side effects, testing that
+# ChronoModel provides the expected results.
 #
 # The +$t+ global variable holds a timeline of events that have happened in
-# the form of .create! and update_attributes, that aim to mimic the most of
-# AR with the least of the effort. Full coverage exercises are most welcome.
+# the form of .create! and update!, aiming to mimic the most of AR with the
+# least of the effort. Full coverage exercises are most welcome.
 #
 module ChronoTest::TimeMachine
   include ChronoTest::TimeMachine::Helpers
@@ -83,23 +83,23 @@ module ChronoTest::TimeMachine
   # Set up associated records, with intertwined updates
   #
   $t.foo = ts_eval { Foo.create! :name => 'foo', :fooity => 1 }
-  ts_eval($t.foo) { update_attributes! :name => 'foo bar' }
+  ts_eval($t.foo) { update! :name => 'foo bar' }
 
   #
   $t.bar = ts_eval { Bar.create! :name => 'bar', :foo => $t.foo }
-  ts_eval($t.bar) { update_attributes! :name => 'foo bar' }
+  ts_eval($t.bar) { update! :name => 'foo bar' }
 
   #
   $t.subbar = ts_eval { SubBar.create! :name => 'sub-bar', :bar => $t.bar }
-  ts_eval($t.subbar) { update_attributes! :name => 'bar sub-bar' }
+  ts_eval($t.subbar) { update! :name => 'bar sub-bar' }
 
-  ts_eval($t.foo) { update_attributes! :name => 'new foo' }
+  ts_eval($t.foo) { update! :name => 'new foo' }
 
-  ts_eval($t.bar) { update_attributes! :name => 'bar bar' }
-  ts_eval($t.bar) { update_attributes! :name => 'new bar' }
+  ts_eval($t.bar) { update! :name => 'bar bar' }
+  ts_eval($t.bar) { update! :name => 'new bar' }
 
-  ts_eval($t.subbar) { update_attributes! :name => 'sub-bar sub-bar' }
-  ts_eval($t.subbar) { update_attributes! :name => 'new sub-bar' }
+  ts_eval($t.subbar) { update! :name => 'sub-bar sub-bar' }
+  ts_eval($t.subbar) { update! :name => 'new sub-bar' }
 
   #
   $t.foos = Array.new(2) {|i| ts_eval { Foo.create! :name => "foo #{i}" } }
