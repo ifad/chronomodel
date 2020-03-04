@@ -93,11 +93,27 @@ RSpec.describe ChronoModel::Adapter do
 
   describe '.change_table' do
     with_temporal_table do
-      before do
-        adapter.change_table table, temporal: false
+      context 'when explicitly requesting temporal: false' do
+        before do
+          adapter.change_table table, temporal: false
+        end
+
+        it_behaves_like 'plain table'
       end
 
-      it_behaves_like 'plain table'
+      context 'when adding a column without specifying temporal: true' do
+        before do
+          adapter.change_table table do |t|
+            t.integer :new_column
+          end
+        end
+
+        it_behaves_like 'temporal table'
+
+        it { is_expected.to have_columns([%w[new_column integer]]) }
+        it { is_expected.to have_temporal_columns([%w[new_column integer]]) }
+        it { is_expected.to have_history_columns([%w[new_column integer]]) }
+      end
     end
 
     with_plain_table do
