@@ -1,6 +1,8 @@
 require 'spec_helper'
 require 'support/adapter/structure'
 
+# For the structure of these tables, please see spec/support/adabters/structure.rb.
+#
 shared_examples_for 'temporal table' do
   it { expect(adapter.is_chrono?(subject)).to be(true) }
 
@@ -94,11 +96,17 @@ describe ChronoModel::Adapter do
       before :all do
         adapter.add_index table, :foo
         adapter.add_index table, :bar, :unique => true
+        adapter.add_index table, '(lower(baz))'
+        adapter.add_index table, '(lower(baz) || upper(baz))'
 
         adapter.change_table table, :temporal => true
       end
 
       it_should_behave_like 'temporal table'
+
+      let(:temporal_indexes) do
+        adapter.indexes(table)
+      end
 
       let(:history_indexes) do
         adapter.on_schema(ChronoModel::Adapter::HISTORY_SCHEMA) do
@@ -112,6 +120,19 @@ describe ChronoModel::Adapter do
 
       it "copies unique index to history without uniqueness constraint" do
         expect(history_indexes.find {|i| i.columns == ['bar'] && i.unique == false}).to be_present
+      end
+
+      it 'copies also computed indexes' do
+        indexes = %W(
+          index_#{table}_on_bar
+          index_#{table}_on_foo
+          index_#{table}_on_lower_baz
+          index_#{table}_on_lower_baz_upper_baz
+        )
+
+        expect(temporal_indexes.map(&:name).sort).to eq(indexes)
+
+        expect(indexes - history_indexes.map(&:name).sort).to be_empty
       end
     end
 
