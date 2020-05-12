@@ -253,8 +253,7 @@ module ChronoTest::Matchers
           triggers = select_values(<<-SQL, [ public_schema, table ], 'Check triggers')
             SELECT t.tgname
               FROM pg_catalog.pg_trigger t, pg_catalog.pg_class c, pg_catalog.pg_namespace n
-             WHERE t.tgrelid = c.relfilenode
-               AND n.oid = c.relnamespace
+             WHERE n.oid = c.relnamespace
                AND n.nspname = ?
                AND c.relname = ?;
           SQL

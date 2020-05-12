@@ -136,9 +136,14 @@ module ChronoModel
             next if history_indexes.include?(index.name)
 
             on_history_schema do
+              # index.columns is an Array for plain indexes,
+              # while it is a String for computed indexes.
+              #
+              columns = Array.wrap(index.columns).join(', ')
+
               execute %[
                 CREATE INDEX #{index.name} ON #{table_name}
-                USING #{index.using} ( #{index.columns.join(', ')} )
+                USING #{index.using} ( #{columns} )
               ], 'Copy index from temporal to history'
             end
           end
