@@ -34,9 +34,6 @@ jobs:
       gemfile: gemfiles/rails_5.2.gemfile
 
 addons:
-  code_climate:
-    repo_token: dedfb7472ee410eec459bff3681d9a8fd8dd237e9bd7e8675a7c8eb7e253bba9
-
   postgresql: "12"
   apt:
     packages:
@@ -53,10 +50,16 @@ before_install:
 
 env:
   global:
+    - CC_TEST_REPORTER_ID=dedfb7472ee410eec459bff3681d9a8fd8dd237e9bd7e8675a7c8eb7e253bba9
     - PGPORT=5433
+
+before_script:
+  - curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+  - chmod +x ./cc-test-reporter
+  - ./cc-test-reporter before-build
 
 script:
   - bundle exec rake TEST_CONFIG=./spec/config.travis.yml
 
-after_success:
-  - bundle exec codeclimate-test-reporter
+after_script:
+  - ./cc-test-reporter after-build --exit-code $TRAVIS_TEST_RESULT
