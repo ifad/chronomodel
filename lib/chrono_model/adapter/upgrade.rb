@@ -58,7 +58,7 @@ module ChronoModel
                 logger.info "ChronoModel: legacy #{table_name} upgrade complete"
               else
                 logger.info "ChronoModel: upgrading #{table_name} from #{desc[:version]} to #{VERSION}"
-                chrono_create_view_for(table_name)
+                chrono_public_view_ddl(table_name)
                 logger.info "ChronoModel: #{table_name} upgrade complete"
               end
 
@@ -108,7 +108,7 @@ module ChronoModel
 
           execute "CREATE EXTENSION IF NOT EXISTS btree_gist;"
 
-          chrono_create_view_for(table_name)
+          chrono_public_view_ddl(table_name)
           on_history_schema { add_history_validity_constraint(table_name, p_pkey) }
           on_history_schema { chrono_create_history_indexes_for(table_name, p_pkey) }
         end
