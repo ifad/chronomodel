@@ -39,6 +39,7 @@ ActiveRecord::Base.instance_eval do
   # Checks whether this Active Recoed model is backed by a temporal table
   #
   def chrono?
+    return false unless connection.respond_to? :is_chrono?
     connection.is_chrono?(table_name)
   end
 end
