@@ -16,7 +16,7 @@ namespace :testapp do
     FileUtils.mkdir_p('tmp/aruba')
     Dir.chdir('tmp') do
       FileUtils.rm_rf('railsapp')
-      sh 'rails new railsapp --skip-bundle --skip-webpack-install'
+      sh 'rails new railsapp --skip-bundle --skip-webpack-install --skip-git'
     end
     FileUtils.cp_r('spec/aruba/fixtures/railsapp/.', 'tmp/railsapp/')
     FileUtils.rm('tmp/railsapp/Gemfile')
