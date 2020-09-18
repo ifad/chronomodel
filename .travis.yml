@@ -47,6 +47,7 @@ before_install:
   - sleep 2
   - psql -c "CREATE DATABASE chronomodel;" -U postgres
   - psql -c "CREATE DATABASE chronomodel_railsapp;" -U postgres
+  - gem install simplecov -v '0.17.1'
 
 env:
   global:
