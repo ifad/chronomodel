@@ -96,6 +96,13 @@ development:
   username: ...
 ```
 
+Configure Active Record in your `config/application.rb` to use the `:sql` schema
+format:
+
+```rb
+config.active_record.schema_format = :sql
+```
+
 ## Schema creation
 
 ChronoModel hooks all `ActiveRecord::Migration` methods to make them temporal
