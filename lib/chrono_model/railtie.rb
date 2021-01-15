@@ -14,6 +14,18 @@ module ChronoModel
       #
       ActiveRecord::Tasks::DatabaseTasks.register_task(/chronomodel/, tasks_class)
 
+      database_configs =
+        if Rails.version >= '6.1'
+          databases = ActiveRecord::DatabaseConfigurations.new(databases).configs_for(env_name: Rails.env)
+          ActiveRecord::DatabaseConfigurations.new(databases).configs_for(env_name: Rails.env)
+        else
+          [ActiveRecord::Tasks::DatabaseTasks.current_config]
+        end
+
+      database_configs.each do |database_config|
+        command_prefix = database_config.count > 1 ? "" :
+      end
+
       # Make schema:dump and schema:load invoke structure:dump and structure:load
       Rake::Task['db:schema:dump'].clear.enhance(['environment']) do
         Rake::Task['db:structure:dump'].invoke
@@ -25,10 +37,13 @@ module ChronoModel
 
       desc "Dumps database into db/data.NOW.sql or file specified via DUMP="
       task 'db:data:dump' => :environment do
-        config = ActiveRecord::Tasks::DatabaseTasks.current_config
+        databases = ActiveRecord::Tasks::DatabaseTasks.setup_initial_database_yaml
+        database_configs = ActiveRecord::DatabaseConfigurations.new(databases).configs_for(env_name: Rails.env)
         target = ENV['DUMP'] || Rails.root.join('db', "data.#{Time.now.to_f}.sql")
 
-        tasks_class.new(config).data_dump(target)
+        database_configs.each do |database_config|
+          tasks_class.new(database_config).data_dump(target)
+        end
       end
 
       desc "Loads database dump from file specified via DUMP="
