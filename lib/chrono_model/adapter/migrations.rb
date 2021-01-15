@@ -5,7 +5,7 @@ module ChronoModel
       # Creates the given table, possibly creating the temporal schema
       # objects if the `:temporal` option is given and set to true.
       #
-      def create_table(table_name, options = {})
+      def create_table(table_name, **options)
         # No temporal features requested, skip
         return super unless options[:temporal]
 
@@ -63,7 +63,7 @@ module ChronoModel
       # features on the given table. Please note that you'll lose your history
       # when demoting a temporal table to a plain one.
       #
-      def change_table(table_name, options = {}, &block)
+      def change_table(table_name, **options, &block)
         transaction do
 
           # Add an empty proc to support calling change_table without a block.
@@ -76,7 +76,7 @@ module ChronoModel
             end
 
             drop_and_recreate_public_view(table_name, options) do
-              super table_name, options, &block
+              super table_name, **options, &block
             end
 
           else
@@ -84,7 +84,7 @@ module ChronoModel
               chrono_undo_temporal_table(table_name)
             end
 
-            super table_name, options, &block
+            super table_name, **options, &block
           end
 
         end
