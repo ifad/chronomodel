@@ -383,8 +383,8 @@ while using it in many important projects.
 This software is Made in Italy :it: :smile:.
 
 
-[build-status]: https://travis-ci.org/ifad/chronomodel
-[build-status-badge]: https://travis-ci.org/ifad/chronomodel.svg
+[build-status]: https://github.com/ifad/chronomodel/actions
+[build-status-badge]: https://github.com/ifad/chronomodel/actions/workflows/ruby.yml/badge.svg
 [code-analysis]: https://codeclimate.com/github/ifad/chronomodel
 [code-analysis-badge]: https://codeclimate.com/github/ifad/chronomodel.svg
 [docs-analysis]: http://inch-ci.org/github/ifad/chronomodel

@@ -3,4 +3,9 @@ source "https://rubygems.org"
 gem "activerecord", "~> 5.0.0"
 gem "rails", "~> 5.0.0"
 
+# Fix code coverage on old Ruby versions
+if RUBY_VERSION < '2.5'
+  gem 'simplecov', '< 0.18.0'
+end
+
 gemspec :path => "../"

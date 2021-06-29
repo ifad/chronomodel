@@ -1,4 +1,4 @@
-hostname: localhost
+host: localhost
 username: postgres
 password: ""
 database: chronomodel
