@@ -14,13 +14,15 @@ module ChronoModel
       #
       ActiveRecord::Tasks::DatabaseTasks.register_task(/chronomodel/, tasks_class)
 
-      # Make schema:dump and schema:load invoke structure:dump and structure:load
-      Rake::Task['db:schema:dump'].clear.enhance(['environment']) do
-        Rake::Task['db:structure:dump'].invoke
-      end
+      if Rails.version <= '6.1'
+        # Make schema:dump and schema:load invoke structure:dump and structure:load
+        Rake::Task['db:schema:dump'].clear.enhance(['environment']) do
+          Rake::Task['db:structure:dump'].invoke
+        end
 
-      Rake::Task['db:schema:load'].clear.enhance(['environment']) do
-        Rake::Task['db:structure:load'].invoke
+        Rake::Task['db:schema:load'].clear.enhance(['environment']) do
+          Rake::Task['db:structure:load'].invoke
+        end
       end
 
       desc "Dumps database into db/data.NOW.sql or file specified via DUMP="
