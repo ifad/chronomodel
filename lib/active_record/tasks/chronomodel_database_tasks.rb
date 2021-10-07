@@ -41,6 +41,12 @@ module ActiveRecord
 
       private
 
+      def configuration
+        # In Rails 6.1.x the configuration instance variable is not available
+        # and it's been replaced by @configuration_hash (which is frozen).
+        @configuration ||= @configuration_hash.dup
+      end
+
       # If a schema search path is defined in the configuration file, it will
       # be used by the database tasks class to dump only the specified search
       # path. Here we add also ChronoModel's temporal and history schemas to
