@@ -24,7 +24,7 @@ module ActiveRecord
       def data_dump(target)
         set_psql_env
 
-        args = ['-c', '-f', target]
+        args = ['-c', '-f', target.to_s]
         args << configuration['database']
 
         run_cmd "pg_dump", args, 'dumping data'
