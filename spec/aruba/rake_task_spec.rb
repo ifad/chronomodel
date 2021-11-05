@@ -11,6 +11,29 @@ describe 'rake tasks', type: :aruba do
     it { is_expected.to have_output(/db:structure:load/) }
   end
 
+  describe 'db:schema:dump' do
+    let(:database_yml) { 'fixtures/database_without_username_and_password.yml' }
+    before { write_file('config/database.yml', File.read(File.expand_path(database_yml, __dir__))) }
+
+    before { run_command_and_stop('bundle exec rake db:schema:dump SCHEMA=db/test.sql') }
+
+    it { expect(last_command_started).to be_successfully_executed }
+    it { expect('db/test.sql').to be_an_existing_file }
+  end
+
+  describe 'db:schema:load' do
+    let(:database_yml) { 'fixtures/database_without_username_and_password.yml' }
+    before { write_file('config/database.yml', File.read(File.expand_path(database_yml, __dir__))) }
+
+    let(:structure_sql) { 'fixtures/set_config.sql' }
+    before { write_file('db/test.sql', File.read(File.expand_path(structure_sql, __dir__))) }
+
+    before { run_command_and_stop('bundle exec rake db:schema:load SCHEMA=db/test.sql') }
+
+    it { expect(last_command_started).to be_successfully_executed }
+    it { expect(last_command_started).to have_output(/set_config/) }
+  end
+
   describe 'db:structure:load' do
     let(:action) { run_command('bundle exec rake db:structure:load') }
     let(:last_command) { action && last_command_started }
