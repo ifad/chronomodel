@@ -157,14 +157,14 @@ describe ChronoModel::TimeMachine do
 
 
     it 'does not raise RecordNotFound when no history records are found' do
-      expect { $t.foo.as_of(1.minute.ago) }.to_not raise_error
+      expect { $t.foo.as_of(5.minutes.ago) }.to_not raise_error
 
-      expect($t.foo.as_of(1.minute.ago)).to be(nil)
+      expect($t.foo.as_of(5.minutes.ago)).to be(nil)
     end
 
 
     it 'raises ActiveRecord::RecordNotFound in the bang variant' do
-      expect { $t.foo.as_of!(1.minute.ago) }.to raise_error(ActiveRecord::RecordNotFound)
+      expect { $t.foo.as_of!(5.minutes.ago) }.to raise_error(ActiveRecord::RecordNotFound)
     end
 
 
