@@ -23,7 +23,15 @@ module ChronoModel
           select("DISTINCT UNNEST(ARRAY[#{fields.join(',')}]) AS ts")
 
         if assocs.present?
-          relation = relation.joins(*assocs.map(&:name))
+          assocs.each do |ass|
+            # `join` first, then use `where`s
+            relation =
+              if ass.belongs_to?
+                relation.joins("LEFT JOIN #{ass.table_name} ON #{ass.table_name}.id = #{table_name}.#{ass.foreign_key}")
+              else
+                relation.joins("LEFT JOIN #{ass.table_name} ON #{ass.table_name}.#{ass.foreign_key} = #{table_name}.id")
+              end
+          end
         end
 
         relation = relation.
@@ -32,7 +40,7 @@ module ChronoModel
         relation = relation.from(%["public".#{quoted_table_name}]) unless self.chrono?
         relation = relation.where(id: rid) if rid
 
-        sql = "SELECT ts FROM ( #{relation.to_sql} ) foo WHERE ts IS NOT NULL"
+        sql = "SELECT ts FROM ( #{relation.to_sql} ) AS foo WHERE ts IS NOT NULL"
 
         if options.key?(:before)
           sql << " AND ts < '#{Conversions.time_to_utc_string(options[:before])}'"
@@ -49,8 +57,6 @@ module ChronoModel
         end
 
         sql << " LIMIT #{options[:limit].to_i}" if options.key?(:limit)
-
-        sql.gsub! 'INNER JOIN', 'LEFT OUTER JOIN'
 
         connection.on_schema(Adapter::HISTORY_SCHEMA) do
           connection.select_values(sql, "#{self.name} periods").map! do |ts|
