@@ -37,7 +37,11 @@ module ChronoModel
         #
         return if join.left.respond_to?(:as_of_time)
 
-        model = ChronoModel.history_models[join.left.table_name]
+        if (join.left.respond_to?(:table_name))
+          model = ChronoModel.history_models[join.left.table_name]
+        else
+          model = ChronoModel.history_models[join.left]
+        end
         return unless model
 
         join.left = ChronoModel::Patches::JoinNode.new(
