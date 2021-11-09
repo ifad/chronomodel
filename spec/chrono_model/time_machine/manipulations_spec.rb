@@ -25,7 +25,7 @@ describe ChronoModel::TimeMachine do
     it do
       with_revert do
         subject.name = 'another modified bar history'
-        subject.save
+        subject.save!
         subject.reload
 
         is_expected.to be_a(Bar::History)
