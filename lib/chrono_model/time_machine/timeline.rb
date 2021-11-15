@@ -24,12 +24,13 @@ module ChronoModel
 
         if assocs.present?
           assocs.each do |ass|
+            association_quoted_table_name = connection.quote_table_name(ass.table_name)
             # `join` first, then use `where`s
             relation =
               if ass.belongs_to?
-                relation.joins("LEFT JOIN #{ass.table_name} ON #{ass.table_name}.id = #{table_name}.#{ass.foreign_key}")
+                relation.joins("LEFT JOIN #{association_quoted_table_name} ON #{association_quoted_table_name}.#{ass.association_primary_key} = #{quoted_table_name}.#{ass.foreign_key}")
               else
-                relation.joins("LEFT JOIN #{ass.table_name} ON #{ass.table_name}.#{ass.foreign_key} = #{table_name}.id")
+                relation.joins("LEFT JOIN #{association_quoted_table_name} ON #{association_quoted_table_name}.#{ass.foreign_key} = #{quoted_table_name}.#{primary_key}")
               end
           end
         end

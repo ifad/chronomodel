@@ -23,5 +23,9 @@ describe ChronoModel::TimeMachine do
     it { expect(Foo.joins(bars: :sub_bars).first.bars.joins(:sub_bars).first.sub_bars.first.name).to eq 'new sub-bar' }
 
     it { expect(Foo.first.bars.includes(:sub_bars)).to eq [ $t.bar ] }
+
+    it { expect(Moo.first.boos).to eq(Boo.all)}
+    it { expect(Moo.first.boos.as_of(Time.new)).to eq(Boo.all.as_of(Time.new))}
+
   end
 end
