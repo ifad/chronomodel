@@ -28,7 +28,7 @@ module ChronoModel
             # `join` first, then use `where`s
             relation =
               if ass.belongs_to?
-                relation.joins("LEFT JOIN #{association_quoted_table_name} ON #{association_quoted_table_name}.#{ass.association_primary_key} = #{quoted_table_name}.#{ass.foreign_key}")
+                relation.joins("LEFT JOIN #{association_quoted_table_name} ON #{association_quoted_table_name}.#{ass.association_primary_key} = #{quoted_table_name}.#{ass.association_foreign_key}")
               else
                 relation.joins("LEFT JOIN #{association_quoted_table_name} ON #{association_quoted_table_name}.#{ass.foreign_key} = #{quoted_table_name}.#{primary_key}")
               end
