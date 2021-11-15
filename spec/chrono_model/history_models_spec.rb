@@ -11,6 +11,9 @@ describe ChronoModel do
       # support/time_machine/structure
       expected['foos']     = Foo::History     if defined?(Foo::History)
       expected['bars']     = Bar::History     if defined?(Bar::History)
+      expected['moos']     = Moo::History     if defined?(Moo::History)
+      expected['boos']     = Boo::History     if defined?(Boo::History)
+
       expected['sub_bars'] = SubBar::History  if defined?(SubBar::History)
 
       # default_scope_spec

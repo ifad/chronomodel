@@ -106,39 +106,96 @@ module ChronoModel
       # present, it is removed from the index created in the history table.
       #
       def add_index(table_name, column_name, options = {})
-        return super unless is_chrono?(table_name)
+        unless is_chrono?(table_name)
+          return super if RUBY_VERSION < '3.0.0'
+          return super(table_name, column_name, **options)
+        end
 
         transaction do
-          on_temporal_schema { super }
+          on_temporal_schema do
+            if RUBY_VERSION < '3.0.0'
+              super
+            else
+              super(table_name, column_name, **options)
+            end
+          end
 
           # Uniqueness constraints do not make sense in the history table
           options = options.dup.tap {|o| o.delete(:unique)} if options[:unique].present?
 
-          on_history_schema { super table_name, column_name, options }
+          on_history_schema do
+            if RUBY_VERSION < '3.0.0'
+              super table_name, column_name, options
+            else
+              super table_name, column_name, **options
+            end
+          end
         end
       end
 
       # If removing an index from a temporal table, remove it both from the
       # temporal and the history schemas.
       #
-      def remove_index(table_name, *)
-        return super unless is_chrono?(table_name)
+      def remove_index(table_name, options = {})
+        unless is_chrono?(table_name)
+          if RUBY_VERSION < '3.0.0'
+            return super
+          else
+            if ActiveRecord::VERSION::STRING < '6.1'
+              return super(table_name, options)
+            else
+              # nil refers to column name
+              return super(table_name, nil, **options)
+            end
+          end
+        end
 
         transaction do
-          on_temporal_schema { super }
-          on_history_schema { super }
+          on_temporal_schema do
+            if RUBY_VERSION < '3.0.0'
+              super
+            else
+              if ActiveRecord::VERSION::STRING < '6.1'
+                super(table_name, options)
+              else
+                # nil refers to column name
+                super(table_name, nil, **options)
+              end
+            end
+          end
+          on_history_schema do
+            if RUBY_VERSION < '3.0.0'
+              super
+            else
+              if ActiveRecord::VERSION::STRING < '6.1'
+                super(table_name, options)
+              else
+                # nil refers to column name
+                super(table_name, nil, **options)
+              end
+            end
+          end
         end
       end
 
       # If adding a column to a temporal table, creates it in the table in
       # the temporal schema and updates the triggers.
       #
-      def add_column(table_name, *)
+      def add_column(table_name, *args)
         return super unless is_chrono?(table_name)
+        column_name = args[0]
+        type = args[1]
+        options = args[2] || {}
 
         transaction do
           # Add the column to the temporal table
-          on_temporal_schema { super }
+          on_temporal_schema do
+            if RUBY_VERSION < '3.0.0'
+              super
+            else
+              super(table_name, column_name, type, **options)
+            end
+          end
 
           # Update the triggers
           chrono_public_view_ddl(table_name)

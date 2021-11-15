@@ -71,6 +71,10 @@ end
 
 if defined?(Rails::DBConsole)
   Rails::DBConsole.instance_eval do
-    prepend ChronoModel::Patches::DBConsole
+    if Rails.version < '6.1'
+      prepend ChronoModel::Patches::DBConsole::Config
+    else
+      prepend ChronoModel::Patches::DBConsole::DbConfig
+    end
   end
 end
