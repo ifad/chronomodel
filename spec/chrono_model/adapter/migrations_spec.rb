@@ -274,6 +274,24 @@ describe ChronoModel::Adapter do
 
       it { is_expected.to have_columns(extra_columns) }
     end
+
+    with_temporal_table do
+      before :all do
+        adapter.add_column table, :foobarbaz, :integer, default: 0
+      end
+
+      it { is_expected.to have_columns(extra_columns) }
+      it { is_expected.to have_temporal_columns(extra_columns) }
+      it { is_expected.to have_history_columns(extra_columns) }
+    end
+
+    with_plain_table do
+      before :all do
+        adapter.add_column table, :foobarbaz, :integer, default: 0
+      end
+
+      it { is_expected.to have_columns(extra_columns) }
+    end
   end
 
   describe '.remove_column' do
