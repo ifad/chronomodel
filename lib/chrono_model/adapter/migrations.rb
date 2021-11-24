@@ -181,21 +181,12 @@ module ChronoModel
       # If adding a column to a temporal table, creates it in the table in
       # the temporal schema and updates the triggers.
       #
-      def add_column(table_name, *args)
+      def add_column(table_name, column_name, type, **options)
         return super unless is_chrono?(table_name)
-        column_name = args[0]
-        type = args[1]
-        options = args[2] || {}
 
         transaction do
           # Add the column to the temporal table
-          on_temporal_schema do
-            if RUBY_VERSION < '3.0.0'
-              super
-            else
-              super(table_name, column_name, type, **options)
-            end
-          end
+          on_temporal_schema { super }
 
           # Update the triggers
           chrono_public_view_ddl(table_name)
