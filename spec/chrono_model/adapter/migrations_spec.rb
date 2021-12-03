@@ -199,30 +199,38 @@ describe ChronoModel::Adapter do
       before :all do
         adapter.add_index table, [:foo, :bar], :name => 'foobar_index'
         adapter.add_index table, [:test],      :name => 'test_index'
+        adapter.add_index table, :baz
       end
 
       it { is_expected.to have_temporal_index 'foobar_index', %w( foo bar ) }
       it { is_expected.to have_history_index  'foobar_index', %w( foo bar ) }
       it { is_expected.to have_temporal_index 'test_index',   %w( test ) }
       it { is_expected.to have_history_index  'test_index',   %w( test ) }
+      it { is_expected.to have_temporal_index 'index_test_table_on_baz', %w( baz ) }
+      it { is_expected.to have_history_index  'index_test_table_on_baz', %w( baz ) }
 
       it { is_expected.to_not have_index 'foobar_index', %w( foo bar ) }
       it { is_expected.to_not have_index 'test_index',   %w( test ) }
+      it { is_expected.to_not have_index 'index_test_table_on_baz', %w( baz ) }
     end
 
     with_plain_table do
       before :all do
         adapter.add_index table, [:foo, :bar], :name => 'foobar_index'
         adapter.add_index table, [:test],      :name => 'test_index'
+        adapter.add_index table, :baz
       end
 
       it { is_expected.to_not have_temporal_index 'foobar_index', %w( foo bar ) }
       it { is_expected.to_not have_history_index  'foobar_index', %w( foo bar ) }
       it { is_expected.to_not have_temporal_index 'test_index',   %w( test ) }
       it { is_expected.to_not have_history_index  'test_index',   %w( test ) }
+      it { is_expected.to_not have_temporal_index 'index_test_table_on_baz', %w( baz ) }
+      it { is_expected.to_not have_history_index  'index_test_table_on_baz', %w( baz ) }
 
       it { is_expected.to have_index 'foobar_index', %w( foo bar ) }
       it { is_expected.to have_index 'test_index',   %w( test ) }
+      it { is_expected.to have_index 'index_test_table_on_baz', %w( baz ) }
     end
   end
 
@@ -231,26 +239,38 @@ describe ChronoModel::Adapter do
       before :all do
         adapter.add_index table, [:foo, :bar], :name => 'foobar_index'
         adapter.add_index table, [:test],      :name => 'test_index'
+        adapter.add_index table, :baz
 
         adapter.remove_index table, :name => 'test_index'
+        adapter.remove_index table, :baz
       end
 
       it { is_expected.to_not have_temporal_index 'test_index', %w( test ) }
       it { is_expected.to_not have_history_index  'test_index', %w( test ) }
       it { is_expected.to_not have_index          'test_index', %w( test ) }
+
+      it { is_expected.to_not have_temporal_index 'index_test_table_on_baz', %w( baz ) }
+      it { is_expected.to_not have_history_index  'index_test_table_on_baz', %w( baz ) }
+      it { is_expected.to_not have_index          'index_test_table_on_baz', %w( baz ) }
     end
 
     with_plain_table do
       before :all do
         adapter.add_index table, [:foo, :bar], :name => 'foobar_index'
         adapter.add_index table, [:test],      :name => 'test_index'
+        adapter.add_index table, :baz
 
         adapter.remove_index table, :name => 'test_index'
+        adapter.remove_index table, :baz
       end
 
       it { is_expected.to_not have_temporal_index 'test_index', %w( test ) }
       it { is_expected.to_not have_history_index  'test_index', %w( test ) }
       it { is_expected.to_not have_index          'test_index', %w( test ) }
+
+      it { is_expected.to_not have_temporal_index 'index_test_table_on_baz', %w( baz ) }
+      it { is_expected.to_not have_history_index  'index_test_table_on_baz', %w( baz ) }
+      it { is_expected.to_not have_index          'index_test_table_on_baz', %w( baz ) }
     end
   end
 
