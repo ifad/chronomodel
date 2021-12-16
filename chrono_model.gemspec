@@ -17,6 +17,8 @@ Gem::Specification.new do |gem|
   gem.require_paths = ['lib']
   gem.version       = ChronoModel::VERSION
 
+  gem.metadata['rubygems_mfa_required'] = 'true'
+
   gem.metadata = {
     'bug_tracker_uri' => 'https://github.com/ifad/chronomodel/issues',
     'homepage_uri' => 'https://github.com/ifad/chronomodel',
