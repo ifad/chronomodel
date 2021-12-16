@@ -1,21 +1,23 @@
 require 'spec_helper'
-
+require 'rake'
+include ChronoTest::Aruba
 # add :announce_stdout, :announce_stderr, before the type: aruba tag in order
 # to see the commmands' stdout and stderr output.
 #
+
 describe 'rake tasks', type: :aruba do
   describe 'bundle exec rake -T' do
     before { run_command_and_stop('bundle exec rake -T') }
     subject { last_command_started }
 
-    it { is_expected.to have_output(/db:structure:load/) }
+    it { is_expected.to have_output(load_schema_task(as_regexp: true)) }
   end
 
-  describe 'db:schema:dump' do
+  describe "#{dump_schema_task}" do
     let(:database_yml) { 'fixtures/database_without_username_and_password.yml' }
     before { write_file('config/database.yml', File.read(File.expand_path(database_yml, __dir__))) }
 
-    before { run_command_and_stop('bundle exec rake db:schema:dump SCHEMA=db/test.sql') }
+    before { run_command_and_stop("bundle exec rake #{dump_schema_task} SCHEMA=db/test.sql") }
 
     it { expect(last_command_started).to be_successfully_executed }
     it { expect('db/test.sql').to be_an_existing_file }
@@ -34,8 +36,8 @@ describe 'rake tasks', type: :aruba do
     it { expect(last_command_started).to have_output(/set_config/) }
   end
 
-  describe 'db:structure:load' do
-    let(:action) { run_command('bundle exec rake db:structure:load') }
+  describe "#{load_schema_task}" do
+    let(:action) { run_command("bundle exec rake #{load_schema_task}") }
     let(:last_command) { action && last_command_started }
 
     context 'given a file db/structure.sql' do
