@@ -15,7 +15,7 @@ module ChronoModel
     end
 
     def time_to_utc_string(time)
-      [time.to_s(:db), sprintf('%06d', time.usec)].join '.'
+      [time.to_formatted_s(:db), sprintf('%06d', time.usec)].join '.'
     end
   end
 

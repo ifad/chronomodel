@@ -10,6 +10,15 @@ module ChronoModel
         scope :chronological, -> { order(Arel.sql('lower(validity) ASC')) }
       end
 
+      # ACTIVE RECORD 7 does not call class.find but a new internal method called _find_record
+      def _find_record(options)
+        if options && options[:lock]
+          self.class.preload(strict_loaded_associations).lock(options[:lock]).find_by_hid(hid)
+        else
+          self.class.preload(strict_loaded_associations).find_by_hid(hid)
+        end
+      end
+
       # Methods that make up the history interface of the companion History
       # model, automatically built for each Model that includes TimeMachine
       #

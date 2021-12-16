@@ -41,6 +41,14 @@ module ActiveRecord
 
       private
 
+      def set_psql_env
+        if ActiveRecord::VERSION::STRING < '7.0'
+          super
+        else
+          psql_env
+        end
+      end
+
       def configuration
         # In Rails 6.1.x the configuration instance variable is not available
         # and it's been replaced by @configuration_hash (which is frozen).

@@ -13,6 +13,9 @@ module ChronoModel
       #
       def initialize(options = {})
         @options = options.freeze
+        if ActiveRecord::VERSION::STRING >= '7.0'
+          super(associate_by_default: true, **options)
+        end
       end
 
       # Patches the AR Preloader (lib/active_record/associations/preloader.rb)
