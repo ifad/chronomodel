@@ -30,11 +30,11 @@ module ChronoModel
         # setting it now and ensuring to reset it to the original one after
         # execution completes. FIXME
         #
-        def with_hid_pkey(&block)
+        def with_hid_pkey
           old = self.primary_key
           self.primary_key = :hid
 
-          block.call
+          yield
         ensure
           self.primary_key = old
         end
