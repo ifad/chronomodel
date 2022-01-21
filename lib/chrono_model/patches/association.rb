@@ -35,7 +35,7 @@ module ChronoModel
 
       private
         def _chrono_record?
-          owner.respond_to?(:as_of_time) && owner.as_of_time.present?
+          owner.class.include?(ChronoModel::Patches::AsOfTimeHolder) && owner.as_of_time.present?
         end
 
         def _chrono_target?
