@@ -38,12 +38,6 @@ jobs:
             gemfile: rails_edge
             experimental: true
           - ruby-version: 'head'
-            gemfile: rails_6.0
-            experimental: true
-          - ruby-version: 'head'
-            gemfile: rails_6.1
-            experimental: true
-          - ruby-version: 'head'
             gemfile: rails_7.0
             experimental: true
           - ruby-version: 'head'
