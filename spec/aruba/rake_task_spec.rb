@@ -21,6 +21,7 @@ describe 'rake tasks', type: :aruba do
 
     it { expect(last_command_started).to be_successfully_executed }
     it { expect('db/test.sql').to be_an_existing_file }
+    it { expect('db/test.sql').not_to have_file_content(/\A--/) }
   end
 
   describe 'db:schema:load' do

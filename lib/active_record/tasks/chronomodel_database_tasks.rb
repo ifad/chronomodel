@@ -18,7 +18,7 @@ module ActiveRecord
         sql = File.read(filename).gsub(/CREATE SCHEMA (?!IF NOT EXISTS)/, '\&IF NOT EXISTS ')
         File.open(filename, 'w') { |file| file << sql }
 
-        remove_sql_header_comments(filename)
+        remove_sql_header_comments(filename) if ActiveRecord::VERSION::STRING < '5.1'
       end
 
       def data_dump(target)
