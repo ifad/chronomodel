@@ -181,17 +181,30 @@ describe ChronoModel::Adapter do
   end
 
   describe '.drop_table' do
-    before :all do
-      adapter.create_table table, :temporal => true, &columns
+    context 'with temporal tables' do
+      before :all do
+        adapter.create_table table, :temporal => true, &columns
 
-      adapter.drop_table table
+        adapter.drop_table table
+      end
+
+      it { is_expected.to_not have_public_backing }
+      it { is_expected.to_not have_temporal_backing }
+      it { is_expected.to_not have_history_backing }
+      it { is_expected.to_not have_history_functions }
+      it { is_expected.to_not have_public_interface }
     end
 
-    it { is_expected.to_not have_public_backing }
-    it { is_expected.to_not have_temporal_backing }
-    it { is_expected.to_not have_history_backing }
-    it { is_expected.to_not have_history_functions }
-    it { is_expected.to_not have_public_interface }
+    context 'without temporal tables' do
+      before :all do
+        adapter.create_table table, :temporal => false, &columns
+
+        adapter.drop_table table, :temporal => false
+      end
+
+      it { is_expected.to_not have_public_backing }
+      it { is_expected.to_not have_public_interface }
+    end
   end
 
   describe '.add_index' do

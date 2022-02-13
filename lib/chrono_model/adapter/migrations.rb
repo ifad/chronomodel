@@ -93,7 +93,7 @@ module ChronoModel
       # If dropping a temporal table, drops it from the temporal schema
       # adding the CASCADE option so to delete the history, view and triggers.
       #
-      def drop_table(table_name, *)
+      def drop_table(table_name, **options)
         return super unless is_chrono?(table_name)
 
         on_temporal_schema { execute "DROP TABLE #{table_name} CASCADE" }
