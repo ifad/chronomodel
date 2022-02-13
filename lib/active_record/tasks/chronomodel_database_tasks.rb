@@ -1,11 +1,16 @@
 module ActiveRecord
   module Tasks
     class ChronomodelDatabaseTasks < PostgreSQLDatabaseTasks
+      CHRONOMODEL_SCHEMAS = [
+        ChronoModel::Adapter::TEMPORAL_SCHEMA,
+        ChronoModel::Adapter::HISTORY_SCHEMA
+      ].freeze
 
       def structure_dump(*arguments)
-
-        with_chronomodel_schema_search_path do
-          super(*arguments)
+        if schema_search_path.present?
+          with_chronomodel_schema_search_path { super }
+        else
+          super
         end
 
         # The structure.sql includes CREATE SCHEMA statements, but as these are executed
@@ -25,7 +30,7 @@ module ActiveRecord
         set_psql_env
 
         args = ['-c', '-f', target.to_s]
-        args << configuration[:database]
+        args << chronomodel_configuration[:database]
 
         run_cmd "pg_dump", args, 'dumping data'
       end
@@ -34,7 +39,7 @@ module ActiveRecord
         set_psql_env
 
         args = ['-f', source]
-        args << configuration[:database]
+        args << chronomodel_configuration[:database]
 
         run_cmd "psql", args, 'loading data'
       end
@@ -49,10 +54,15 @@ module ActiveRecord
         end
       end
 
-      def configuration
-        # In Rails 6.1.x the configuration instance variable is not available
-        # and it's been replaced by @configuration_hash (which is frozen).
-        @configuration ||= @configuration_hash.dup
+      # In Rails 6.1.x the configuration instance variable is not available
+      # and it's been replaced by @configuration_hash (which is frozen).
+      def chronomodel_configuration
+        @chronomodel_configuration ||=
+          if defined?(@configuration_hash)
+            @configuration_hash
+          else
+            configuration.with_indifferent_access
+          end
       end
 
       # If a schema search path is defined in the configuration file, it will
@@ -61,19 +71,35 @@ module ActiveRecord
       # the search path and yield.
       #
       def with_chronomodel_schema_search_path
-        original_schema_search_path = configuration['schema_search_path']
-
-        if original_schema_search_path.present?
-          configuration['schema_search_path'] = original_schema_search_path.split(',').concat([
-            ChronoModel::Adapter::TEMPORAL_SCHEMA,
-            ChronoModel::Adapter::HISTORY_SCHEMA
-          ]).join(',')
-        end
+        patch_configuration!
 
         yield
-
       ensure
-        configuration['schema_search_path'] = original_schema_search_path
+        reset_configuration!
+      end
+
+      def patch_configuration!
+        @original_schema_search_path = schema_search_path
+
+        chronomodel_schema_search_path = "#{schema_search_path},#{CHRONOMODEL_SCHEMAS.join(',')}"
+
+        if defined?(@configuration_hash)
+          @configuration_hash = @configuration_hash.dup
+          @configuration_hash[:schema_search_path] = chronomodel_schema_search_path
+          @configuration_hash.freeze
+        else
+          configuration['schema_search_path'] = chronomodel_schema_search_path
+        end
+      end
+
+      def reset_configuration!
+        if defined?(@configuration_hash)
+          @configuration_hash = @configuration_hash.dup
+          @configuration_hash[:schema_search_path] = @original_schema_search_path
+          @configuration_hash.freeze
+        else
+          configuration['schema_search_path'] = @original_schema_search_path
+        end
       end
 
       unless method_defined? :remove_sql_header_comments
@@ -95,6 +121,9 @@ module ActiveRecord
         end
       end
 
+      def schema_search_path
+        @schema_search_path ||= chronomodel_configuration[:schema_search_path]
+      end
     end
   end
 end

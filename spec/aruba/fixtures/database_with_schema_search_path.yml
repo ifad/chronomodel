@@ -1,0 +1,13 @@
+default: &default
+  adapter: chronomodel
+  encoding: unicode
+  pool: 20
+  database: chronomodel_railsapp
+  host: <%= ENV['CI'] ? 'localhost' : '' %>
+  schema_search_path: 'public'
+
+development:
+  <<: *default
+
+test:
+  <<: *default
