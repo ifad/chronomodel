@@ -22,6 +22,18 @@ describe 'rake tasks', type: :aruba do
     it { expect(last_command_started).to be_successfully_executed }
     it { expect('db/test.sql').to be_an_existing_file }
     it { expect('db/test.sql').not_to have_file_content(/\A--/) }
+
+    context 'with schema_search_path option' do
+      let(:database_yml) { 'fixtures/database_with_schema_search_path.yml' }
+
+      before { run_command_and_stop("bundle exec rake #{dump_schema_task} SCHEMA=db/test.sql") }
+
+      it 'includes chronomodel schemas' do
+        expect('db/test.sql').to have_file_content(/^CREATE SCHEMA IF NOT EXISTS history;$/)
+          .and have_file_content(/^CREATE SCHEMA IF NOT EXISTS temporal;$/)
+          .and have_file_content(/^CREATE SCHEMA IF NOT EXISTS public;$/)
+      end
+    end
   end
 
   describe 'db:schema:load' do
