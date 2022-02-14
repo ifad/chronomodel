@@ -392,6 +392,14 @@ describe ChronoModel::Adapter do
       it { is_expected.to have_columns([['foo', 'double precision']]) }
       it { is_expected.to have_temporal_columns([['foo', 'double precision']]) }
       it { is_expected.to have_history_columns([['foo', 'double precision']]) }
+
+      context 'with options' do
+        before :all do
+          adapter.change_column table, :foo, :float, an: :option
+        end
+
+        it { is_expected.to_not have_columns([['foo', 'integer']]) }
+      end
     end
 
     with_plain_table do
