@@ -136,7 +136,7 @@ module ChronoModel
       # view, then change the column from the table in the temporal schema and
       # eventually recreate the triggers.
       #
-      def change_column(table_name, *)
+      def change_column(table_name, column_name, type, **options)
         return super unless is_chrono?(table_name)
         drop_and_recreate_public_view(table_name) { super }
       end
