@@ -159,7 +159,7 @@ module ChronoModel
       # view, then drop the column from the table in the temporal schema and
       # eventually recreate the triggers.
       #
-      def remove_column(table_name, *)
+      def remove_column(table_name, column_name, type = nil, **options)
         return super unless is_chrono?(table_name)
         drop_and_recreate_public_view(table_name) { super }
       end

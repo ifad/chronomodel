@@ -332,7 +332,7 @@ describe ChronoModel::Adapter do
 
     with_temporal_table do
       before :all do
-        adapter.remove_column table, :foo
+        adapter.remove_column table, :foo, :integer, default: 0
       end
 
       it { is_expected.to have_columns(resulting_columns) }
@@ -346,7 +346,7 @@ describe ChronoModel::Adapter do
 
     with_plain_table do
       before :all do
-        adapter.remove_column table, :foo
+        adapter.remove_column table, :foo, :integer, default: 0
       end
 
       it { is_expected.to have_columns(resulting_columns) }
