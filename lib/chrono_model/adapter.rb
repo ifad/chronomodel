@@ -128,7 +128,7 @@ module ChronoModel
       # transaction ends.
       #
       transaction_aborted =
-        @connection.transaction_status == PG::Connection::PQTRANS_INERROR
+        chrono_connection.transaction_status == PG::Connection::PQTRANS_INERROR
 
       if transaction_aborted && Thread.current['recursions'] == 1
         @schema_search_path = nil
@@ -164,6 +164,12 @@ module ChronoModel
     end
 
     private
+      # Rails 7.1 uses `@raw_connection`, older versions use `@connection`
+      #
+      def chrono_connection
+        @chrono_connection ||= @raw_connection || @connection
+      end
+
       # Counts the number of recursions in a thread local variable
       #
       def count_recursions # yield
