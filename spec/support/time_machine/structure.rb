@@ -22,6 +22,7 @@ module ChronoTest::TimeMachine
   adapter.create_table 'foos', :temporal => true do |t|
     t.string     :name
     t.integer    :fooity
+    t.references :goo
   end
 
   class ::Foo < ActiveRecord::Base
@@ -29,6 +30,14 @@ module ChronoTest::TimeMachine
 
     has_many :bars
     has_many :sub_bars, :through => :bars
+
+    belongs_to :goo, class_name: 'FooGoo', optional: true
+  end
+
+  class ::FooGoo < ActiveRecord::Base
+    include ChronoModel::TimeGate
+
+    has_many :foos, inverse_of: :goo
   end
 
   class ::Boo < ActiveRecord::Base
@@ -59,6 +68,10 @@ module ChronoTest::TimeMachine
   adapter.create_table 'boos_moos', :temporal => true do |t|
     t.references :moo
     t.references :boo
+  end
+
+  adapter.create_table 'foo_goos' do |t|
+    t.string :name
   end
 
 
