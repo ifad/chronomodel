@@ -46,7 +46,6 @@ describe 'rake tasks', type: :aruba do
     before { run_command_and_stop('bundle exec rake db:schema:load SCHEMA=db/test.sql') }
 
     it { expect(last_command_started).to be_successfully_executed }
-    it { expect(last_command_started).to have_output(/set_config/) }
   end
 
   describe "#{load_schema_task}" do
