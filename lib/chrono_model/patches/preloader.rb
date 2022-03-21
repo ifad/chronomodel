@@ -6,15 +6,19 @@ module ChronoModel
     # and it is ugly :-(.
     #
     module Preloader
-      attr_reader :options
+      attr_reader :chronomodel_options
 
       # We overwrite the initializer in order to pass the +as_of_time+
       # parameter above in the build_preloader
       #
-      def initialize(options = {})
-        @options = options.freeze
-        if ActiveRecord::VERSION::STRING >= '7.0'
-          super(associate_by_default: true, **options)
+      def initialize(**options)
+        @chronomodel_options = options.extract!(:as_of_time, :model)
+        options[:scope] = chronomodel_scope(options[:scope]) if options.key?(:scope)
+
+        if options.empty?
+          super()
+        else
+          super **options
         end
       end
 
@@ -40,17 +44,20 @@ module ChronoModel
       # so we use it directly.
       #
       def preload(records, associations, given_preload_scope = nil)
-        if options[:as_of_time]
-          preload_scope = given_preload_scope ||
-            ChronoModel::Patches::AsOfTimeRelation.new(options[:model])
+        super records, associations, chronomodel_scope(given_preload_scope)
+      end
 
-          preload_scope.as_of_time!(options[:as_of_time])
-        elsif given_preload_scope.respond_to?(:as_of_time)
-          preload_scope = given_preload_scope
+      private
 
+      def chronomodel_scope(given_preload_scope)
+        preload_scope = given_preload_scope
+
+        if chronomodel_options[:as_of_time]
+          preload_scope ||= ChronoModel::Patches::AsOfTimeRelation.new(chronomodel_options[:model])
+          preload_scope.as_of_time!(chronomodel_options[:as_of_time])
         end
 
-        super records, associations, preload_scope
+        preload_scope
       end
 
       module Association
