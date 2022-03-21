@@ -27,7 +27,7 @@ module ActiveRecord
       end
 
       def data_dump(target)
-        set_psql_env
+        psql_env
 
         args = ['-c', '-f', target.to_s]
         args << chronomodel_configuration[:database]
@@ -36,7 +36,7 @@ module ActiveRecord
       end
 
       def data_load(source)
-        set_psql_env
+        psql_env
 
         args = ['-f', source]
         args << chronomodel_configuration[:database]
@@ -45,14 +45,6 @@ module ActiveRecord
       end
 
       private
-
-      def set_psql_env
-        if ActiveRecord::VERSION::STRING < '7.0'
-          super
-        else
-          psql_env
-        end
-      end
 
       # In Rails 6.1.x the configuration instance variable is not available
       # and it's been replaced by @configuration_hash (which is frozen).
@@ -102,7 +94,7 @@ module ActiveRecord
         end
       end
 
-      unless method_defined? :remove_sql_header_comments
+      unless private_instance_methods.include?(:remove_sql_header_comments)
         def remove_sql_header_comments(filename)
           sql_comment_begin = '--'
           removing_comments = true
@@ -119,6 +111,10 @@ module ActiveRecord
           end
           FileUtils.mv(tempfile.path, filename)
         end
+      end
+
+      unless private_instance_methods.include?(:psql_env)
+        alias psql_env set_psql_env
       end
 
       def schema_search_path
