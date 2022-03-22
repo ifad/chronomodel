@@ -106,6 +106,8 @@ describe ChronoModel::TimeMachine do
       it { expect(Foo.as_of($t.foo.ts[1]).includes(:bars).first.bars).to eq [] }
       it { expect(Foo.as_of($t.foo.ts[2]).includes(:bars).first.bars).to eq [$t.bar] }
 
+      it { expect(Foo.as_of($t.foo.ts[0]).includes(:goo).first).to eq $t.foo }
+
       it { expect(Foo.as_of($t.bar.ts[0]).includes(:bars).first.bars.first.name).to eq 'bar' }
       it { expect(Foo.as_of($t.bar.ts[1]).includes(:bars).first.bars.first.name).to eq 'foo bar' }
       it { expect(Foo.as_of($t.bar.ts[2]).includes(:bars).first.bars.first.name).to eq 'bar bar' }
