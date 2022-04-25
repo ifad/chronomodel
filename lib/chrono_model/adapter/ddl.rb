@@ -52,7 +52,7 @@ module ChronoModel
 
           execute <<-SQL
             CREATE TABLE #{table} (
-              hid         SERIAL PRIMARY KEY,
+              hid         BIGSERIAL PRIMARY KEY,
               validity    tsrange NOT NULL,
               recorded_at timestamp NOT NULL DEFAULT timezone('UTC', now())
             ) INHERITS ( #{parent} )
