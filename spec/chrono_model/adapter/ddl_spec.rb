@@ -96,6 +96,26 @@ describe ChronoModel::Adapter do
     it { insert; expect(select.uniq).to eq ['default-value'] }
   end
 
+  context 'INSERT with string IDs' do
+    before :all do
+      adapter.create_table table, :temporal => true, :id => :string, &columns
+    end
+
+    after :all do
+      adapter.drop_table table
+    end
+
+    def insert
+      adapter.execute <<-SQL
+        INSERT INTO #{table} (test, id) VALUES ('test1', 'hello');
+      SQL
+    end
+
+    it { expect { insert }.to_not raise_error }
+    it { expect(count(current)).to eq 1 }
+    it { expect(count(history)).to eq 1 }
+  end
+
   context 'redundant UPDATEs' do
 
     before :all do

@@ -77,14 +77,10 @@ module ChronoModel
         # allow setting the PK to a specific value (think migration scenario).
         #
         def chrono_create_INSERT_trigger(table, pk, current, history, fields, values)
-          seq = pk_and_sequence_for(current).last.to_s
-
           execute <<-SQL
             CREATE OR REPLACE FUNCTION chronomodel_#{table}_insert() RETURNS TRIGGER AS $$
               BEGIN
-                IF NEW.#{pk} IS NULL THEN
-                  NEW.#{pk} := nextval('#{seq}');
-                END IF;
+                #{sequence_sql(pk, current)}
 
                 INSERT INTO #{current} ( #{pk}, #{fields} )
                 VALUES ( NEW.#{pk}, #{values} );
@@ -217,6 +213,17 @@ module ChronoModel
           %w( insert update delete ).each do |func|
             execute "DROP FUNCTION IF EXISTS chronomodel_#{table_name}_#{func}()"
           end
+        end
+
+        def sequence_sql(pk, current)
+          seq = pk_and_sequence_for(current)
+          return if seq.blank?
+
+          <<-SQL
+            IF NEW.#{pk} IS NULL THEN
+              NEW.#{pk} := nextval('#{seq.last}');
+            END IF;
+          SQL
         end
       # private
     end
