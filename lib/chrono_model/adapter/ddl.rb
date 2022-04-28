@@ -81,9 +81,7 @@ module ChronoModel
           execute <<-SQL.strip_heredoc
             CREATE OR REPLACE FUNCTION chronomodel_#{table}_insert() RETURNS TRIGGER AS $$
                 BEGIN
-                    #{sequence_sql(pk, current)}
-
-                    INSERT INTO #{current} ( #{pk}, #{fields} )
+                    #{insert_sequence_sql(pk, current)} INTO #{current} ( #{pk}, #{fields} )
                     VALUES ( NEW.#{pk}, #{values} );
 
                     INSERT INTO #{history} ( #{pk}, #{fields}, validity )
@@ -219,14 +217,16 @@ module ChronoModel
           end
         end
 
-        def sequence_sql(pk, current)
+        def insert_sequence_sql(pk, current)
           seq = pk_and_sequence_for(current)
-          return if seq.blank?
+          return 'INSERT' if seq.blank?
 
           <<-SQL.strip
                     IF NEW.#{pk} IS NULL THEN
                         NEW.#{pk} := nextval('#{seq.last}');
                     END IF;
+
+                    INSERT
           SQL
         end
       # private
