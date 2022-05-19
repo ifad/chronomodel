@@ -1,5 +1,4 @@
 module ChronoTest::TimeMachine
-
   # This module contains helpers used throughout the
   # +ChronoModel::TimeMachine+ specs.
   #
@@ -43,12 +42,11 @@ module ChronoTest::TimeMachine
         when Time # Already parsed, thanks AR
           obj.ts.push(now)
         when String # ISO8601 Timestamp
-          obj.ts.push(Time.parse(now+'Z'))
+          obj.ts.push(Time.parse("#{now}Z"))
         else
           raise "Don't know how to deal with #{now.inspect}"
         end
       end
     end
   end
-
 end

@@ -12,7 +12,7 @@ describe ChronoModel::TimeMachine do
       end
 
       context 'without history' do
-        let(:record) { Bar.create!(:name => 'foreveralone') }
+        let(:record) { Bar.create!(name: 'foreveralone') }
         subject { record.last_changes }
         it { is_expected.to be_nil }
         after { record.destroy.history.delete_all } # UGLY
@@ -46,5 +46,4 @@ describe ChronoModel::TimeMachine do
       it { expect($t.bar.history.third. changes_against($t.bar.history.third)).to eq({}) }
     end
   end
-
 end

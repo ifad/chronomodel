@@ -1,18 +1,17 @@
 require 'support/matchers/base'
 
 module ChronoTest::Matchers
-
   module Table
     class Base < ChronoTest::Matchers::Base
-
       protected
-        # Database statements
-        #
-        def relation_exists?(options)
-          schema = options[:in]
-          kind   = options[:kind] == :view ? 'v' : 'r'
 
-          select_value(<<-SQL, [ table, schema ], 'Check table exists') == true
+      # Database statements
+      #
+      def relation_exists?(options)
+        schema = options[:in]
+        kind   = options[:kind] == :view ? 'v' : 'r'
+
+        select_value(<<-SQL, [table, schema], 'Check table exists') == true
             SELECT EXISTS (
               SELECT 1
                 FROM pg_class c
@@ -22,7 +21,7 @@ module ChronoTest::Matchers
                  AND n.nspname = ?
             )
           SQL
-        end
+      end
     end
 
     # ##################################################################
@@ -32,7 +31,7 @@ module ChronoTest::Matchers
       def matches?(table)
         super(table)
 
-        relation_exists? :in => public_schema
+        relation_exists? in: public_schema
       end
 
       def description
@@ -52,7 +51,6 @@ module ChronoTest::Matchers
       HavePublicBacking.new
     end
 
-
     # ##################################################################
     # Checks that a table exists in the Temporal schema
     #
@@ -60,7 +58,7 @@ module ChronoTest::Matchers
       def matches?(table)
         super(table)
 
-        relation_exists? :in => temporal_schema
+        relation_exists? in: temporal_schema
       end
 
       def description
@@ -79,7 +77,6 @@ module ChronoTest::Matchers
     def have_temporal_backing
       HaveTemporalBacking.new
     end
-
 
     # ##################################################################
     # Checks that a table exists in the History schema and inherits from
@@ -122,57 +119,58 @@ module ChronoTest::Matchers
       end
 
       private
-        def table_exists?
-          @existance = relation_exists? :in => history_schema
-        end
 
-        def inherits_from_temporal?
-          binds = ["#{history_schema}.#{table}", "#{temporal_schema}.#{table}"]
+      def table_exists?
+        @existance = relation_exists? in: history_schema
+      end
 
-          @inheritance = select_value(<<-SQL, binds, 'Check inheritance') == true
+      def inherits_from_temporal?
+        binds = ["#{history_schema}.#{table}", "#{temporal_schema}.#{table}"]
+
+        @inheritance = select_value(<<-SQL, binds, 'Check inheritance') == true
             SELECT EXISTS (
               SELECT 1 FROM pg_catalog.pg_inherits
                WHERE inhrelid  = ?::regclass::oid
                  AND inhparent = ?::regclass::oid
             )
           SQL
-        end
+      end
 
-        def has_history_indexes?
-          binds = [ history_schema, table ]
+      def has_history_indexes?
+        binds = [history_schema, table]
 
-          indexes = select_values(<<-SQL, binds, 'Check history indexes')
+        indexes = select_values(<<-SQL, binds, 'Check history indexes')
             SELECT indexdef FROM pg_indexes
              WHERE schemaname = ?
                AND tablename  = ?
           SQL
 
-          fqtn = [history_schema, table].join('.')
+        fqtn = [history_schema, table].join('.')
 
-          expected = [
-            "CREATE INDEX index_#{table}_temporal_on_lower_validity ON #{fqtn} USING btree (lower(validity))",
-            "CREATE INDEX index_#{table}_temporal_on_upper_validity ON #{fqtn} USING btree (upper(validity))",
-            "CREATE INDEX index_#{table}_temporal_on_validity ON #{fqtn} USING gist (validity)",
+        expected = [
+          "CREATE INDEX index_#{table}_temporal_on_lower_validity ON #{fqtn} USING btree (lower(validity))",
+          "CREATE INDEX index_#{table}_temporal_on_upper_validity ON #{fqtn} USING btree (upper(validity))",
+          "CREATE INDEX index_#{table}_temporal_on_validity ON #{fqtn} USING gist (validity)",
 
-            "CREATE INDEX #{table}_inherit_pkey ON #{fqtn} USING btree (id)",
-            "CREATE INDEX #{table}_instance_history ON #{fqtn} USING btree (id, recorded_at)",
-            "CREATE UNIQUE INDEX #{table}_pkey ON #{fqtn} USING btree (hid)",
-            "CREATE INDEX #{table}_recorded_at ON #{fqtn} USING btree (recorded_at)",
-            "CREATE INDEX #{table}_timeline_consistency ON #{fqtn} USING gist (id, validity)"
-          ]
+          "CREATE INDEX #{table}_inherit_pkey ON #{fqtn} USING btree (id)",
+          "CREATE INDEX #{table}_instance_history ON #{fqtn} USING btree (id, recorded_at)",
+          "CREATE UNIQUE INDEX #{table}_pkey ON #{fqtn} USING btree (hid)",
+          "CREATE INDEX #{table}_recorded_at ON #{fqtn} USING btree (recorded_at)",
+          "CREATE INDEX #{table}_timeline_consistency ON #{fqtn} USING gist (id, validity)"
+        ]
 
-          @indexes = (expected - indexes).empty?
-        end
+        @indexes = (expected - indexes).empty?
+      end
 
-        def has_consistency_constraint?
-          binds = {
-            conname:      connection.timeline_consistency_constraint_name(table),
-            connamespace: history_schema,
-            conrelid:     [history_schema, table].join('.'),
-            attname:      connection.primary_key(table)
-          }
+      def has_consistency_constraint?
+        binds = {
+          conname:      connection.timeline_consistency_constraint_name(table),
+          connamespace: history_schema,
+          conrelid:     [history_schema, table].join('.'),
+          attname:      connection.primary_key(table)
+        }
 
-          @constraint = select_value(<<-SQL, binds, 'Check Consistency Constraint') == true
+        @constraint = select_value(<<-SQL, binds, 'Check Consistency Constraint') == true
             SELECT EXISTS (
               SELECT 1 FROM pg_catalog.pg_constraint
               WHERE conname = :conname
@@ -188,13 +186,12 @@ module ChronoTest::Matchers
                 )
             )
           SQL
-        end
+      end
     end
 
     def have_history_backing
       HaveHistoryBacking.new
     end
-
 
     # ##################################################################
     # Checks that a table exists in the Public schema, is an updatable
@@ -204,7 +201,7 @@ module ChronoTest::Matchers
       def matches?(table)
         super(table)
 
-        view_exists? && [ is_updatable?, has_triggers? ].all?
+        view_exists? && [is_updatable?, has_triggers?].all?
       end
 
       def description
@@ -214,8 +211,8 @@ module ChronoTest::Matchers
       def failure_message
         "expected #{table} ".tap do |message|
           message << [
-            ("to exist in the #{public_schema} schema" unless @existance     ),
-            ('to be an updatable view'                 unless @updatable     ),
+            ("to exist in the #{public_schema} schema" unless @existance),
+            ('to be an updatable view'                 unless @updatable),
             ('to have an INSERT trigger'               unless @insert_trigger),
             ('to have an UPDATE trigger'               unless @update_trigger),
             ('to have a DELETE trigger'                unless @delete_trigger)
@@ -226,8 +223,8 @@ module ChronoTest::Matchers
       def failure_message_when_negated
         "expected #{table} ".tap do |message|
           message << [
-            ("to not exist in the #{public_schema} schema" if @existance     ),
-            ('to not be an updatable view'                 if @updatable     ),
+            ("to not exist in the #{public_schema} schema" if @existance),
+            ('to not be an updatable view'                 if @updatable),
             ('to not have an INSERT trigger'               if @insert_trigger),
             ('to not have an UPDATE trigger'               if @update_trigger),
             ('to not have a DELETE trigger'                if @delete_trigger)
@@ -236,21 +233,22 @@ module ChronoTest::Matchers
       end
 
       private
-        def view_exists?
-          @existance = relation_exists? :in => public_schema, :kind => :view
-        end
 
-        def is_updatable?
-          binds = [ public_schema, table ]
+      def view_exists?
+        @existance = relation_exists? in: public_schema, kind: :view
+      end
 
-          @updatable = select_value(<<-SQL, binds, 'Check updatable') == 'YES'
+      def is_updatable?
+        binds = [public_schema, table]
+
+        @updatable = select_value(<<-SQL, binds, 'Check updatable') == 'YES'
             SELECT is_updatable FROM information_schema.views
              WHERE table_schema = ? AND table_name = ?
           SQL
-        end
+      end
 
-        def has_triggers?
-          triggers = select_values(<<-SQL, [ public_schema, table ], 'Check triggers')
+      def has_triggers?
+        triggers = select_values(<<-SQL, [public_schema, table], 'Check triggers')
             SELECT t.tgname
               FROM pg_catalog.pg_trigger t, pg_catalog.pg_class c, pg_catalog.pg_namespace n
              WHERE n.oid = c.relnamespace
@@ -258,17 +256,16 @@ module ChronoTest::Matchers
                AND c.relname = ?;
           SQL
 
-          @insert_trigger = triggers.include? 'chronomodel_insert'
-          @update_trigger = triggers.include? 'chronomodel_update'
-          @delete_trigger = triggers.include? 'chronomodel_delete'
+        @insert_trigger = triggers.include? 'chronomodel_insert'
+        @update_trigger = triggers.include? 'chronomodel_update'
+        @delete_trigger = triggers.include? 'chronomodel_delete'
 
-          @insert_trigger && @update_trigger && @delete_trigger
-        end
+        @insert_trigger && @update_trigger && @delete_trigger
+      end
     end
 
     def have_public_interface
       HavePublicInterface.new
     end
   end
-
 end

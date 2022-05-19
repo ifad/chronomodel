@@ -1,10 +1,8 @@
 require 'support/matchers/base'
 
 module ChronoTest::Matchers
-
   module Schema
     class BeInSchema < ChronoTest::Matchers::Base
-
       def initialize(expected)
         @expected = expected
         @expected = '"$user", public' if @expected == :default
@@ -35,5 +33,4 @@ module ChronoTest::Matchers
       BeInSchema.new(schema)
     end
   end
-
 end

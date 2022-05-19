@@ -15,9 +15,9 @@ describe ChronoModel::TimeMachine::TimeQuery do
 
   # Main timeline quick test
   #
-  it { expect(Foo.history.time_query(:after,  :now, inclusive: true ).count).to eq 3 }
+  it { expect(Foo.history.time_query(:after,  :now, inclusive: true).count).to eq 3 }
   it { expect(Foo.history.time_query(:after,  :now, inclusive: false).count).to eq 0 }
-  it { expect(Foo.history.time_query(:before, :now, inclusive: true ).count).to eq 5 }
+  it { expect(Foo.history.time_query(:before, :now, inclusive: true).count).to eq 5 }
   it { expect(Foo.history.time_query(:before, :now, inclusive: false).count).to eq 2 }
 
   it { expect(Foo.history.past.size).to eq 2 }
@@ -77,27 +77,27 @@ describe ChronoModel::TimeMachine::TimeQuery do
       subject { Event.time_query(:at, times.map!(&:to_date), on: :interval, type: :daterange).to_a }
 
       context 'that is empty' do
-        let(:times) { [ 14.days.ago, 14.days.ago ] }
+        let(:times) { [14.days.ago, 14.days.ago] }
         it { is_expected.to_not be_empty }
       end
 
       context 'overlapping no records' do
-        let(:times) { [ 20.days.ago, 16.days.ago ] }
+        let(:times) { [20.days.ago, 16.days.ago] }
         it { is_expected.to be_empty }
       end
 
       context 'overlapping a single record' do
-        let(:times) { [ 16.days.ago, 14.days.ago ] }
+        let(:times) { [16.days.ago, 14.days.ago] }
         it { is_expected.to eq [think] }
       end
 
       context 'overlapping more records' do
-        let(:times) { [ 16.days.ago, 11.days.ago ] }
+        let(:times) { [16.days.ago, 11.days.ago] }
         it { is_expected.to match_array [think, plan, collect] }
       end
 
       context 'on the edge of an open interval and an hole' do
-        let(:times) { [ 10.days.ago, 9.days.ago ] }
+        let(:times) { [10.days.ago, 9.days.ago] }
         it { is_expected.to be_empty }
       end
     end
@@ -257,5 +257,4 @@ describe ChronoModel::TimeMachine::TimeQuery do
       end
     end
   end
-
 end

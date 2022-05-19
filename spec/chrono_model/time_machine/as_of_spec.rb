@@ -9,13 +9,13 @@ describe ChronoModel::TimeMachine do
 
     it { expect(Foo.as_of($t.foos[0].ts[0])).to eq [$t.foo, $t.foos[0]] }
     it { expect(Foo.as_of($t.foos[1].ts[0])).to eq [$t.foo, $t.foos[0], $t.foos[1]] }
-    it { expect(Foo.as_of(Time.now     )).to eq [$t.foo, $t.foos[0], $t.foos[1]] }
+    it { expect(Foo.as_of(Time.now)).to eq [$t.foo, $t.foos[0], $t.foos[1]] }
 
     it { expect(Bar.as_of($t.foos[1].ts[0])).to eq [$t.bar] }
 
     it { expect(Bar.as_of($t.bars[0].ts[0])).to eq [$t.bar, $t.bars[0]] }
     it { expect(Bar.as_of($t.bars[1].ts[0])).to eq [$t.bar, $t.bars[0], $t.bars[1]] }
-    it { expect(Bar.as_of(Time.now     )).to eq [$t.bar, $t.bars[0], $t.bars[1]] }
+    it { expect(Bar.as_of(Time.now)).to eq [$t.bar, $t.bars[0], $t.bars[1]] }
 
     it { expect(Foo.as_of($t.foos[0].ts[0]).first).to be_a(Foo) }
     it { expect(Bar.as_of($t.foos[0].ts[0]).first).to be_a(Bar) }
@@ -28,7 +28,7 @@ describe ChronoModel::TimeMachine do
       it { expect(Foo.as_of($t.foos[1].ts[0]).find(subject).bars).to eq [] }
       it { expect(Foo.as_of($t.bars[0].ts[0]).find(subject).bars).to eq [$t.bars[0]] }
       it { expect(Foo.as_of($t.bars[1].ts[0]).find(subject).bars).to eq [$t.bars[0]] }
-      it { expect(Foo.as_of(Time.now        ).find(subject).bars).to eq [$t.bars[0]] }
+      it { expect(Foo.as_of(Time.now).find(subject).bars).to eq [$t.bars[0]] }
 
       it { expect(Foo.as_of($t.bars[0].ts[0]).find(subject).bars.first).to be_a(Bar) }
     end
@@ -41,10 +41,9 @@ describe ChronoModel::TimeMachine do
 
       it { expect(Foo.as_of($t.bars[0].ts[0]).find(subject).bars).to eq [] }
       it { expect(Foo.as_of($t.bars[1].ts[0]).find(subject).bars).to eq [$t.bars[1]] }
-      it { expect(Foo.as_of(Time.now        ).find(subject).bars).to eq [$t.bars[1]] }
+      it { expect(Foo.as_of(Time.now).find(subject).bars).to eq [$t.bars[1]] }
     end
   end
-
 
   describe '#as_of' do
     describe 'accepts a Time instance' do
@@ -52,12 +51,10 @@ describe ChronoModel::TimeMachine do
       it { expect($t.bar.as_of(Time.now).name).to eq 'new bar' }
     end
 
-
     describe 'ignores time zones' do
       it { expect($t.foo.as_of(Time.now.in_time_zone('America/Havana')).name).to eq 'new foo' }
       it { expect($t.bar.as_of(Time.now.in_time_zone('America/Havana')).name).to eq 'new bar' }
     end
-
 
     describe 'returns records as they were before' do
       it { expect($t.foo.as_of($t.foo.ts[0]).name).to eq 'foo' }
@@ -69,7 +66,6 @@ describe ChronoModel::TimeMachine do
       it { expect($t.bar.as_of($t.bar.ts[2]).name).to eq 'bar bar' }
       it { expect($t.bar.as_of($t.bar.ts[3]).name).to eq 'new bar' }
     end
-
 
     describe 'takes care of associated records' do
       it { expect($t.foo.as_of($t.foo.ts[0]).bars).to eq [] }
@@ -88,7 +84,6 @@ describe ChronoModel::TimeMachine do
       it { expect($t.foo.as_of($t.bar.ts[2]).bars.first.name).to eq 'bar bar' }
       it { expect($t.foo.as_of($t.bar.ts[3]).bars.first.name).to eq 'new bar' }
 
-
       it { expect($t.bar.as_of($t.bar.ts[0]).foo).to eq $t.foo }
       it { expect($t.bar.as_of($t.bar.ts[1]).foo).to eq $t.foo }
       it { expect($t.bar.as_of($t.bar.ts[2]).foo).to eq $t.foo }
@@ -99,7 +94,6 @@ describe ChronoModel::TimeMachine do
       it { expect($t.bar.as_of($t.bar.ts[2]).foo.name).to eq 'new foo' }
       it { expect($t.bar.as_of($t.bar.ts[3]).foo.name).to eq 'new foo' }
     end
-
 
     describe 'supports historical queries with includes()' do
       it { expect(Foo.as_of($t.foo.ts[0]).includes(:bars).first.bars).to eq [] }
@@ -112,7 +106,6 @@ describe ChronoModel::TimeMachine do
       it { expect(Foo.as_of($t.bar.ts[1]).includes(:bars).first.bars.first.name).to eq 'foo bar' }
       it { expect(Foo.as_of($t.bar.ts[2]).includes(:bars).first.bars.first.name).to eq 'bar bar' }
       it { expect(Foo.as_of($t.bar.ts[3]).includes(:bars).first.bars.first.name).to eq 'new bar' }
-
 
       it { expect(Foo.as_of($t.foo.ts[0]).includes(bars: :sub_bars).first.bars).to eq [] }
       it { expect(Foo.as_of($t.foo.ts[1]).includes(bars: :sub_bars).first.bars).to eq [] }
@@ -132,7 +125,6 @@ describe ChronoModel::TimeMachine do
       it { expect(Bar.as_of($t.bar.ts[1]).includes(:foo).first.foo.name).to eq 'foo bar' }
       it { expect(Bar.as_of($t.bar.ts[2]).includes(:foo).first.foo.name).to eq 'new foo' }
       it { expect(Bar.as_of($t.bar.ts[3]).includes(:foo).first.foo.name).to eq 'new foo' }
-
 
       it { expect(Bar.as_of($t.bar.ts[0]).includes(foo: :sub_bars).first.foo).to eq $t.foo }
       it { expect(Bar.as_of($t.bar.ts[1]).includes(foo: :sub_bars).first.foo).to eq $t.foo }
@@ -157,18 +149,15 @@ describe ChronoModel::TimeMachine do
       it { expect(Foo.as_of($t.subbar.ts[3]).includes(:bars, :sub_bars).first.sub_bars.first.name).to eq 'new sub-bar' }
     end
 
-
     it 'does not raise RecordNotFound when no history records are found' do
       expect { $t.foo.as_of(5.minutes.ago) }.to_not raise_error
 
       expect($t.foo.as_of(5.minutes.ago)).to be(nil)
     end
 
-
     it 'raises ActiveRecord::RecordNotFound in the bang variant' do
       expect { $t.foo.as_of!(5.minutes.ago) }.to raise_error(ActiveRecord::RecordNotFound)
     end
-
 
     describe 'proxies from non-temporal models to temporal ones' do
       it { expect($t.baz.as_of($t.bar.ts[0]).name).to eq 'baz' }

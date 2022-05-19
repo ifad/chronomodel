@@ -52,9 +52,9 @@ describe ChronoModel::Adapter do
 
     context 'temporal: true' do
       before :all do
-        adapter.create_table table, :temporal => true, &columns
+        adapter.create_table table, temporal: true, &columns
         adapter.add_index table, :test
-        adapter.add_index table, [:foo, :bar]
+        adapter.add_index table, %i[foo bar]
 
         adapter.rename_table table, renamed
       end
@@ -64,7 +64,7 @@ describe ChronoModel::Adapter do
 
       it 'renames indexes' do
         new_index_names = adapter.indexes(renamed).map(&:name)
-        expected_index_names = [[:test], [:foo, :bar]].map do |idx_cols|
+        expected_index_names = [[:test], %i[foo bar]].map do |idx_cols|
           "index_#{renamed}_on_#{idx_cols.join('_and_')}"
         end
         expect(new_index_names.to_set).to eq expected_index_names.to_set
@@ -73,7 +73,7 @@ describe ChronoModel::Adapter do
 
     context 'temporal: false' do
       before :all do
-        adapter.create_table table, :temporal => false, &columns
+        adapter.create_table table, temporal: false, &columns
 
         adapter.rename_table table, renamed
       end
@@ -86,7 +86,7 @@ describe ChronoModel::Adapter do
   describe '.change_table' do
     with_temporal_table do
       before :all do
-        adapter.change_table table, :temporal => false
+        adapter.change_table table, temporal: false
       end
 
       it_should_behave_like 'plain table'
@@ -95,11 +95,11 @@ describe ChronoModel::Adapter do
     with_plain_table do
       before :all do
         adapter.add_index table, :foo
-        adapter.add_index table, :bar, :unique => true
+        adapter.add_index table, :bar, unique: true
         adapter.add_index table, '(lower(baz))'
         adapter.add_index table, '(lower(baz) || upper(baz))'
 
-        adapter.change_table table, :temporal => true
+        adapter.change_table table, temporal: true
       end
 
       it_should_behave_like 'temporal table'
@@ -115,20 +115,20 @@ describe ChronoModel::Adapter do
       end
 
       it "copies plain index to history" do
-        expect(history_indexes.find {|i| i.columns == ['foo']}).to be_present
+        expect(history_indexes.find { |i| i.columns == ['foo'] }).to be_present
       end
 
       it "copies unique index to history without uniqueness constraint" do
-        expect(history_indexes.find {|i| i.columns == ['bar'] && i.unique == false}).to be_present
+        expect(history_indexes.find { |i| i.columns == ['bar'] && i.unique == false }).to be_present
       end
 
       it 'copies also computed indexes' do
-        indexes = %W(
+        indexes = %W[
           index_#{table}_on_bar
           index_#{table}_on_foo
           index_#{table}_on_lower_baz
           index_#{table}_on_lower_baz_upper_baz
-        )
+        ]
 
         expect(temporal_indexes.map(&:name).sort).to eq(indexes)
 
@@ -160,7 +160,7 @@ describe ChronoModel::Adapter do
         adapter.execute "drop sequence temporal.foobar"
       end
 
-      it { is_expected.to have_columns([['id', 'integer'], ['label', 'character varying']]) }
+      it { is_expected.to have_columns([%w[id integer], ['label', 'character varying']]) }
 
       context 'when moving to temporal' do
         before :all do
@@ -171,9 +171,9 @@ describe ChronoModel::Adapter do
           adapter.drop_table table
         end
 
-        it { is_expected.to have_columns([['id', 'integer'], ['label', 'character varying']]) }
-        it { is_expected.to have_temporal_columns([['id', 'integer'], ['label', 'character varying']]) }
-        it { is_expected.to have_history_columns([['id', 'integer'], ['label', 'character varying']]) }
+        it { is_expected.to have_columns([%w[id integer], ['label', 'character varying']]) }
+        it { is_expected.to have_temporal_columns([%w[id integer], ['label', 'character varying']]) }
+        it { is_expected.to have_history_columns([%w[id integer], ['label', 'character varying']]) }
 
         it { is_expected.to have_function_source("chronomodel_#{table}_insert", /NEW\.id := nextval\('temporal.foobar'\)/) }
       end
@@ -183,7 +183,7 @@ describe ChronoModel::Adapter do
   describe '.drop_table' do
     context 'with temporal tables' do
       before :all do
-        adapter.create_table table, :temporal => true, &columns
+        adapter.create_table table, temporal: true, &columns
 
         adapter.drop_table table
       end
@@ -197,9 +197,9 @@ describe ChronoModel::Adapter do
 
     context 'without temporal tables' do
       before :all do
-        adapter.create_table table, :temporal => false, &columns
+        adapter.create_table table, temporal: false, &columns
 
-        adapter.drop_table table, :temporal => false
+        adapter.drop_table table, temporal: false
       end
 
       it { is_expected.to_not have_public_backing }
@@ -210,85 +210,85 @@ describe ChronoModel::Adapter do
   describe '.add_index' do
     with_temporal_table do
       before :all do
-        adapter.add_index table, [:foo, :bar], :name => 'foobar_index'
-        adapter.add_index table, [:test],      :name => 'test_index'
+        adapter.add_index table, %i[foo bar], name: 'foobar_index'
+        adapter.add_index table, [:test],      name: 'test_index'
         adapter.add_index table, :baz
       end
 
-      it { is_expected.to have_temporal_index 'foobar_index', %w( foo bar ) }
-      it { is_expected.to have_history_index  'foobar_index', %w( foo bar ) }
-      it { is_expected.to have_temporal_index 'test_index',   %w( test ) }
-      it { is_expected.to have_history_index  'test_index',   %w( test ) }
-      it { is_expected.to have_temporal_index 'index_test_table_on_baz', %w( baz ) }
-      it { is_expected.to have_history_index  'index_test_table_on_baz', %w( baz ) }
+      it { is_expected.to have_temporal_index 'foobar_index', %w[foo bar] }
+      it { is_expected.to have_history_index  'foobar_index', %w[foo bar] }
+      it { is_expected.to have_temporal_index 'test_index',   %w[test] }
+      it { is_expected.to have_history_index  'test_index',   %w[test] }
+      it { is_expected.to have_temporal_index 'index_test_table_on_baz', %w[baz] }
+      it { is_expected.to have_history_index  'index_test_table_on_baz', %w[baz] }
 
-      it { is_expected.to_not have_index 'foobar_index', %w( foo bar ) }
-      it { is_expected.to_not have_index 'test_index',   %w( test ) }
-      it { is_expected.to_not have_index 'index_test_table_on_baz', %w( baz ) }
+      it { is_expected.to_not have_index 'foobar_index', %w[foo bar] }
+      it { is_expected.to_not have_index 'test_index',   %w[test] }
+      it { is_expected.to_not have_index 'index_test_table_on_baz', %w[baz] }
     end
 
     with_plain_table do
       before :all do
-        adapter.add_index table, [:foo, :bar], :name => 'foobar_index'
-        adapter.add_index table, [:test],      :name => 'test_index'
+        adapter.add_index table, %i[foo bar], name: 'foobar_index'
+        adapter.add_index table, [:test],      name: 'test_index'
         adapter.add_index table, :baz
       end
 
-      it { is_expected.to_not have_temporal_index 'foobar_index', %w( foo bar ) }
-      it { is_expected.to_not have_history_index  'foobar_index', %w( foo bar ) }
-      it { is_expected.to_not have_temporal_index 'test_index',   %w( test ) }
-      it { is_expected.to_not have_history_index  'test_index',   %w( test ) }
-      it { is_expected.to_not have_temporal_index 'index_test_table_on_baz', %w( baz ) }
-      it { is_expected.to_not have_history_index  'index_test_table_on_baz', %w( baz ) }
+      it { is_expected.to_not have_temporal_index 'foobar_index', %w[foo bar] }
+      it { is_expected.to_not have_history_index  'foobar_index', %w[foo bar] }
+      it { is_expected.to_not have_temporal_index 'test_index',   %w[test] }
+      it { is_expected.to_not have_history_index  'test_index',   %w[test] }
+      it { is_expected.to_not have_temporal_index 'index_test_table_on_baz', %w[baz] }
+      it { is_expected.to_not have_history_index  'index_test_table_on_baz', %w[baz] }
 
-      it { is_expected.to have_index 'foobar_index', %w( foo bar ) }
-      it { is_expected.to have_index 'test_index',   %w( test ) }
-      it { is_expected.to have_index 'index_test_table_on_baz', %w( baz ) }
+      it { is_expected.to have_index 'foobar_index', %w[foo bar] }
+      it { is_expected.to have_index 'test_index',   %w[test] }
+      it { is_expected.to have_index 'index_test_table_on_baz', %w[baz] }
     end
   end
 
   describe '.remove_index' do
     with_temporal_table do
       before :all do
-        adapter.add_index table, [:foo, :bar], :name => 'foobar_index'
-        adapter.add_index table, [:test],      :name => 'test_index'
+        adapter.add_index table, %i[foo bar], name: 'foobar_index'
+        adapter.add_index table, [:test],      name: 'test_index'
         adapter.add_index table, :baz
 
-        adapter.remove_index table, :name => 'test_index'
+        adapter.remove_index table, name: 'test_index'
         adapter.remove_index table, :baz
       end
 
-      it { is_expected.to_not have_temporal_index 'test_index', %w( test ) }
-      it { is_expected.to_not have_history_index  'test_index', %w( test ) }
-      it { is_expected.to_not have_index          'test_index', %w( test ) }
+      it { is_expected.to_not have_temporal_index 'test_index', %w[test] }
+      it { is_expected.to_not have_history_index  'test_index', %w[test] }
+      it { is_expected.to_not have_index          'test_index', %w[test] }
 
-      it { is_expected.to_not have_temporal_index 'index_test_table_on_baz', %w( baz ) }
-      it { is_expected.to_not have_history_index  'index_test_table_on_baz', %w( baz ) }
-      it { is_expected.to_not have_index          'index_test_table_on_baz', %w( baz ) }
+      it { is_expected.to_not have_temporal_index 'index_test_table_on_baz', %w[baz] }
+      it { is_expected.to_not have_history_index  'index_test_table_on_baz', %w[baz] }
+      it { is_expected.to_not have_index          'index_test_table_on_baz', %w[baz] }
     end
 
     with_plain_table do
       before :all do
-        adapter.add_index table, [:foo, :bar], :name => 'foobar_index'
-        adapter.add_index table, [:test],      :name => 'test_index'
+        adapter.add_index table, %i[foo bar], name: 'foobar_index'
+        adapter.add_index table, [:test],      name: 'test_index'
         adapter.add_index table, :baz
 
-        adapter.remove_index table, :name => 'test_index'
+        adapter.remove_index table, name: 'test_index'
         adapter.remove_index table, :baz
       end
 
-      it { is_expected.to_not have_temporal_index 'test_index', %w( test ) }
-      it { is_expected.to_not have_history_index  'test_index', %w( test ) }
-      it { is_expected.to_not have_index          'test_index', %w( test ) }
+      it { is_expected.to_not have_temporal_index 'test_index', %w[test] }
+      it { is_expected.to_not have_history_index  'test_index', %w[test] }
+      it { is_expected.to_not have_index          'test_index', %w[test] }
 
-      it { is_expected.to_not have_temporal_index 'index_test_table_on_baz', %w( baz ) }
-      it { is_expected.to_not have_history_index  'index_test_table_on_baz', %w( baz ) }
-      it { is_expected.to_not have_index          'index_test_table_on_baz', %w( baz ) }
+      it { is_expected.to_not have_temporal_index 'index_test_table_on_baz', %w[baz] }
+      it { is_expected.to_not have_history_index  'index_test_table_on_baz', %w[baz] }
+      it { is_expected.to_not have_index          'index_test_table_on_baz', %w[baz] }
     end
   end
 
   describe '.add_column' do
-    let(:extra_columns) { [['foobarbaz', 'integer']] }
+    let(:extra_columns) { [%w[foobarbaz integer]] }
 
     with_temporal_table do
       before :all do
@@ -328,7 +328,7 @@ describe ChronoModel::Adapter do
   end
 
   describe '.remove_column' do
-    let(:resulting_columns) { columns.reject {|c,_| c == 'foo'} }
+    let(:resulting_columns) { columns.reject { |c,_| c == 'foo' } }
 
     with_temporal_table do
       before :all do
@@ -339,9 +339,9 @@ describe ChronoModel::Adapter do
       it { is_expected.to have_temporal_columns(resulting_columns) }
       it { is_expected.to have_history_columns(resulting_columns) }
 
-      it { is_expected.to_not have_columns([['foo', 'integer']]) }
-      it { is_expected.to_not have_temporal_columns([['foo', 'integer']]) }
-      it { is_expected.to_not have_history_columns([['foo', 'integer']]) }
+      it { is_expected.to_not have_columns([%w[foo integer]]) }
+      it { is_expected.to_not have_temporal_columns([%w[foo integer]]) }
+      it { is_expected.to_not have_history_columns([%w[foo integer]]) }
     end
 
     with_plain_table do
@@ -350,7 +350,7 @@ describe ChronoModel::Adapter do
       end
 
       it { is_expected.to have_columns(resulting_columns) }
-      it { is_expected.to_not have_columns([['foo', 'integer']]) }
+      it { is_expected.to_not have_columns([%w[foo integer]]) }
     end
   end
 
@@ -360,13 +360,13 @@ describe ChronoModel::Adapter do
         adapter.rename_column table, :foo, :taratapiatapioca
       end
 
-      it { is_expected.to_not have_columns([['foo', 'integer']]) }
-      it { is_expected.to_not have_temporal_columns([['foo', 'integer']]) }
-      it { is_expected.to_not have_history_columns([['foo', 'integer']]) }
+      it { is_expected.to_not have_columns([%w[foo integer]]) }
+      it { is_expected.to_not have_temporal_columns([%w[foo integer]]) }
+      it { is_expected.to_not have_history_columns([%w[foo integer]]) }
 
-      it { is_expected.to have_columns([['taratapiatapioca', 'integer']]) }
-      it { is_expected.to have_temporal_columns([['taratapiatapioca', 'integer']]) }
-      it { is_expected.to have_history_columns([['taratapiatapioca', 'integer']]) }
+      it { is_expected.to have_columns([%w[taratapiatapioca integer]]) }
+      it { is_expected.to have_temporal_columns([%w[taratapiatapioca integer]]) }
+      it { is_expected.to have_history_columns([%w[taratapiatapioca integer]]) }
     end
 
     with_plain_table do
@@ -374,8 +374,8 @@ describe ChronoModel::Adapter do
         adapter.rename_column table, :foo, :taratapiatapioca
       end
 
-      it { is_expected.to_not have_columns([['foo', 'integer']]) }
-      it { is_expected.to have_columns([['taratapiatapioca', 'integer']]) }
+      it { is_expected.to_not have_columns([%w[foo integer]]) }
+      it { is_expected.to have_columns([%w[taratapiatapioca integer]]) }
     end
   end
 
@@ -385,9 +385,9 @@ describe ChronoModel::Adapter do
         adapter.change_column table, :foo, :float
       end
 
-      it { is_expected.to_not have_columns([['foo', 'integer']]) }
-      it { is_expected.to_not have_temporal_columns([['foo', 'integer']]) }
-      it { is_expected.to_not have_history_columns([['foo', 'integer']]) }
+      it { is_expected.to_not have_columns([%w[foo integer]]) }
+      it { is_expected.to_not have_temporal_columns([%w[foo integer]]) }
+      it { is_expected.to_not have_history_columns([%w[foo integer]]) }
 
       it { is_expected.to have_columns([['foo', 'double precision']]) }
       it { is_expected.to have_temporal_columns([['foo', 'double precision']]) }
@@ -398,7 +398,7 @@ describe ChronoModel::Adapter do
           adapter.change_column table, :foo, :float, an: :option
         end
 
-        it { is_expected.to_not have_columns([['foo', 'integer']]) }
+        it { is_expected.to_not have_columns([%w[foo integer]]) }
       end
     end
 
@@ -407,7 +407,7 @@ describe ChronoModel::Adapter do
         adapter.change_column table, :foo, :float
       end
 
-      it { is_expected.to_not have_columns([['foo', 'integer']]) }
+      it { is_expected.to_not have_columns([%w[foo integer]]) }
       it { is_expected.to have_columns([['foo', 'double precision']]) }
     end
   end
@@ -418,9 +418,9 @@ describe ChronoModel::Adapter do
         adapter.remove_column table, :foo
       end
 
-      it { is_expected.to_not have_columns([['foo', 'integer']]) }
-      it { is_expected.to_not have_temporal_columns([['foo', 'integer']]) }
-      it { is_expected.to_not have_history_columns([['foo', 'integer']]) }
+      it { is_expected.to_not have_columns([%w[foo integer]]) }
+      it { is_expected.to_not have_temporal_columns([%w[foo integer]]) }
+      it { is_expected.to_not have_history_columns([%w[foo integer]]) }
     end
 
     with_plain_table do
@@ -428,8 +428,7 @@ describe ChronoModel::Adapter do
         adapter.remove_column table, :foo
       end
 
-      it { is_expected.to_not have_columns([['foo', 'integer']]) }
+      it { is_expected.to_not have_columns([%w[foo integer]]) }
     end
   end
-
 end

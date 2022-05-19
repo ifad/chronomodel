@@ -16,41 +16,41 @@ module ChronoTest::Matchers
 
     protected
 
-      def connection
-        ChronoTest.connection
-      end
+    def connection
+      ChronoTest.connection
+    end
 
-      def temporal_schema
-        ChronoModel::Adapter::TEMPORAL_SCHEMA
-      end
+    def temporal_schema
+      ChronoModel::Adapter::TEMPORAL_SCHEMA
+    end
 
-      def history_schema
-        ChronoModel::Adapter::HISTORY_SCHEMA
-      end
+    def history_schema
+      ChronoModel::Adapter::HISTORY_SCHEMA
+    end
 
-      def public_schema
-        'public'
-      end
+    def public_schema
+      'public'
+    end
 
-      def select_value(sql, binds, name = nil)
-        result = exec_query(sql, binds, name || 'select_value')
-        result.rows.first.try(:[], 0)
-      end
+    def select_value(sql, binds, name = nil)
+      result = exec_query(sql, binds, name || 'select_value')
+      result.rows.first.try(:[], 0)
+    end
 
-      def select_values(sql, binds, name = nil)
-        result = exec_query(sql, binds, name || 'select_values')
-        result.rows.map(&:first)
-      end
+    def select_values(sql, binds, name = nil)
+      result = exec_query(sql, binds, name || 'select_values')
+      result.rows.map(&:first)
+    end
 
-      def select_rows(sql, binds, name = nil)
-        exec_query(sql, binds, name || 'select_rows').rows
-      end
+    def select_rows(sql, binds, name = nil)
+      exec_query(sql, binds, name || 'select_rows').rows
+    end
 
     private
-      def exec_query(sql, binds, name)
-        sql = sanitize_sql_array([ sql, *Array.wrap(binds) ])
-        connection.exec_query(sql, name)
-      end
-  end
 
+    def exec_query(sql, binds, name)
+      sql = sanitize_sql_array([sql, *Array.wrap(binds)])
+      connection.exec_query(sql, name)
+    end
+  end
 end

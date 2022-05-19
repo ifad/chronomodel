@@ -9,7 +9,6 @@ require 'support/adapter/helpers'
 # the +ChronoModel::Adapter+ methods.
 #
 module ChronoTest::Adapter
-
   module Structure
     extend ActiveSupport::Concern
 
@@ -20,13 +19,13 @@ module ChronoTest::Adapter
       columns do
         native = [
           ['test', 'character varying'],
-          ['foo',  'integer'],
+          %w[foo integer],
           ['bar',  'double precision'],
-          ['baz',  'text']
+          %w[baz text]
         ]
 
         def native.to_proc
-          proc {|t|
+          proc { |t|
             t.string  :test, null: false, default: 'default-value'
             t.integer :foo
             t.float   :bar
@@ -40,5 +39,4 @@ module ChronoTest::Adapter
       end
     end
   end
-
 end

@@ -6,7 +6,7 @@ describe ChronoModel::TimeMachine do
 
   # Set up database structure
   #
-  adapter.create_table 'defoos', :temporal => true do |t|
+  adapter.create_table 'defoos', temporal: true do |t|
     t.string  :name
     t.boolean :active
   end
@@ -14,14 +14,14 @@ describe ChronoModel::TimeMachine do
   class ::Defoo < ActiveRecord::Base
     include ChronoModel::TimeMachine
 
-    default_scope proc { where(:active => true) }
+    default_scope proc { where(active: true) }
   end
 
-  active = ts_eval { Defoo.create! :name => 'active 1', :active => true }
-  ts_eval(active) { update! :name => 'active 2' }
+  active = ts_eval { Defoo.create! name: 'active 1', active: true }
+  ts_eval(active) { update! name: 'active 2' }
 
-  hidden = ts_eval { Defoo.create! :name => 'hidden 1', :active => false }
-  ts_eval(hidden) { update! :name => 'hidden 2' }
+  hidden = ts_eval { Defoo.create! name: 'hidden 1', active: false }
+  ts_eval(hidden) { update! name: 'hidden 2' }
 
   describe 'it honors default_scopes' do
     it { expect(Defoo.as_of(active.ts[0]).map(&:name)).to eq ['active 1'] }

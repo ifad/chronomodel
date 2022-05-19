@@ -16,7 +16,6 @@ describe 'database migrations', type: :aruba do
     end
   end
 
-
   describe 'rerun bundle exec rake db:drop db:create db:migrate', issue: 56 do
     let(:command) { 'bundle exec rake db:drop db:create db:migrate' }
     before do
