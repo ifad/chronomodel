@@ -43,8 +43,8 @@ describe ChronoModel::TimeMachine do
     describe 'on current records' do
       rec = nil
       before(:all) do
-        rec = ts_eval { Foo.create!(:name => 'alive foo', :fooity => 42) }
-        ts_eval(rec) { update!(:name => 'dying foo') }
+        rec = ts_eval { Foo.create!(name: 'alive foo', fooity: 42) }
+        ts_eval(rec) { update!(name: 'dying foo') }
       end
       after(:all) do
         rec.history.delete_all
@@ -69,16 +69,15 @@ describe ChronoModel::TimeMachine do
         end
 
         context do
-          let(:record) { Foo.as_of(rec.ts.first).where(:fooity => 42).first }
+          let(:record) { Foo.as_of(rec.ts.first).where(fooity: 42).first }
           it { is_expected.to eq 'alive foo' }
         end
 
         context do
-          subject { Foo.history.where(:fooity => 42).map(&:name) }
+          subject { Foo.history.where(fooity: 42).map(&:name) }
           it { is_expected.to eq ['alive foo', 'dying foo'] }
         end
       end
     end
   end
-
 end

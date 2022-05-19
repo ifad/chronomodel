@@ -1,5 +1,4 @@
 module ChronoTest::Matchers
-
   module Source
     class HaveFunctionSource < ChronoTest::Matchers::Base
       def initialize(function, source_regexp)

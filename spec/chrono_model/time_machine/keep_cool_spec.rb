@@ -5,8 +5,8 @@ describe ChronoModel::TimeMachine do
   include ChronoTest::TimeMachine::Helpers
 
   describe 'does not interfere with AR standard behaviour' do
-    let(:all_foos) { [ $t.foo ] + $t.foos }
-    let(:all_bars) { [ $t.bar ] + $t.bars }
+    let(:all_foos) { [$t.foo] + $t.foos }
+    let(:all_bars) { [$t.bar] + $t.bars }
 
     it { expect(Foo.count).to eq all_foos.size }
     it { expect(Bar.count).to eq all_bars.size }
@@ -23,10 +23,9 @@ describe ChronoModel::TimeMachine do
 
     it { expect(Foo.joins(bars: :sub_bars).first.bars.joins(:sub_bars).first.sub_bars.first.name).to eq 'new sub-bar' }
 
-    it { expect(Foo.first.bars.includes(:sub_bars)).to eq [ $t.bar ] }
+    it { expect(Foo.first.bars.includes(:sub_bars)).to eq [$t.bar] }
 
-    it { expect(Moo.first.boos).to eq(Boo.all)}
-    it { expect(Moo.first.boos.as_of(Time.new)).to eq(Boo.all.as_of(Time.new))}
-
+    it { expect(Moo.first.boos).to eq(Boo.all) }
+    it { expect(Moo.first.boos.as_of(Time.new)).to eq(Boo.all.as_of(Time.new)) }
   end
 end

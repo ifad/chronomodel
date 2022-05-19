@@ -14,12 +14,12 @@ describe ChronoModel::Adapter do
   end
 
   context do
-    before { expect(adapter).to receive(:postgresql_version).and_return(90300) }
+    before { expect(adapter).to receive(:postgresql_version).and_return(90_300) }
     it { is_expected.to be_chrono_supported }
   end
 
   context do
-    before { expect(adapter).to receive(:postgresql_version).and_return(90000) }
+    before { expect(adapter).to receive(:postgresql_version).and_return(90_000) }
     it { is_expected.to_not be_chrono_supported }
   end
 
@@ -31,7 +31,7 @@ describe ChronoModel::Adapter do
     end
 
     with_temporal_table(&assert)
-    with_plain_table(   &assert)
+    with_plain_table(&assert)
   end
 
   describe '.indexes' do
@@ -39,20 +39,20 @@ describe ChronoModel::Adapter do
 
     assert = proc do
       before(:all) do
-        adapter.add_index table, :foo,         :name => 'foo_index'
-        adapter.add_index table, [:bar, :baz], :name => 'bar_index'
+        adapter.add_index table, :foo,         name: 'foo_index'
+        adapter.add_index table, %i[bar baz], name: 'bar_index'
       end
 
-      it { expect(subject.map(&:name)).to match_array %w( foo_index bar_index ) }
-      it { expect(subject.map(&:columns)).to match_array [['foo'], ['bar', 'baz']] }
+      it { expect(subject.map(&:name)).to match_array %w[foo_index bar_index] }
+      it { expect(subject.map(&:columns)).to match_array [['foo'], %w[bar baz]] }
     end
 
     with_temporal_table(&assert)
-    with_plain_table(   &assert)
+    with_plain_table(&assert)
   end
 
   describe '.column_definitions' do
-    subject { adapter.column_definitions(table).map {|d| d.take(2)} }
+    subject { adapter.column_definitions(table).map { |d| d.take(2) } }
 
     assert = proc do
       it { expect(subject & columns).to eq columns }
@@ -60,13 +60,13 @@ describe ChronoModel::Adapter do
     end
 
     with_temporal_table(&assert)
-    with_plain_table(   &assert)
+    with_plain_table(&assert)
   end
 
   describe '.on_schema' do
     before(:all) do
       adapter.execute 'BEGIN'
-      5.times {|i| adapter.execute "CREATE SCHEMA test_#{i}"}
+      5.times { |i| adapter.execute "CREATE SCHEMA test_#{i}" }
     end
 
     after(:all) do
@@ -78,12 +78,12 @@ describe ChronoModel::Adapter do
         is_expected.to be_in_schema(:default)
 
         adapter.on_schema('test_1') { is_expected.to be_in_schema('test_1')
-          adapter.on_schema('test_2') { is_expected.to be_in_schema('test_2')
-            adapter.on_schema('test_3') { is_expected.to be_in_schema('test_3')
-            }
-            is_expected.to be_in_schema('test_2')
-          }
-          is_expected.to be_in_schema('test_1')
+                                      adapter.on_schema('test_2') { is_expected.to be_in_schema('test_2')
+                                                                    adapter.on_schema('test_3') { is_expected.to be_in_schema('test_3')
+                                                                    }
+                                                                    is_expected.to be_in_schema('test_2')
+                                      }
+                                      is_expected.to be_in_schema('test_1')
         }
 
         is_expected.to be_in_schema(:default)
@@ -92,12 +92,10 @@ describe ChronoModel::Adapter do
       context 'when errors occur' do
         subject do
           adapter.on_schema('test_1') do
-
             adapter.on_schema('test_2') do
               adapter.execute 'BEGIN'
               adapter.execute 'ERRORING ON PURPOSE'
             end
-
           end
         end
 
@@ -118,9 +116,9 @@ describe ChronoModel::Adapter do
         is_expected.to be_in_schema(:default)
 
         adapter.on_schema('test_1', recurse: :ignore) { is_expected.to be_in_schema('test_1')
-          adapter.on_schema('test_2', recurse: :ignore) { is_expected.to be_in_schema('test_1')
-            adapter.on_schema('test_3', recurse: :ignore) { is_expected.to be_in_schema('test_1')
-        } } }
+                                                        adapter.on_schema('test_2', recurse: :ignore) { is_expected.to be_in_schema('test_1')
+                                                                                                        adapter.on_schema('test_3', recurse: :ignore) { is_expected.to be_in_schema('test_1')
+                                                                                                    } } }
 
         is_expected.to be_in_schema(:default)
       end
@@ -153,5 +151,4 @@ describe ChronoModel::Adapter do
       it { expect(adapter.is_chrono?(table)).to be(false) }
     end
   end
-
 end

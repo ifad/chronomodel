@@ -7,7 +7,7 @@ describe ChronoModel::TimeMachine do
   # Transactions
   context 'multiple updates to an existing record' do
     let!(:r1) do
-      Foo.create!(:name => 'xact test').tap do |record|
+      Foo.create!(name: 'xact test').tap do |record|
         Foo.transaction do
           record.update_attribute 'name', 'lost into oblivion'
           record.update_attribute 'name', 'does work'
@@ -31,7 +31,7 @@ describe ChronoModel::TimeMachine do
   context 'insertion and subsequent update' do
     let!(:r2) do
       Foo.transaction do
-        Foo.create!(:name => 'lost into oblivion').tap do |record|
+        Foo.create!(name: 'lost into oblivion').tap do |record|
           record.update_attribute 'name', 'I am Bar'
           record.update_attribute 'name', 'I am Foo'
         end
@@ -52,12 +52,12 @@ describe ChronoModel::TimeMachine do
   context 'insertion and subsequent deletion' do
     let!(:r3) do
       Foo.transaction do
-        Foo.create!(:name => 'it never happened').destroy
+        Foo.create!(name: 'it never happened').destroy
       end
     end
 
     it 'does not generate any history' do
-      expect(Foo.history.where(:id => r3.id)).to be_empty
+      expect(Foo.history.where(id: r3.id)).to be_empty
     end
 
     after do
@@ -65,5 +65,4 @@ describe ChronoModel::TimeMachine do
       r3.history.delete_all
     end
   end
-
 end

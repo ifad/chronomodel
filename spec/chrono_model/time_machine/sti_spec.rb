@@ -9,7 +9,7 @@ require 'support/time_machine/structure'
 describe 'models with STI' do
   include ChronoTest::TimeMachine::Helpers
 
-  adapter.create_table 'elements', :temporal => true do |t|
+  adapter.create_table 'elements', temporal: true do |t|
     t.string :title
     t.string :type
   end
@@ -37,8 +37,8 @@ describe 'models with STI' do
 
   describe 'timeline' do
     let(:publication) do
-      pub = ts_eval { Publication.create! :title => 'wrong title' }
-      ts_eval(pub) { update! :title => 'correct title' }
+      pub = ts_eval { Publication.create! title: 'wrong title' }
+      ts_eval(pub) { update! title: 'correct title' }
 
       pub
     end

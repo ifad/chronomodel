@@ -19,7 +19,7 @@ module ChronoTest::TimeMachine
 
   # Set up database structure
   #
-  adapter.create_table 'foos', :temporal => true do |t|
+  adapter.create_table 'foos', temporal: true do |t|
     t.string     :name
     t.integer    :fooity
     t.references :goo
@@ -29,7 +29,7 @@ module ChronoTest::TimeMachine
     include ChronoModel::TimeMachine
 
     has_many :bars
-    has_many :sub_bars, :through => :bars
+    has_many :sub_bars, through: :bars
 
     belongs_to :goo, class_name: 'FooGoo', optional: true
   end
@@ -52,20 +52,20 @@ module ChronoTest::TimeMachine
     has_and_belongs_to_many :boos, join_table: 'boos_moos'
   end
 
-  adapter.create_table 'bars', :temporal => true do |t|
+  adapter.create_table 'bars', temporal: true do |t|
     t.string     :name
     t.references :foo
   end
 
-  adapter.create_table 'moos', :temporal => true do |t|
+  adapter.create_table 'moos', temporal: true do |t|
     t.string     :name
   end
 
-  adapter.create_table 'boos', :temporal => true do |t|
+  adapter.create_table 'boos', temporal: true do |t|
     t.string     :name
   end
 
-  adapter.create_table 'boos_moos', :temporal => true do |t|
+  adapter.create_table 'boos_moos', temporal: true do |t|
     t.references :moo
     t.references :boo
   end
@@ -74,7 +74,6 @@ module ChronoTest::TimeMachine
     t.string :name
   end
 
-
   class ::Bar < ActiveRecord::Base
     include ChronoModel::TimeMachine
 
@@ -82,11 +81,10 @@ module ChronoTest::TimeMachine
     has_many :sub_bars
     has_one :baz
 
-    has_timeline :with => :foo
+    has_timeline with: :foo
   end
 
-
-  adapter.create_table 'sub_bars', :temporal => true do |t|
+  adapter.create_table 'sub_bars', temporal: true do |t|
     t.string     :name
     t.references :bar
   end
@@ -96,9 +94,8 @@ module ChronoTest::TimeMachine
 
     belongs_to :bar
 
-    has_timeline :with => :bar
+    has_timeline with: :bar
   end
-
 
   adapter.create_table 'bazs' do |t|
     t.string     :name
@@ -110,7 +107,7 @@ module ChronoTest::TimeMachine
 
     belongs_to :bar
 
-    has_timeline :with => :bar
+    has_timeline with: :bar
   end
 
   # Master timeline, used in multiple specs. It is defined here
@@ -120,33 +117,27 @@ module ChronoTest::TimeMachine
 
   # Set up associated records, with intertwined updates
   #
-  $t.foo = ts_eval { Foo.create! :name => 'foo', :fooity => 1 }
-  ts_eval($t.foo) { update! :name => 'foo bar' }
+  $t.foo = ts_eval { Foo.create! name: 'foo', fooity: 1 }
+  ts_eval($t.foo) { update! name: 'foo bar' }
 
-  #
-  $t.bar = ts_eval { Bar.create! :name => 'bar', :foo => $t.foo }
-  ts_eval($t.bar) { update! :name => 'foo bar' }
+  $t.bar = ts_eval { Bar.create! name: 'bar', foo: $t.foo }
+  ts_eval($t.bar) { update! name: 'foo bar' }
 
-  #
-  $t.subbar = ts_eval { SubBar.create! :name => 'sub-bar', :bar => $t.bar }
-  ts_eval($t.subbar) { update! :name => 'bar sub-bar' }
+  $t.subbar = ts_eval { SubBar.create! name: 'sub-bar', bar: $t.bar }
+  ts_eval($t.subbar) { update! name: 'bar sub-bar' }
 
-  ts_eval($t.foo) { update! :name => 'new foo' }
+  ts_eval($t.foo) { update! name: 'new foo' }
 
-  ts_eval($t.bar) { update! :name => 'bar bar' }
-  ts_eval($t.bar) { update! :name => 'new bar' }
+  ts_eval($t.bar) { update! name: 'bar bar' }
+  ts_eval($t.bar) { update! name: 'new bar' }
 
-  ts_eval($t.subbar) { update! :name => 'sub-bar sub-bar' }
-  ts_eval($t.subbar) { update! :name => 'new sub-bar' }
+  ts_eval($t.subbar) { update! name: 'sub-bar sub-bar' }
+  ts_eval($t.subbar) { update! name: 'new sub-bar' }
 
-  #
-  $t.foos = Array.new(2) {|i| ts_eval { Foo.create! :name => "foo #{i}" } }
-  $t.bars = Array.new(2) {|i| ts_eval { Bar.create! :name => "bar #{i}", :foo => $t.foos[i] } }
-  $t.boos = Array.new(2) {|i| ts_eval { Boo.create! :name => "boo #{i}" } }
-  $t.moos = Array.new(2) {|i| ts_eval { Moo.create! :name => "moo #{i}", boos: $t.boos } }
+  $t.foos = Array.new(2) { |i| ts_eval { Foo.create! name: "foo #{i}" } }
+  $t.bars = Array.new(2) { |i| ts_eval { Bar.create! name: "bar #{i}", foo: $t.foos[i] } }
+  $t.boos = Array.new(2) { |i| ts_eval { Boo.create! name: "boo #{i}" } }
+  $t.moos = Array.new(2) { |i| ts_eval { Moo.create! name: "moo #{i}", boos: $t.boos } }
 
-
-  #
-  $t.baz = Baz.create :name => 'baz', :bar => $t.bar
-
+  $t.baz = Baz.create name: 'baz', bar: $t.bar
 end

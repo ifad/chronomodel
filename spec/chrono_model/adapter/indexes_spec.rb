@@ -21,10 +21,10 @@ describe ChronoModel::Adapter do
       adapter.add_temporal_indexes :meetings, :interval
     end
 
-    it { expect(adapter.indexes(:meetings).map(&:name)).to eq [
-      'index_meetings_temporal_on_interval',
-      'index_meetings_temporal_on_lower_interval',
-      'index_meetings_temporal_on_upper_interval'
+    it { expect(adapter.indexes(:meetings).map(&:name)).to eq %w[
+      index_meetings_temporal_on_interval
+      index_meetings_temporal_on_lower_interval
+      index_meetings_temporal_on_upper_interval
     ] }
 
     after do

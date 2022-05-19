@@ -18,7 +18,7 @@ describe ChronoModel::Adapter do
 
   context 'INSERT multiple values' do
     before :all do
-      adapter.create_table table, :temporal => true, &columns
+      adapter.create_table table, temporal: true, &columns
     end
 
     after :all do
@@ -73,7 +73,7 @@ describe ChronoModel::Adapter do
 
   context 'INSERT on NOT NULL columns but with a DEFAULT value' do
     before :all do
-      adapter.create_table table, :temporal => true, &columns
+      adapter.create_table table, temporal: true, &columns
     end
 
     after :all do
@@ -98,7 +98,7 @@ describe ChronoModel::Adapter do
 
   context 'INSERT with string IDs' do
     before :all do
-      adapter.create_table table, :temporal => true, :id => :string, &columns
+      adapter.create_table table, temporal: true, id: :string, &columns
     end
 
     after :all do
@@ -117,9 +117,8 @@ describe ChronoModel::Adapter do
   end
 
   context 'redundant UPDATEs' do
-
     before :all do
-      adapter.create_table table, :temporal => true, &columns
+      adapter.create_table table, temporal: true, &columns
 
       adapter.execute <<-SQL
         INSERT INTO #{table} (test, foo) VALUES ('test1', 1);
@@ -140,12 +139,11 @@ describe ChronoModel::Adapter do
 
     it { expect(count(current)).to eq 1 }
     it { expect(count(history)).to eq 2 }
-
   end
 
   context 'updates on non-journaled fields' do
     before :all do
-      adapter.create_table table, :temporal => true do |t|
+      adapter.create_table table, temporal: true do |t|
         t.string 'test'
         t.timestamps null: false
       end
@@ -180,7 +178,7 @@ describe ChronoModel::Adapter do
   context 'selective journaled fields' do
     describe 'basic behaviour' do
       specify do
-        adapter.create_table table, :temporal => true, :journal => %w( foo ) do |t|
+        adapter.create_table table, temporal: true, journal: %w[foo] do |t|
           t.string 'foo'
           t.string 'bar'
         end
@@ -210,7 +208,7 @@ describe ChronoModel::Adapter do
       table 'journaled_things'
 
       before do
-        adapter.create_table table, :temporal => true, :journal => %w( foo ) do |t|
+        adapter.create_table table, temporal: true, journal: %w[foo] do |t|
           t.string 'foo'
           t.string 'bar'
           t.string 'baz'
@@ -222,7 +220,7 @@ describe ChronoModel::Adapter do
       end
 
       it 'preserves options upon column change' do
-        adapter.change_table table, temporal: true, journal: %w(foo bar)
+        adapter.change_table table, temporal: true, journal: %w[foo bar]
 
         adapter.execute <<-SQL
           INSERT INTO #{table} (foo, bar) VALUES ('test foo', 'test bar');
@@ -240,7 +238,7 @@ describe ChronoModel::Adapter do
       end
 
       it 'changes option upon table change' do
-        adapter.change_table table, temporal: true, journal: %w(bar)
+        adapter.change_table table, temporal: true, journal: %w[bar]
 
         adapter.execute <<-SQL
           INSERT INTO #{table} (foo, bar) VALUES ('test foo', 'test bar');
@@ -259,5 +257,4 @@ describe ChronoModel::Adapter do
       end
     end
   end
-
 end

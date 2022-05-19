@@ -4,8 +4,8 @@ require 'support/time_machine/structure'
 describe ChronoModel::TimeMachine do
   include ChronoTest::TimeMachine::Helpers
 
-  history_methods = %w( valid_from valid_to recorded_at )
-  current_methods = %w( as_of_time )
+  history_methods = %w[valid_from valid_to recorded_at]
+  current_methods = %w[as_of_time]
 
   context 'on history records' do
     let(:record) { $t.foo.history.first }

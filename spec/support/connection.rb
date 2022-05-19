@@ -5,14 +5,14 @@ module ChronoTest
   extend self
 
   AR = ActiveRecord::Base
-  log = ENV['VERBOSE'].present? ? $stderr : 'spec/debug.log'.tap{|f| File.open(f, "ab") { |ft| ft.truncate(0) }}
+  log = ENV['VERBOSE'].present? ? $stderr : 'spec/debug.log'.tap { |f| File.open(f, "ab") { |ft| ft.truncate(0) } }
   AR.logger = ::Logger.new(log).tap do |l|
     l.level = 0
   end
 
-  def connect!(spec = self.config)
+  def connect!(spec = config)
     unless ENV['VERBOSE'].present?
-      spec = spec.merge(:min_messages => 'WARNING')
+      spec = spec.merge(min_messages: 'WARNING')
     end
     AR.establish_connection spec
   end
@@ -24,11 +24,11 @@ module ChronoTest
   def connection
     AR.connection
   end
-  alias :adapter :connection
+  alias adapter connection
 
   def recreate_database!
     database = config.fetch(:database)
-    connect! config.merge(:database => :postgres)
+    connect! config.merge(database: :postgres)
 
     connection.drop_database   database
     connection.create_database database
@@ -41,7 +41,7 @@ module ChronoTest
   def config
     @config ||= YAML.load(config_file.read).tap do |conf|
       conf.symbolize_keys!
-      conf.update(:adapter => 'chronomodel')
+      conf.update(adapter: 'chronomodel')
 
       def conf.to_s
         'pgsql://%s:%s@%s/%s' % [
@@ -49,7 +49,6 @@ module ChronoTest
         ]
       end
     end
-
   rescue Errno::ENOENT
     $stderr.puts <<EOM
 
@@ -66,5 +65,4 @@ EOM
       File.join(File.dirname(__FILE__), '..', 'config.yml')
     )
   end
-
 end

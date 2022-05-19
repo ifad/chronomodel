@@ -1,5 +1,4 @@
 module ChronoTest::Matchers
-
   module Function
     class HaveFunctions < ChronoTest::Matchers::Base
       def initialize(functions, schema = 'public')
@@ -30,8 +29,9 @@ module ChronoTest::Matchers
       end
 
       protected
-        def has_function?(name)
-          select_value(<<-SQL, [@schema, name], 'Check function') == true
+
+      def has_function?(name)
+        select_value(<<-SQL, [@schema, name], 'Check function') == true
             SELECT EXISTS(
               SELECT 1
               FROM pg_catalog.pg_proc p, pg_catalog.pg_namespace n
@@ -40,16 +40,17 @@ module ChronoTest::Matchers
                 AND p.proname = ?
             )
           SQL
-        end
+      end
 
       private
-        def message_matches(message)
-          (message << ' ').tap do |m|
-            m << @matches.map do |name, match|
-              "a #{name} function"
-            end.compact.to_sentence
-          end
+
+      def message_matches(message)
+        (message << ' ').tap do |m|
+          m << @matches.map do |name, match|
+            "a #{name} function"
+          end.compact.to_sentence
         end
+      end
     end
 
     def have_functions(*args)
@@ -67,7 +68,7 @@ module ChronoTest::Matchers
       end
 
       def matches?(table)
-        @functions = @function_templates.map {|t| t % [table] }
+        @functions = @function_templates.map { |t| t % [table] }
 
         super(table)
       end

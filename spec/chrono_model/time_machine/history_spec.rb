@@ -20,7 +20,6 @@ describe ChronoModel::TimeMachine do
     it { expect(Bar.history.first).to be_a(Bar::History) }
   end
 
-
   describe '#history' do
     describe 'returns historical instances' do
       it { expect($t.foo.history.size).to eq(3) }
@@ -36,23 +35,23 @@ describe ChronoModel::TimeMachine do
     end
 
     describe 'takes care of associated records' do
-      subject { $t.foo.history.map {|f| f.bars.first.try(:name)} }
+      subject { $t.foo.history.map { |f| f.bars.first.try(:name) } }
       it { is_expected.to eq [nil, 'foo bar', 'new bar'] }
     end
 
     describe 'does not return read only associated records' do
       it { expect($t.foo.history[2].bars.all?(&:readonly?)).to_not be(true) }
-      it { expect($t.bar.history.all? {|b| b.foo.readonly?}).to_not be(true) }
+      it { expect($t.bar.history.all? { |b| b.foo.readonly? }).to_not be(true) }
     end
 
     describe 'allows a custom select list' do
-      it { expect($t.foo.history.select(:id).first.attributes.keys).to eq %w( id ) }
+      it { expect($t.foo.history.select(:id).first.attributes.keys).to eq %w[id] }
     end
 
     describe 'does not add as_of_time when there are aggregates' do
       it { expect($t.foo.history.select('max(id)').to_sql).to_not match(/as_of_time/) }
 
-      it { expect($t.foo.history.except(:order).select('max(id) as foo, min(id) as bar').group('id').first.attributes.keys).to match_array %w( id foo bar ) }
+      it { expect($t.foo.history.except(:order).select('max(id) as foo, min(id) as bar').group('id').first.attributes.keys).to match_array %w[id foo bar] }
     end
 
     context '.sorted' do
@@ -61,7 +60,6 @@ describe ChronoModel::TimeMachine do
       end
     end
   end
-
 
   describe '#current_version' do
     describe 'on plain records' do
@@ -79,7 +77,6 @@ describe ChronoModel::TimeMachine do
       it { is_expected.to eq $t.foo }
     end
   end
-
 
   describe '#historical?' do
     subject { record.historical? }

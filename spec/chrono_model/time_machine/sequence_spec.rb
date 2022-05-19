@@ -31,7 +31,7 @@ describe ChronoModel::TimeMachine do
     end
 
     context 'when no history is recorded' do
-      let(:record) { Bar.create!(:name => 'quuuux') }
+      let(:record) { Bar.create!(name: 'quuuux') }
 
       subject { record.pred }
 
@@ -70,5 +70,4 @@ describe ChronoModel::TimeMachine do
     subject { $t.foo.history.sample.last }
     it { is_expected.to eq $t.foo.history.last }
   end
-
 end

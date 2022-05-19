@@ -4,9 +4,7 @@ require 'rake'
 require 'rails'
 
 module ChronoTest
-
   module Aruba
-
     def load_schema_task(as_regexp: false)
       str =
       if Rails.version < '7.0'
@@ -14,7 +12,7 @@ module ChronoTest
       else
         "db:schema:load"
       end
-      return as_regexp ? Regexp.new(str) : str
+      as_regexp ? Regexp.new(str) : str
     end
 
     def dump_schema_task(as_regexp: false)
@@ -24,7 +22,7 @@ module ChronoTest
       else
         "db:schema:dump"
       end
-      return as_regexp ? Regexp.new(str) : str
+      as_regexp ? Regexp.new(str) : str
     end
 
     def aruba_working_directory

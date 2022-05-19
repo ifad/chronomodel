@@ -1,5 +1,4 @@
 module ChronoTest::Matchers
-
   module Index
     class HaveIndex < ChronoTest::Matchers::Base
       attr_reader :name, :columns, :schema
@@ -17,7 +16,7 @@ module ChronoTest::Matchers
       def matches?(table)
         super(table)
 
-        select_values(<<-SQL, [ table, name, schema ], 'Check index') == columns
+        select_values(<<-SQL, [table, name, schema], 'Check index') == columns
           SELECT a.attname
             FROM pg_class t
             JOIN pg_index d ON t.oid = d.indrelid
