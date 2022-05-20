@@ -20,7 +20,7 @@ module ChronoModel
       def empty_scope?
         return super unless @_as_of_time
 
-        @values == klass.as_of(as_of_time).values
+        @values == klass.unscoped.as_of(as_of_time).values
       end
 
       def load
