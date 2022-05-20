@@ -30,6 +30,7 @@ module ChronoTest::TimeMachine
 
     has_many :bars
     has_many :sub_bars, through: :bars
+    has_many :sub_sub_bars, through: :sub_bars
 
     belongs_to :goo, class_name: 'FooGoo', optional: true
   end
@@ -93,8 +94,20 @@ module ChronoTest::TimeMachine
     include ChronoModel::TimeMachine
 
     belongs_to :bar
+    has_many :sub_sub_bars
 
     has_timeline with: :bar
+  end
+
+  adapter.create_table 'sub_sub_bars', temporal: true do |t|
+    t.string     :name
+    t.references :sub_bar
+  end
+
+  class ::SubSubBar < ActiveRecord::Base
+    include ChronoModel::TimeMachine
+
+    belongs_to :sub_bar
   end
 
   adapter.create_table 'bazs' do |t|
@@ -125,6 +138,8 @@ module ChronoTest::TimeMachine
 
   $t.subbar = ts_eval { SubBar.create! name: 'sub-bar', bar: $t.bar }
   ts_eval($t.subbar) { update! name: 'bar sub-bar' }
+
+  ts_eval { SubSubBar.create! name: 'sub-sub-bar', sub_bar: $t.subbar }
 
   ts_eval($t.foo) { update! name: 'new foo' }
 

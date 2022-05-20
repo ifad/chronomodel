@@ -17,6 +17,12 @@ module ChronoModel
         end
       end
 
+      def empty_scope?
+        return super unless @_as_of_time
+
+        @values == klass.as_of(as_of_time).values
+      end
+
       def load
         return super unless @_as_of_time && !loaded?
 
