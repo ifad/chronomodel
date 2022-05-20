@@ -75,6 +75,23 @@ module ChronoModel
           return scope
         end
       end
+
+      module ThroughAssociation
+        # Builds the preloader scope taking into account a potential
+        # +as_of_time+ passed down the call chain starting at the
+        # end user invocation.
+        #
+        def through_scope
+          scope = super
+          return unless scope # Rails 5.2 may not return a scope
+
+          if preload_scope.try(:as_of_time)
+            scope = scope.as_of(preload_scope.as_of_time)
+          end
+
+          scope
+        end
+      end
     end
 
   end
