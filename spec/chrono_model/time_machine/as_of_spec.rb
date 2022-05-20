@@ -143,6 +143,9 @@ describe ChronoModel::TimeMachine do
       it { expect(Foo.as_of($t.foo.ts[0]).includes(:bars, :sub_bars).first.sub_bars.first).to be nil }
       it { expect(Foo.as_of($t.foo.ts[1]).includes(:bars, :sub_bars).first.sub_bars.first).to be nil }
 
+      it { expect(Foo.as_of($t.bar.ts[0]).includes(:sub_bars).first.bars.first.sub_bars.first).to be nil }
+      it { expect(Foo.as_of($t.subbar.ts[0]).includes(:sub_bars).first.bars.first.sub_bars.first.name).to eq 'sub-bar' }
+
       it { expect(Foo.as_of($t.subbar.ts[0]).includes(:bars, :sub_bars).first.sub_bars.first.name).to eq 'sub-bar' }
       it { expect(Foo.as_of($t.subbar.ts[1]).includes(:bars, :sub_bars).first.sub_bars.first.name).to eq 'bar sub-bar' }
       it { expect(Foo.as_of($t.subbar.ts[2]).includes(:bars, :sub_bars).first.sub_bars.first.name).to eq 'sub-bar sub-bar' }
