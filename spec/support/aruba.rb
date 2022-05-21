@@ -56,7 +56,7 @@ module ChronoTest
       file_contents = read(file).join("\n")
 
       # Mangle
-      file_contents = block.call(file_contents)
+      file_contents = yield(file_contents)
 
       # Write
       write_file file, file_contents

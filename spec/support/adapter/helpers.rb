@@ -34,7 +34,7 @@ module ChronoTest::Adapter
       end
 
       def self.columns(&block)
-        @columns = block.call if block
+        @columns = yield if block
         @columns
       end
 
