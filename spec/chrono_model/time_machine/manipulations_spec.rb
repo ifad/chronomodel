@@ -7,6 +7,8 @@ describe ChronoModel::TimeMachine do
   describe '#save' do
     subject { $t.bar.history.first }
 
+    let(:another_historical_object) { $t.bar.history.second }
+
     it do
       with_revert do
         subject.name = 'modified bar history'
@@ -14,6 +16,7 @@ describe ChronoModel::TimeMachine do
         subject.reload
 
         is_expected.to be_a(Bar::History)
+        expect(another_historical_object.name).not_to eq 'modified bar history'
         expect(subject.name).to eq 'modified bar history'
       end
     end
@@ -22,6 +25,8 @@ describe ChronoModel::TimeMachine do
   describe '#save!' do
     subject { $t.bar.history.second }
 
+    let(:first_historical_object) { $t.bar.history.first }
+
     it do
       with_revert do
         subject.name = 'another modified bar history'
@@ -29,6 +34,24 @@ describe ChronoModel::TimeMachine do
         subject.reload
 
         is_expected.to be_a(Bar::History)
+        expect(first_historical_object.name).not_to eq 'another modified bar history'
+        expect(subject.name).to eq 'another modified bar history'
+      end
+    end
+  end
+
+  describe '#update_columns' do
+    subject { $t.bar.history.first }
+
+    let(:another_historical_object) { $t.bar.history.second }
+
+    it do
+      with_revert do
+        subject.update_columns name: 'another modified bar history'
+        subject.reload
+
+        is_expected.to be_a(Bar::History)
+        expect(another_historical_object.name).not_to eq 'another modified bar history'
         expect(subject.name).to eq 'another modified bar history'
       end
     end
