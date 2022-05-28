@@ -143,15 +143,15 @@ module ChronoModel
       end
 
       def save(*)
-        self.class.with_hid_pkey { super }
+        with_hid_pkey { super }
       end
 
       def save!(*)
-        self.class.with_hid_pkey { super }
+        with_hid_pkey { super }
       end
 
       def update_columns(*)
-        self.class.with_hid_pkey { super }
+        with_hid_pkey { super }
       end
 
       def historical?
@@ -219,6 +219,17 @@ module ChronoModel
 
       def recorded_at
         ChronoModel::Conversions.string_to_utc_time attributes_before_type_cast['recorded_at']
+      end
+
+      private
+
+      def with_hid_pkey
+        old_primary_key = @primary_key
+        @primary_key = :hid
+
+        self.class.with_hid_pkey { yield }
+      ensure
+        @primary_key = old_primary_key
       end
     end
 
