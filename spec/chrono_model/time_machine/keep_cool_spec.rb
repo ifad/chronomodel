@@ -5,7 +5,7 @@ describe ChronoModel::TimeMachine do
   include ChronoTest::TimeMachine::Helpers
 
   describe 'does not interfere with AR standard behaviour' do
-    let(:all_foos) { [$t.foo] + $t.foos + $t.goo_foos }
+    let(:all_foos) { [$t.foo] + $t.foos }
     let(:all_bars) { [$t.bar] + $t.bars }
 
     it { expect(Foo.count).to eq all_foos.size }

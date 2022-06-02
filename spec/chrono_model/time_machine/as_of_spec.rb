@@ -9,7 +9,7 @@ describe ChronoModel::TimeMachine do
 
     it { expect(Foo.as_of($t.foos[0].ts[0])).to eq [$t.foo, $t.foos[0]] }
     it { expect(Foo.as_of($t.foos[1].ts[0])).to eq [$t.foo, $t.foos[0], $t.foos[1]] }
-    it { expect(Foo.as_of(Time.now)).to eq [$t.foo, $t.foos[0], $t.foos[1], $t.goo_foos[0], $t.goo_foos[1]] }
+    it { expect(Foo.as_of(Time.now)).to eq [$t.foo, $t.foos[0], $t.foos[1]] }
 
     it { expect(Bar.as_of($t.foos[1].ts[0])).to eq [$t.bar] }
 
