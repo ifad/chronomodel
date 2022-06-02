@@ -99,7 +99,7 @@ module ChronoTest::TimeMachine
   class ::FooGoo < ActiveRecord::Base
     include ChronoModel::TimeGate
 
-    has_many :foos, inverse_of: :goo
+    has_many :foos, inverse_of: :goo, foreign_key: :goo_id
   end
 
   class ::Moo < ActiveRecord::Base
@@ -126,7 +126,7 @@ module ChronoTest::TimeMachine
   # Master timeline, used in multiple specs. It is defined here
   # as a global variable to be able to be shared across specs.
   #
-  $t = Struct.new(:foo, :bar, :baz, :subbar, :foos, :bars, :boos, :moos).new
+  $t = Struct.new(:foo, :bar, :baz, :subbar, :foos, :bars, :boos, :moos, :goo, :goo_foos).new
 
   # Set up associated records, with intertwined updates
   #
@@ -155,4 +155,7 @@ module ChronoTest::TimeMachine
   $t.moos = Array.new(2) { |i| ts_eval { Moo.create! name: "moo #{i}", boos: $t.boos } }
 
   $t.baz = Baz.create! name: 'baz', bar: $t.bar
+
+  $t.goo = FooGoo.create! name: 'goo'
+  $t.goo_foos = Array.new(2) { |i| ts_eval { Foo.create! name: "goo foo #{i}", goo: $t.goo } }
 end
