@@ -19,10 +19,71 @@ module ChronoTest::TimeMachine
 
   # Set up database structure
   #
+  adapter.create_table 'bars', temporal: true do |t|
+    t.string     :name
+    t.references :foo
+  end
+
+  adapter.create_table 'bazs' do |t|
+    t.string     :name
+    t.references :bar
+  end
+
+  adapter.create_table 'boos', temporal: true do |t|
+    t.string     :name
+  end
+
+  adapter.create_table 'boos_moos', temporal: true do |t|
+    t.references :moo
+    t.references :boo
+  end
+
+  adapter.create_table 'foo_goos' do |t|
+    t.string :name
+  end
+
   adapter.create_table 'foos', temporal: true do |t|
     t.string     :name
     t.integer    :fooity
     t.references :goo
+  end
+
+  adapter.create_table 'moos', temporal: true do |t|
+    t.string     :name
+  end
+
+  adapter.create_table 'sub_bars', temporal: true do |t|
+    t.string     :name
+    t.references :bar
+  end
+
+  adapter.create_table 'sub_sub_bars', temporal: true do |t|
+    t.string     :name
+    t.references :sub_bar
+  end
+
+  class ::Bar < ActiveRecord::Base
+    include ChronoModel::TimeMachine
+
+    belongs_to :foo
+    has_many :sub_bars
+    has_one :baz
+
+    has_timeline with: :foo
+  end
+
+  class ::Baz < ActiveRecord::Base
+    include ChronoModel::TimeGate
+
+    belongs_to :bar
+
+    has_timeline with: :bar
+  end
+
+  class ::Boo < ActiveRecord::Base
+    include ChronoModel::TimeMachine
+
+    has_and_belongs_to_many :moos, join_table: 'boos_moos'
   end
 
   class ::Foo < ActiveRecord::Base
@@ -41,53 +102,10 @@ module ChronoTest::TimeMachine
     has_many :foos, inverse_of: :goo
   end
 
-  class ::Boo < ActiveRecord::Base
-    include ChronoModel::TimeMachine
-
-    has_and_belongs_to_many :moos, join_table: 'boos_moos'
-  end
-
   class ::Moo < ActiveRecord::Base
     include ChronoModel::TimeMachine
 
     has_and_belongs_to_many :boos, join_table: 'boos_moos'
-  end
-
-  adapter.create_table 'bars', temporal: true do |t|
-    t.string     :name
-    t.references :foo
-  end
-
-  adapter.create_table 'moos', temporal: true do |t|
-    t.string     :name
-  end
-
-  adapter.create_table 'boos', temporal: true do |t|
-    t.string     :name
-  end
-
-  adapter.create_table 'boos_moos', temporal: true do |t|
-    t.references :moo
-    t.references :boo
-  end
-
-  adapter.create_table 'foo_goos' do |t|
-    t.string :name
-  end
-
-  class ::Bar < ActiveRecord::Base
-    include ChronoModel::TimeMachine
-
-    belongs_to :foo
-    has_many :sub_bars
-    has_one :baz
-
-    has_timeline with: :foo
-  end
-
-  adapter.create_table 'sub_bars', temporal: true do |t|
-    t.string     :name
-    t.references :bar
   end
 
   class ::SubBar < ActiveRecord::Base
@@ -99,28 +117,10 @@ module ChronoTest::TimeMachine
     has_timeline with: :bar
   end
 
-  adapter.create_table 'sub_sub_bars', temporal: true do |t|
-    t.string     :name
-    t.references :sub_bar
-  end
-
   class ::SubSubBar < ActiveRecord::Base
     include ChronoModel::TimeMachine
 
     belongs_to :sub_bar
-  end
-
-  adapter.create_table 'bazs' do |t|
-    t.string     :name
-    t.references :bar
-  end
-
-  class ::Baz < ActiveRecord::Base
-    include ChronoModel::TimeGate
-
-    belongs_to :bar
-
-    has_timeline with: :bar
   end
 
   # Master timeline, used in multiple specs. It is defined here
