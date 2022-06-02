@@ -9,6 +9,7 @@ module ChronoModel
     include ChronoModel::Patches::AsOfTimeHolder
 
     module ClassMethods
+      include ChronoModel::TimeMachine::SafeAsOf
       include ChronoModel::TimeMachine::Timeline
 
       def as_of(time)

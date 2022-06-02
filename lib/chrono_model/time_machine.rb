@@ -1,3 +1,4 @@
+require 'chrono_model/time_machine/safe_as_of'
 require 'chrono_model/time_machine/time_query'
 require 'chrono_model/time_machine/timeline'
 require 'chrono_model/time_machine/history_model'
@@ -63,6 +64,8 @@ module ChronoModel
     end
 
     module ClassMethods
+      include ChronoModel::TimeMachine::SafeAsOf
+
       # Identify this class as the parent, non-history, class.
       #
       def history?
