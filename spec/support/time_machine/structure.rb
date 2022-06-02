@@ -154,5 +154,5 @@ module ChronoTest::TimeMachine
   $t.boos = Array.new(2) { |i| ts_eval { Boo.create! name: "boo #{i}" } }
   $t.moos = Array.new(2) { |i| ts_eval { Moo.create! name: "moo #{i}", boos: $t.boos } }
 
-  $t.baz = Baz.create name: 'baz', bar: $t.bar
+  $t.baz = Baz.create! name: 'baz', bar: $t.bar
 end
