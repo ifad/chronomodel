@@ -6,7 +6,7 @@ describe ChronoModel::TimeMachine do
 
   describe '.history' do
     let(:foo_history) {
-      ['foo', 'foo bar', 'new foo', 'foo 0', 'foo 1', 'goo foo 0', 'goo foo 1']
+      ['foo', 'foo bar', 'new foo', 'foo 0', 'foo 1']
     }
 
     let(:bar_history) {

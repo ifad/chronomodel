@@ -15,9 +15,9 @@ describe ChronoModel::TimeMachine::TimeQuery do
 
   # Main timeline quick test
   #
-  it { expect(Foo.history.time_query(:after,  :now, inclusive: true).count).to eq 5 }
+  it { expect(Foo.history.time_query(:after,  :now, inclusive: true).count).to eq 3 }
   it { expect(Foo.history.time_query(:after,  :now, inclusive: false).count).to eq 0 }
-  it { expect(Foo.history.time_query(:before, :now, inclusive: true).count).to eq 7 }
+  it { expect(Foo.history.time_query(:before, :now, inclusive: true).count).to eq 5 }
   it { expect(Foo.history.time_query(:before, :now, inclusive: false).count).to eq 2 }
 
   it { expect(Foo.history.past.size).to eq 2 }
