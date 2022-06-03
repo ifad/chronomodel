@@ -5,12 +5,12 @@
 if ENV['HAVE_PLPYTHON'] == '1'
 
   require 'spec_helper'
-  require 'support/helpers'
+  require 'support/adapter/helpers'
 
   require 'chrono_model/json'
 
   describe 'JSON equality operator' do
-    include ChronoTest::Helpers::Adapter
+    include ChronoTest::Adapter::Helpers
 
     table 'json_test'
 

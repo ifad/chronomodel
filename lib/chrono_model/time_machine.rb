@@ -11,8 +11,10 @@ module ChronoModel
 
     included do
       if table_exists? && !chrono?
-        puts  "ChronoModel: #{table_name} is not a temporal table. " \
-          "Please use `change_table :#{table_name}, temporal: true` in a migration."
+        logger.warn <<-MSG.squish
+          ChronoModel: #{table_name} is not a temporal table.
+          Please use `change_table :#{table_name}, temporal: true` in a migration.
+        MSG
       end
 
       history = ChronoModel::TimeMachine.define_history_model_for(self)
