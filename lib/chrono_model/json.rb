@@ -4,7 +4,9 @@ module ChronoModel
     extend self
 
     def create
-      puts "ChronoModel: WARNING - JSON ops are deprecated. Please migrate to JSONB"
+      ActiveSupport::Deprecation.warn <<-MSG.squish
+        ChronoModel: JSON ops are deprecated. Please migrate to JSONB.
+      MSG
 
       adapter.execute 'CREATE OR REPLACE LANGUAGE plpythonu'
       adapter.execute File.read(sql 'json_ops.sql')
