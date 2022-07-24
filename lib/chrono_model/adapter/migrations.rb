@@ -164,6 +164,16 @@ module ChronoModel
         drop_and_recreate_public_view(table_name) { super }
       end
 
+      def add_foreign_key(table_name, *)
+        return super unless is_chrono?(table_name)
+        on_temporal_schema { super }
+      end
+
+      def remove_foreign_key(table_name, *)
+        return super unless is_chrono?(table_name)
+        on_temporal_schema { super }
+      end
+
       private
         # In destructive changes, such as removing columns or changing column
         # types, the view must be dropped and recreated, while the change has
