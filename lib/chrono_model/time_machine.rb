@@ -559,15 +559,30 @@ module ChronoModel
         super.tap do |arel|
 
           arel.join_sources.each do |join|
-            model = TimeMachine.chrono_models[join.left.table_name]
+            info = table_for_join(join.left)
+            next unless info 
+
+            model = TimeMachine.chrono_models[info]
             next unless model
 
-            join.left = Arel::Nodes::SqlLiteral.new(
+
+            arels = Arel::Nodes::SqlLiteral.new(
               model.history.virtual_table_at(@temporal, join.left.table_alias || join.left.table_name)
             )
+            join.left = arels
           end if @temporal
 
         end
+      end
+
+      # matches JOIN table table_alias ON
+
+      def table_for_join(statement)
+      value = statement.to_s.match(/JOIN \S+\s+(\S+)?\s+ ON/).to_s
+      return value if value.nil?
+
+      clean = value.gsub!("JOIN", "").gsub!("ON", "")
+      info = value.split(" ")
       end
     end
     ActiveRecord::Relation.instance_eval { include QueryMethods }
