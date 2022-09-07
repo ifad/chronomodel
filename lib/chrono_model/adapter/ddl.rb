@@ -17,33 +17,35 @@ module ChronoModel
 
           # SELECT - return only current data
           #
-          execute "DROP VIEW #{table}" if data_source_exists? table
-          execute "CREATE VIEW #{table} AS SELECT * FROM ONLY #{current}"
+          on_schema("DEFAULT") do
+            execute "DROP VIEW #{table}" if data_source_exists? table
+            execute "CREATE VIEW #{table} AS SELECT * FROM ONLY #{current}"
 
-          chrono_metadata_set(table, options.merge(chronomodel: VERSION))
+            chrono_metadata_set(table, options.merge(chronomodel: VERSION))
 
-          # Set default values on the view (closes #12)
-          #
-          columns(table).each do |column|
-            default = if column.default.nil?
-              column.default_function
-            else
-              quote(column.default)
+            # Set default values on the view (closes #12)
+            #
+            columns(table).each do |column|
+              default = if column.default.nil?
+                column.default_function
+              else
+                quote(column.default)
+              end
+
+              next if column.name == pk || default.nil?
+
+              execute "ALTER VIEW #{table} ALTER COLUMN #{quote_column_name(column.name)} SET DEFAULT #{default}"
             end
 
-            next if column.name == pk || default.nil?
+            columns = self.columns(table).map {|c| quote_column_name(c.name)}
+            columns.delete(quote_column_name(pk))
 
-            execute "ALTER VIEW #{table} ALTER COLUMN #{quote_column_name(column.name)} SET DEFAULT #{default}"
+            fields, values = columns.join(', '), columns.map {|c| "NEW.#{c}"}.join(', ')
+
+            chrono_create_INSERT_trigger(table, pk, current, history, fields, values)
+            chrono_create_UPDATE_trigger(table, pk, current, history, fields, values, options, columns)
+            chrono_create_DELETE_trigger(table, pk, current, history)
           end
-
-          columns = self.columns(table).map {|c| quote_column_name(c.name)}
-          columns.delete(quote_column_name(pk))
-
-          fields, values = columns.join(', '), columns.map {|c| "NEW.#{c}"}.join(', ')
-
-          chrono_create_INSERT_trigger(table, pk, current, history, fields, values)
-          chrono_create_UPDATE_trigger(table, pk, current, history, fields, values, options, columns)
-          chrono_create_DELETE_trigger(table, pk, current, history)
         end
 
         # Create the history table in the history schema

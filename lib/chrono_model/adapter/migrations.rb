@@ -124,7 +124,6 @@ module ChronoModel
       # the temporal schema and update the triggers.
       #
       def rename_column(table_name, *)
-        puts "Entering 'rename column'"
         return super unless is_chrono?(table_name)
 
         # Rename the column in the temporal table and in the view
