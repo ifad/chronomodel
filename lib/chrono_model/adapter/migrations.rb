@@ -83,12 +83,6 @@ module ChronoModel
             chrono_undo_temporal_table(table_name)
 
             super table_name, **options, &block
-          elsif is_chrono?(table_name)
-            drop_and_recreate_public_view(table_name, options) do
-              super table_name, **options, &block
-            end
-          else
-            super table_name, **options, &block
           end
 
         end
@@ -124,7 +118,6 @@ module ChronoModel
       # the temporal schema and update the triggers.
       #
       def rename_column(table_name, *)
-        puts "Entering 'rename column'"
         return super unless is_chrono?(table_name)
 
         # Rename the column in the temporal table and in the view
