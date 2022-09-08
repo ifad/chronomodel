@@ -34,7 +34,7 @@ module ActiveRecord
       return adapter
 
     rescue ::PG::Error => error
-      if error.message.include?(conn_params[:dbname])
+      if error.message.include?(conn_params[:dbname].to_s)
         raise ActiveRecord::NoDatabaseError
       else
         raise
@@ -43,4 +43,3 @@ module ActiveRecord
 
   end
 end
-

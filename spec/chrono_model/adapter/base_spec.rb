@@ -66,6 +66,7 @@ describe ChronoModel::Adapter do
   describe '.on_schema' do
     before(:all) do
       adapter.execute 'BEGIN'
+
       5.times { |i| adapter.execute "CREATE SCHEMA test_#{i}" }
     end
 
@@ -73,54 +74,110 @@ describe ChronoModel::Adapter do
       adapter.execute 'ROLLBACK'
     end
 
-    context 'by default' do
-      it 'saves the schema at each recursion' do
-        is_expected.to be_in_schema(:default)
+    context "with an implicit search_path" do
+      it "saves the schema at each recursion" do
+        starting_schema = "implicit_schema_#{rand(1000)}"
+        adapter.execute "CREATE SCHEMA #{starting_schema}"
+        old_search_path = adapter.select_value("SHOW search_path")
+        adapter.execute "SET search_path TO '#{starting_schema}'"
 
-        adapter.on_schema('test_1') { is_expected.to be_in_schema('test_1')
-                                      adapter.on_schema('test_2') { is_expected.to be_in_schema('test_2')
-                                                                    adapter.on_schema('test_3') { is_expected.to be_in_schema('test_3')
-                                                                    }
-                                                                    is_expected.to be_in_schema('test_2')
-                                      }
-                                      is_expected.to be_in_schema('test_1')
+        is_expected.to be_in_schema(starting_schema)
+
+        adapter.on_schema('test_1') {
+          is_expected.to be_in_schema('test_1')
+          adapter.on_schema('test_2') {
+            is_expected.to be_in_schema('test_2')
+            adapter.on_schema('test_3') { is_expected.to be_in_schema('test_3') }
+            is_expected.to be_in_schema('test_2')
+          }
+          is_expected.to be_in_schema('test_1')
         }
 
-        is_expected.to be_in_schema(:default)
-      end
+        is_expected.to be_in_schema(starting_schema)
 
-      context 'when errors occur' do
-        subject do
-          adapter.on_schema('test_1') do
-            adapter.on_schema('test_2') do
-              adapter.execute 'BEGIN'
-              adapter.execute 'ERRORING ON PURPOSE'
-            end
-          end
-        end
-
-        it {
-          expect { subject }.
-            to raise_error(/current transaction is aborted/).
-            and change { adapter.instance_variable_get(:@schema_search_path) }
-        }
-
-        after do
-          adapter.execute 'ROLLBACK'
-        end
+        adapter.execute "SET search_path TO #{old_search_path}"
       end
     end
 
-    context 'with recurse: :ignore' do
-      it 'ignores recursive calls' do
-        is_expected.to be_in_schema(:default)
+    context "with an explicit search_path" do
+      it "saves the schema at each recursion" do
+        starting_schema = "implicit_schema_#{rand(1000)}"
+        adapter.execute "CREATE SCHEMA #{starting_schema}"
+        old_search_path = adapter.select_value("SHOW search_path")
+        adapter.schema_search_path = starting_schema
 
-        adapter.on_schema('test_1', recurse: :ignore) { is_expected.to be_in_schema('test_1')
-                                                        adapter.on_schema('test_2', recurse: :ignore) { is_expected.to be_in_schema('test_1')
-                                                                                                        adapter.on_schema('test_3', recurse: :ignore) { is_expected.to be_in_schema('test_1')
-                                                                                                    } } }
+        is_expected.to be_in_schema(starting_schema)
 
-        is_expected.to be_in_schema(:default)
+        adapter.on_schema('test_1') {
+          is_expected.to be_in_schema('test_1')
+          adapter.on_schema('test_2') {
+            is_expected.to be_in_schema('test_2')
+            adapter.on_schema('test_3') { is_expected.to be_in_schema('test_3') }
+            is_expected.to be_in_schema('test_2')
+          }
+          is_expected.to be_in_schema('test_1')
+        }
+
+        is_expected.to be_in_schema(starting_schema)
+
+        adapter.schema_search_path = old_search_path
+      end
+    end
+
+    context "without an explicit starting schema_search_path" do
+      context 'by default' do
+        it 'saves the schema at each recursion' do
+          is_expected.to be_in_schema(:default)
+
+          adapter.on_schema('test_1') {
+            is_expected.to be_in_schema('test_1')
+            adapter.on_schema('test_2') {
+              is_expected.to be_in_schema('test_2')
+              adapter.on_schema('test_3') { is_expected.to be_in_schema('test_3') }
+              is_expected.to be_in_schema('test_2')
+            }
+            is_expected.to be_in_schema('test_1')
+          }
+
+          is_expected.to be_in_schema(:default)
+        end
+
+        context 'when errors occur' do
+          subject do
+            adapter.on_schema('test_1') do
+              adapter.on_schema('test_2') do
+                adapter.execute 'BEGIN'
+                adapter.execute 'ERRORING ON PURPOSE'
+              end
+            end
+          end
+
+          it {
+            expect { subject }.
+              to raise_error(/current transaction is aborted/).
+              and change { adapter.instance_variable_get(:@schema_search_path) }
+          }
+
+          after do
+            adapter.execute 'ROLLBACK'
+          end
+        end
+      end
+
+      context 'with recurse: :ignore' do
+        it 'ignores recursive calls' do
+          is_expected.to be_in_schema(:default)
+
+          adapter.on_schema('test_1', recurse: :ignore) {
+            is_expected.to be_in_schema('test_1')
+            adapter.on_schema('test_2', recurse: :ignore) {
+              is_expected.to be_in_schema('test_1')
+              adapter.on_schema('test_3', recurse: :ignore) {
+                is_expected.to be_in_schema('test_1')
+          } } }
+
+          is_expected.to be_in_schema(:default)
+        end
       end
     end
   end
