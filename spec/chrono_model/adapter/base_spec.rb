@@ -134,6 +134,25 @@ describe ChronoModel::Adapter do
       it { expect(adapter.is_chrono?(table)).to be(false) }
     end
 
+    context "when passing a fully specified schema" do
+      before(:all) do
+        adapter.execute "BEGIN"
+        adapter.execute "CREATE SCHEMA test_schema"
+
+        table "test_schema.#{table}"
+        adapter.execute "CREATE TABLE #{table} (id integer)"
+      end
+
+      after(:all) do
+        table "test_table"
+        adapter.execute "ROLLBACK"
+      end
+
+      it { expect { adapter.is_chrono?(table) }.to_not raise_error }
+
+      it { expect(adapter.is_chrono?(table)).to be(false) }
+    end
+
     context 'when schemas are not there yet' do
       before(:all) do
         adapter.execute 'BEGIN'
@@ -149,6 +168,52 @@ describe ChronoModel::Adapter do
       it { expect { adapter.is_chrono?(table) }.to_not raise_error }
 
       it { expect(adapter.is_chrono?(table)).to be(false) }
+    end
+
+    context "within a different search_path" do
+      before(:all) do
+        schema_name = "schema_#{Random.uuid.tr("-", "_")}"
+
+        adapter.execute "BEGIN"
+        adapter.execute "CREATE SCHEMA #{schema_name}"
+        adapter.execute "SET search_path TO #{schema_name}"
+      end
+
+      after(:all) do
+        adapter.execute "ROLLBACK"
+      end
+
+      with_temporal_table do
+        it { expect(adapter.is_chrono?(table)).to be(true) }
+      end
+
+      with_plain_table do
+        it { expect(adapter.is_chrono?(table)).to be(false) }
+      end
+    end
+
+    context "with a table in a different schema" do
+      before(:all) do
+        schema_name = "schema_#{Random.uuid.tr("-", "_")}"
+
+        adapter.execute "BEGIN"
+        adapter.execute "CREATE SCHEMA #{schema_name}"
+        adapter.execute "SET search_path TO #{schema_name}"
+
+        table "different_schema_table"
+      end
+
+      after(:all) do
+        adapter.execute "ROLLBACK"
+      end
+
+      with_temporal_table do
+        it { expect(adapter.is_chrono?(table)).to be(true) }
+      end
+
+      with_plain_table do
+        it { expect(adapter.is_chrono?(table)).to be(false) }
+      end
     end
   end
 end
