@@ -115,6 +115,7 @@ module ChronoModel
 
     def on_schema(schema, recurse: :follow)
       schema_stack_ensure_default
+      schema = schema_stack.first if schema == :default
 
       # Keep the value outside of the closure so we can track when
       #   we need to pop the value for recurse: :ignore

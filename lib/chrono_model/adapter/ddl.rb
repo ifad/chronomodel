@@ -14,36 +14,42 @@ module ChronoModel
           history = [HISTORY_SCHEMA,  table].join('.')
 
           options ||= chrono_metadata_for(table)
+          columns = columns(table).reject { |c| c.name == pk }
 
           # SELECT - return only current data
           #
-          on_schema("DEFAULT") do
+          # We use :default here in the case of being already inside an `on_schema` call
+          on_schema(:default) do
             execute "DROP VIEW #{table}" if data_source_exists? table
             execute "CREATE VIEW #{table} AS SELECT * FROM ONLY #{current}"
 
             chrono_metadata_set(table, options.merge(chronomodel: VERSION))
-
+          end
             # Set default values on the view (closes #12)
             #
-            columns(table).each do |column|
-              default = if column.default.nil?
-                column.default_function
-              else
-                quote(column.default)
-              end
-
-              next if column.name == pk || default.nil?
-
-              execute "ALTER VIEW #{table} ALTER COLUMN #{quote_column_name(column.name)} SET DEFAULT #{default}"
+          statements = columns.map do |column|
+            default = if column.default.nil?
+              column.default_function
+            else
+              quote(column.default)
             end
 
-            columns = self.columns(table).map {|c| quote_column_name(c.name)}
-            columns.delete(quote_column_name(pk))
+            next if default.nil?
 
-            fields, values = columns.join(', '), columns.map {|c| "NEW.#{c}"}.join(', ')
+            "ALTER VIEW #{table} ALTER COLUMN #{quote_column_name(column.name)} SET DEFAULT #{default}"
+          end.compact
 
+          on_schema(:default) do
+            statements.each { |stmt| execute stmt }
+          end
+
+          quoted_columns = columns.map { |c| quote_column_name(c.name) }
+
+          fields, values = quoted_columns.join(', '), quoted_columns.map {|c| "NEW.#{c}"}.join(', ')
+
+          on_schema(:default) do
             chrono_create_INSERT_trigger(table, pk, current, history, fields, values)
-            chrono_create_UPDATE_trigger(table, pk, current, history, fields, values, options, columns)
+            chrono_create_UPDATE_trigger(table, pk, current, history, fields, values, options, quoted_columns)
             chrono_create_DELETE_trigger(table, pk, current, history)
           end
         end
