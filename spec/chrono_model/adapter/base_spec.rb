@@ -204,6 +204,8 @@ describe ChronoModel::Adapter do
       end
 
       after(:all) do
+        table "test_table"
+
         adapter.execute "ROLLBACK"
       end
 
