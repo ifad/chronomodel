@@ -140,8 +140,9 @@ module ChronoModel
     # Returns true if the given name references a temporal table.
     #
     def is_chrono?(table)
-      data_source_exists?("#{TEMPORAL_SCHEMA}.#{quote_table_name(table)}") &&
-        data_source_exists?("#{HISTORY_SCHEMA}.#{quote_table_name(table)}")
+      base_table_name = table.to_s.split('.').last
+      data_source_exists?("#{TEMPORAL_SCHEMA}.#{quote_table_name(base_table_name)}") &&
+        data_source_exists?("#{HISTORY_SCHEMA}.#{quote_table_name(base_table_name)}")
     end
 
     # Reads the Gem metadata from the COMMENT set on the given PostgreSQL
