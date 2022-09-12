@@ -83,6 +83,8 @@ module ChronoModel
             chrono_undo_temporal_table(table_name)
 
             super table_name, **options, &block
+          else
+            super table_name, **options, &block
           end
 
         end
