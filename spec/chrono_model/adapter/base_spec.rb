@@ -217,5 +217,23 @@ describe ChronoModel::Adapter do
         it { expect(adapter.is_chrono?(table)).to be(false) }
       end
     end
+
+    context "when the table has a period in the name" do
+      before(:all) do
+        table '"test.table"'
+      end
+
+      after(:all) do
+        table "test_table"
+      end
+
+      with_temporal_table do
+        it { expect(adapter.is_chrono?(table)).to be(true) }
+      end
+
+      with_plain_table do
+        it { expect(adapter.is_chrono?(table)).to be(false) }
+      end
+    end
   end
 end

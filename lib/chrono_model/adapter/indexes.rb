@@ -70,7 +70,7 @@ module ChronoModel
       end
 
       def timeline_consistency_constraint_name(table)
-        "#{table}_timeline_consistency"
+        quote_identifier_name(table: table, suffix: "_timeline_consistency")
       end
 
       private
@@ -79,9 +79,15 @@ module ChronoModel
         def chrono_create_history_indexes_for(table, p_pkey)
           add_temporal_indexes table, :validity, on_current_schema: true
 
-          execute "CREATE INDEX #{table}_inherit_pkey     ON #{table} ( #{p_pkey} )"
-          execute "CREATE INDEX #{table}_recorded_at      ON #{table} ( recorded_at )"
-          execute "CREATE INDEX #{table}_instance_history ON #{table} ( #{p_pkey}, recorded_at )"
+          {
+            "inherit_pkey" => p_pkey,
+            "recorded_at" => "recorded_at",
+            "instance_history" => "#{p_pkey}, recorded_at"
+          }.each do |suffix, columns|
+            index_name = quote_identifier_name(table: table, suffix: "_#{suffix}")
+
+            execute "CREATE INDEX #{index_name} ON #{table} ( #{columns} )"
+          end
         end
 
         # Rename indexes on history schema
@@ -153,7 +159,8 @@ module ChronoModel
         # given range definition.
         #
         def temporal_index_names(table, range, options = {})
-          prefix = options[:name].presence || "index_#{table}_temporal"
+          prefix = options[:name].presence ||
+            quote_identifier_name(prefix: "index_", table: table, suffix: "_temporal")
 
           # When creating computed indexes
           #
@@ -163,7 +170,7 @@ module ChronoModel
           range = range.to_s.sub(/\W.*/, '')
 
           [range, "lower_#{range}", "upper_#{range}"].map do |suffix|
-            [prefix, 'on', suffix].join('_')
+            quote_identifier_name(table: prefix, suffix: "_on_#{suffix}")
           end
         end
 
@@ -189,6 +196,14 @@ module ChronoModel
             on_temporal_schema { yield }
           else
             yield
+          end
+        end
+
+        def quote_identifier_name(prefix: "", table: "", suffix: "")
+          if table[0] == '"' && table[-1] == '"'
+            "\"#{prefix}#{table[1..-2]}#{suffix}\""
+          else
+            "#{prefix}#{table}#{suffix}"
           end
         end
 

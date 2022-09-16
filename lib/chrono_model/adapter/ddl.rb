@@ -78,8 +78,9 @@ module ChronoModel
         # allow setting the PK to a specific value (think migration scenario).
         #
         def chrono_create_INSERT_trigger(table, pk, current, history, fields, values)
+          func_name = quote_identifier_name(prefix: "chronomodel_", table: table, suffix: "_insert")
           execute <<-SQL.strip_heredoc
-            CREATE OR REPLACE FUNCTION chronomodel_#{table}_insert() RETURNS TRIGGER AS $$
+            CREATE OR REPLACE FUNCTION #{func_name}() RETURNS TRIGGER AS $$
                 BEGIN
                     #{insert_sequence_sql(pk, current)} INTO #{current} ( #{pk}, #{fields} )
                     VALUES ( NEW.#{pk}, #{values} );
@@ -95,7 +96,7 @@ module ChronoModel
             DROP TRIGGER IF EXISTS chronomodel_insert ON #{table};
 
             CREATE TRIGGER chronomodel_insert INSTEAD OF INSERT ON #{table}
-                FOR EACH ROW EXECUTE PROCEDURE chronomodel_#{table}_insert();
+                FOR EACH ROW EXECUTE PROCEDURE #{func_name}();
           SQL
         end
 
@@ -130,8 +131,9 @@ module ChronoModel
 
           journal &= columns
 
+          func_name = quote_identifier_name(prefix: "chronomodel_", table: table, suffix: "_update")
           execute <<-SQL.strip_heredoc
-            CREATE OR REPLACE FUNCTION chronomodel_#{table}_update() RETURNS TRIGGER AS $$
+            CREATE OR REPLACE FUNCTION #{func_name}() RETURNS TRIGGER AS $$
                 DECLARE _now timestamp;
                 DECLARE _hid integer;
                 DECLARE _old record;
@@ -174,7 +176,7 @@ module ChronoModel
             DROP TRIGGER IF EXISTS chronomodel_update ON #{table};
 
             CREATE TRIGGER chronomodel_update INSTEAD OF UPDATE ON #{table}
-                FOR EACH ROW EXECUTE PROCEDURE chronomodel_#{table}_update();
+                FOR EACH ROW EXECUTE PROCEDURE #{func_name}();
           SQL
         end
 
@@ -184,8 +186,9 @@ module ChronoModel
         # DELETEd in the same transaction.
         #
         def chrono_create_DELETE_trigger(table, pk, current, history)
+          func_name = quote_identifier_name(prefix: "chronomodel_", table: table, suffix: "_delete")
           execute <<-SQL.strip_heredoc
-            CREATE OR REPLACE FUNCTION chronomodel_#{table}_delete() RETURNS TRIGGER AS $$
+            CREATE OR REPLACE FUNCTION #{func_name}() RETURNS TRIGGER AS $$
                 DECLARE _now timestamp;
                 BEGIN
                     _now := timezone('UTC', now());
@@ -207,13 +210,14 @@ module ChronoModel
             DROP TRIGGER IF EXISTS chronomodel_delete ON #{table};
 
             CREATE TRIGGER chronomodel_delete INSTEAD OF DELETE ON #{table}
-                FOR EACH ROW EXECUTE PROCEDURE chronomodel_#{table}_delete();
+                FOR EACH ROW EXECUTE PROCEDURE #{func_name}();
           SQL
         end
 
         def chrono_drop_trigger_functions_for(table_name)
           %w( insert update delete ).each do |func|
-            execute "DROP FUNCTION IF EXISTS chronomodel_#{table_name}_#{func}()"
+            func_name = quote_identifier_name(prefix: "chronomodel_", table: table_name, suffix: "_#{func}")
+            execute "DROP FUNCTION IF EXISTS #{func_name}()"
           end
         end
 
