@@ -172,7 +172,7 @@ describe ChronoModel::Adapter do
 
     context "within a different search_path" do
       before(:all) do
-        schema_name = "schema_#{Random.uuid.tr("-", "_")}"
+        schema_name = "schema_#{Random.rand(1000..10000)}"
 
         adapter.execute "BEGIN"
         adapter.execute "CREATE SCHEMA #{schema_name}"
@@ -194,7 +194,7 @@ describe ChronoModel::Adapter do
 
     context "with a table in a different schema" do
       before(:all) do
-        schema_name = "schema_#{Random.uuid.tr("-", "_")}"
+        schema_name = "schema_#{Random.rand(1000..10000)}"
 
         adapter.execute "BEGIN"
         adapter.execute "CREATE SCHEMA #{schema_name}"
