@@ -73,6 +73,10 @@ ActiveRecord::Associations::Preloader::ThroughAssociation.instance_eval do
   prepend ChronoModel::Patches::Preloader::ThroughAssociation
 end
 
+ActiveRecord::Batches::BatchEnumerator.instance_eval do
+  prepend ChronoModel::Patches::Batches::BatchEnumerator
+end
+
 if defined?(Rails::DBConsole)
   Rails::DBConsole.instance_eval do
     if Rails.version < '6.1'
