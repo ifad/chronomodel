@@ -38,7 +38,7 @@ module ChronoModel
           # implemented with recursion of subclasses
           if Class.method_defined?(:subclasses)
             def descendants_with_history
-              subclasses_with_history.concat(subclasses.flat_map(&:descendants))
+              subclasses_with_history.concat(subclasses.flat_map(&:descendants_with_history))
             end
           end
         else

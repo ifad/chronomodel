@@ -77,7 +77,7 @@ ActiveRecord::Batches::BatchEnumerator.instance_eval do
   prepend ChronoModel::Patches::Batches::BatchEnumerator
 end
 
-if defined?(Rails::DBConsole)
+if defined?(Rails::DBConsole) && Rails.version < '7.1'
   Rails::DBConsole.instance_eval do
     if Rails.version < '6.1'
       prepend ChronoModel::Patches::DBConsole::Config

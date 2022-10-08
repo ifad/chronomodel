@@ -33,7 +33,7 @@ describe 'models with STI' do
   describe '.descendants_with_history' do
     subject { Element.descendants_with_history.map(&:name) }
 
-    it { is_expected.to match_array %w[Element::History Publication Magazine] }
+    it { is_expected.to match_array %w[Element::History Publication Publication::History Magazine Magazine::History] }
   end
 
   if Element.respond_to?(:direct_descendants)
@@ -50,7 +50,7 @@ describe 'models with STI' do
     end
   end
 
-  if Element.respond_to?(:subclasses)
+  if Rails.version >= '7.0'
     describe '.subclasses' do
       subject { Element.subclasses.map(&:name) }
 

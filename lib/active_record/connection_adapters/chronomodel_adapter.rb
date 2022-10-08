@@ -2,6 +2,9 @@ require 'chrono_model'
 
 module ActiveRecord
   module ConnectionHandling
+    def chronomodel_adapter_class
+      ConnectionAdapters::PostgreSQLAdapter
+    end
 
     # Install the new adapter in ActiveRecord. This approach is required because
     # the PG adapter defines +add_column+ itself, thus making impossible to use
