@@ -13,6 +13,7 @@ module ChronoTest::TimeMachine
 
     def with_revert
       adapter.transaction do
+        adapter.materialize_transactions if adapter.respond_to?(:materialize_transactions)
         adapter.create_savepoint 'revert'
 
         yield

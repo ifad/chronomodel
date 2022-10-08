@@ -18,21 +18,50 @@ describe 'models with STI' do
     include ChronoModel::TimeMachine
   end
 
-  class ::Publication < Element
+  class ::Publication < ::Element
+  end
+
+  class ::Magazine < ::Publication
   end
 
   describe '.descendants' do
-    subject { Element.descendants }
+    subject { Element.descendants.map(&:name) }
 
-    it { is_expected.to_not include(Element::History) }
-    it { is_expected.to     include(Publication) }
+    it { is_expected.to match_array %w[Publication Magazine] }
   end
 
   describe '.descendants_with_history' do
-    subject { Element.descendants_with_history }
+    subject { Element.descendants_with_history.map(&:name) }
 
-    it { is_expected.to include(Element::History) }
-    it { is_expected.to include(Publication) }
+    it { is_expected.to match_array %w[Element::History Publication Publication::History Magazine Magazine::History] }
+  end
+
+  if Element.respond_to?(:direct_descendants)
+    describe '.direct_descendants' do
+      subject { Element.direct_descendants.map(&:name) }
+
+      it { is_expected.to match_array %w[Publication] }
+    end
+
+    describe '.direct_descendants_with_history' do
+      subject { Element.direct_descendants_with_history.map(&:name) }
+
+      it { is_expected.to match_array %w[Element::History Publication] }
+    end
+  end
+
+  if Rails.version >= '7.0'
+    describe '.subclasses' do
+      subject { Element.subclasses.map(&:name) }
+
+      it { is_expected.to match_array %w[Publication] }
+    end
+
+    describe '.subclasses_with_history' do
+      subject { Element.subclasses_with_history.map(&:name) }
+
+      it { is_expected.to match_array %w[Element::History Publication] }
+    end
   end
 
   describe 'timeline' do

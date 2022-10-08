@@ -21,12 +21,35 @@ module ChronoModel
       ChronoModel.history_models[table_name] = history
 
       class << self
-        alias_method :direct_descendants_with_history, :direct_descendants
-        def direct_descendants
-          direct_descendants_with_history.reject(&:history?)
+        if Rails.version >= '7.0'
+          alias_method :subclasses_with_history, :subclasses
+          def subclasses
+            subclasses_with_history.reject(&:history?)
+          end
+
+          # `direct_descendants` is deprecated method in 7.0 and has been
+          # removed in 7.1
+          if method_defined?(:direct_descendants)
+            alias_method :direct_descendants_with_history, :subclasses_with_history
+            alias_method :direct_descendants, :subclasses
+          end
+
+          # Ruby 3.1 has a native subclasses method and descendants is
+          # implemented with recursion of subclasses
+          if Class.method_defined?(:subclasses)
+            def descendants_with_history
+              subclasses_with_history.concat(subclasses.flat_map(&:descendants_with_history))
+            end
+          end
+        else
+          alias_method :descendants_with_history, :descendants
+
+          alias_method :direct_descendants_with_history, :direct_descendants
+          def direct_descendants
+            direct_descendants_with_history.reject(&:history?)
+          end
         end
 
-        alias_method :descendants_with_history, :descendants
         def descendants
           descendants_with_history.reject(&:history?)
         end
