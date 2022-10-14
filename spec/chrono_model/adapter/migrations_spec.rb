@@ -395,7 +395,7 @@ describe ChronoModel::Adapter do
 
       context 'with options' do
         before :all do
-          adapter.change_column table, :foo, :float, an: :option
+          adapter.change_column table, :foo, :float, default: 0
         end
 
         it { is_expected.to_not have_columns([%w[foo integer]]) }
