@@ -163,6 +163,10 @@ module ChronoModel
       execute %[ COMMENT ON VIEW #{view_name} IS #{quote(comment)} ]
     end
 
+    def valid_table_definition_options
+      super + [:temporal, :journal, :no_journal, :full_journal]
+    end
+
     private
       # Rails 7.1 uses `@raw_connection`, older versions use `@connection`
       #
