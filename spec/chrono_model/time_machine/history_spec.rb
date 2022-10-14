@@ -54,6 +54,18 @@ describe ChronoModel::TimeMachine do
       it { expect($t.foo.history.except(:order).select('max(id) as foo, min(id) as bar').group('id').first.attributes.keys).to match_array %w[id foo bar] }
     end
 
+    context 'when finding historical elements by hid' do
+      subject(:historical_foo) { Foo::History.find(last_foo.hid) }
+
+      let(:last_foo) { Foo.history.last }
+
+      it { is_expected.to eq last_foo }
+
+      it 'preserves associations' do
+        expect(historical_foo.bars).to eq last_foo.bars
+      end
+    end
+
     context '.sorted' do
       describe 'orders by recorded_at, hid' do
         it { expect($t.foo.history.sorted.to_sql).to match(/order by .+"recorded_at" ASC, .+"hid" ASC/i) }
