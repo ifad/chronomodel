@@ -115,6 +115,32 @@ describe ChronoModel::Adapter do
     it { expect(count(current)).to eq 1 }
     it { expect(count(history)).to eq 1 }
   end
+  
+  if Rails.version >= '6.0'
+    context 'INSERT with uuid IDs' do
+      before :all do
+        adapter.execute <<-SQL
+          CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
+        SQL
+        adapter.create_table table, temporal: false, id: :uuid, &columns
+        adapter.change_table table, temporal: true
+      end
+
+      after :all do
+        adapter.drop_table table
+      end
+
+      def insert
+        adapter.execute <<-SQL
+          INSERT INTO #{table} (test) VALUES ('test1');
+        SQL
+      end
+
+      it { expect { insert }.to_not raise_error }
+      it { expect(count(current)).to eq 1 }
+      it { expect(count(history)).to eq 1 }
+    end
+  end
 
   context 'redundant UPDATEs' do
     before :all do

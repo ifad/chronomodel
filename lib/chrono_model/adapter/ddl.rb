@@ -31,7 +31,7 @@ module ChronoModel
               quote(column.default)
             end
 
-            next if column.name == pk || default.nil?
+            next if (column.name == pk && pk_and_sequence_for(current).present?) || default.nil?
 
             execute "ALTER VIEW #{table} ALTER COLUMN #{quote_column_name(column.name)} SET DEFAULT #{default}"
           end
