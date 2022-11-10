@@ -58,11 +58,17 @@ describe ChronoModel::TimeMachine do
       subject(:historical_foo) { Foo::History.find(last_foo.hid) }
 
       let(:last_foo) { Foo.history.last }
+      let!(:tar1) { Tar.create(foo: last_foo)}
 
       it { is_expected.to eq last_foo }
 
       it 'preserves associations' do
         expect(historical_foo.bars).to eq last_foo.bars
+      end
+
+      it 'preserves associations that are using a different fkid' do
+        expect(historical_foo.tars).not_to be_empty
+        expect(historical_foo.tars).to eq(last_foo.tars)
       end
     end
 
