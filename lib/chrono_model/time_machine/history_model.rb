@@ -221,6 +221,20 @@ module ChronoModel
         ChronoModel::Conversions.string_to_utc_time attributes_before_type_cast['recorded_at']
       end
 
+      # Starting from Rails 6.0, `.read_attribute` will use the memoized
+      # `primary_key` if it detects that the attribute name is `id`.
+      #
+      # Since the `primary key` may have been changed to `hid` because of
+      # `.find` overload, the new behavior may break relations where `id` is
+      # still the correct attribute to read
+      #
+      # Ref: ifad/chronomodel#181
+      def read_attribute(attr_name, &block)
+        return super unless attr_name.to_s == 'id' && @primary_key.to_s == 'hid'
+
+        _read_attribute('id', &block)
+      end
+
       private
 
       def with_hid_pkey

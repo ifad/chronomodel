@@ -46,6 +46,18 @@ module ChronoTest::TimeMachine
     t.string     :name
     t.integer    :fooity
     t.references :goo
+    t.string     :refee_foo
+  end
+
+  adapter.create_table 'tars', temporal: true do |t|
+    t.string     :name
+    t.string     :foo_refering
+  end
+
+  adapter.change_table 'tars', temporal: true do
+    def up
+      add_reference :foos, column: :foo_refering, primary_key: :refee_foo
+    end
   end
 
   adapter.create_table 'moos', temporal: true do |t|
@@ -80,6 +92,15 @@ module ChronoTest::TimeMachine
     has_timeline with: :bar
   end
 
+  class ::Tar < ActiveRecord::Base
+    include ChronoModel::TimeGate
+
+    belongs_to :foo, foreign_key: :foo_refering, primary_key: :refee_foo, class_name: 'Foo'
+
+    has_timeline with: :foo
+  end
+
+
   class ::Boo < ActiveRecord::Base
     include ChronoModel::TimeMachine
 
@@ -90,6 +111,7 @@ module ChronoTest::TimeMachine
     include ChronoModel::TimeMachine
 
     has_many :bars
+    has_many :tars, foreign_key: :foo_refering, primary_key: :refee_foo
     has_many :sub_bars, through: :bars
     has_many :sub_sub_bars, through: :sub_bars
 
