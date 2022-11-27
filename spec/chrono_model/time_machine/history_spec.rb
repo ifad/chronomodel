@@ -58,7 +58,10 @@ describe ChronoModel::TimeMachine do
       subject(:historical_foo) { Foo::History.find(last_foo.hid) }
 
       let(:last_foo) { Foo.history.last }
-      let!(:tar1) { Tar.create(foo: last_foo)}
+
+      before do
+        Tar.create(foo: last_foo)
+      end
 
       it { is_expected.to eq last_foo }
 
