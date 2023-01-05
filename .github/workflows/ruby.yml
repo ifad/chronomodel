@@ -130,6 +130,7 @@ jobs:
       uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{ matrix.ruby-version }}
+        rubygems: ${{ matrix.ruby-version >= '2.6' && 'latest' || 'default' }}
         bundler-cache: true
     - name: Run specs and publish code coverage
       uses: paambaati/codeclimate-action@v3.2.0
