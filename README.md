@@ -1,6 +1,7 @@
 # Temporal database system on PostgreSQL using [updatable views][pg-updatable-views], [table inheritance][pg-table-inheritance] and [INSTEAD OF triggers][pg-instead-of-triggers].
 
 [![Build Status][build-status-badge]][build-status]
+[![Legacy Build Status][legacy-build-status-badge]][build-status]
 [![Code Climate][code-analysis-badge]][code-analysis]
 [![Test Coverage][test-coverage-badge]][test-coverage]
 [![Gem Version][gem-version-badge]][gem-version]
@@ -391,6 +392,7 @@ This software is Made in Italy :it: :smile:.
 [docs-analysis-badge]: http://inch-ci.org/github/ifad/chronomodel.svg?branch=master
 [gem-version]: https://rubygems.org/gems/chrono_model
 [gem-version-badge]: https://badge.fury.io/rb/chrono_model.svg
+[legacy-build-status-badge]: https://github.com/ifad/chronomodel/actions/workflows/legacy_ruby.yml/badge.svg
 [test-coverage]: https://codeclimate.com/github/ifad/chronomodel
 [test-coverage-badge]: https://codeclimate.com/github/ifad/chronomodel/badges/coverage.svg
 
