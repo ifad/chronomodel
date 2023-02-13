@@ -51,7 +51,7 @@ describe ChronoModel::TimeMachine do
     describe 'does not add as_of_time when there are aggregates' do
       it { expect($t.foo.history.select('max(id)').to_sql).to_not match(/as_of_time/) }
 
-      it { expect($t.foo.history.except(:order).select('max(id) as foo, min(id) as bar').group('id').first.attributes.keys).to match_array %w[id foo bar] }
+      it { expect($t.foo.history.reorder(:id).select('max(id) as foo, min(id) as bar').group('id').first.attributes.keys).to match_array %w[id foo bar] }
     end
 
     context 'when finding historical elements by hid' do

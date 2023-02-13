@@ -128,6 +128,10 @@ module ChronoModel
           def find_sti_class(type_name)
             super(type_name + "::History")
           end
+
+          def query_constraints_list_fallback
+            with_hid_pkey { super }
+          end
       end
 
       # The history id is `hid`, but this cannot set as primary key
