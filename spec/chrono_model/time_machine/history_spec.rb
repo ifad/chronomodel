@@ -18,6 +18,18 @@ describe ChronoModel::TimeMachine do
 
     it { expect(Foo.history.first).to be_a(Foo::History) }
     it { expect(Bar.history.first).to be_a(Bar::History) }
+
+    describe '.second' do
+      subject { Noo.history.second.name }
+
+      it { is_expected.to eq 'Historical Element 2' }
+    end
+
+    describe '.last' do
+      subject { Noo.history.last.name }
+
+      it { is_expected.to eq 'Historical Element 3' }
+    end
   end
 
   describe '#history' do
@@ -45,13 +57,14 @@ describe ChronoModel::TimeMachine do
     end
 
     describe 'allows a custom select list' do
-      it { expect($t.foo.history.select(:id).first.attributes.keys).to eq %w[id] }
+      it { expect($t.foo.history.select(:id).first.attributes.keys).to match_array %w[hid id] }
+      it { expect($t.foo.history.select(:id).last.attributes.keys).to match_array %w[hid id] }
     end
 
     describe 'does not add as_of_time when there are aggregates' do
       it { expect($t.foo.history.select('max(id)').to_sql).to_not match(/as_of_time/) }
 
-      it { expect($t.foo.history.except(:order).select('max(id) as foo, min(id) as bar').group('id').first.attributes.keys).to match_array %w[id foo bar] }
+      it { expect($t.foo.history.reorder('id').select('max(id) as foo, min(id) as bar').group('id').first.attributes.keys).to match_array %w[hid foo bar] }
     end
 
     context 'when finding historical elements by hid' do
