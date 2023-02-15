@@ -63,7 +63,7 @@ All timestamps are _forcibly_ stored in as UTC, bypassing the
 
 ## Requirements
 
-* Ruby >= 2.3
+* Ruby >= 2.2.2
 * Active Record >= 5.0. See the [detailed supported versions matrix on Ruby GitHub Actions workflow](https://github.com/ifad/chronomodel/blob/master/.github/workflows/ruby.yml)
 * PostgreSQL >= 9.4 (legacy support for 9.3)
 * The `btree_gist` PostgreSQL extension
