@@ -64,6 +64,11 @@ module ChronoTest::TimeMachine
     t.string     :name
   end
 
+  adapter.create_table 'noos', temporal: true do |t|
+    t.string     :name
+    t.string     :surname
+  end
+
   adapter.create_table 'sub_bars', temporal: true do |t|
     t.string     :name
     t.references :bar
@@ -130,6 +135,10 @@ module ChronoTest::TimeMachine
     has_and_belongs_to_many :boos, join_table: 'boos_moos'
   end
 
+  class ::Noo < ActiveRecord::Base
+    include ChronoModel::TimeMachine
+  end
+
   class ::SubBar < ActiveRecord::Base
     include ChronoModel::TimeMachine
 
@@ -148,7 +157,7 @@ module ChronoTest::TimeMachine
   # Master timeline, used in multiple specs. It is defined here
   # as a global variable to be able to be shared across specs.
   #
-  $t = Struct.new(:foo, :bar, :baz, :subbar, :foos, :bars, :boos, :moos).new
+  $t = Struct.new(:foo, :bar, :baz, :subbar, :foos, :bars, :boos, :moos, :noos).new
 
   # Set up associated records, with intertwined updates
   #
@@ -177,4 +186,8 @@ module ChronoTest::TimeMachine
   $t.moos = Array.new(2) { |i| ts_eval { Moo.create! name: "moo #{i}", boos: $t.boos } }
 
   $t.baz = Baz.create! name: 'baz', bar: $t.bar
+
+  first_noo = Noo.create! name: 'Historical Element 1'
+  Noo.create! name: 'Historical Element 2'
+  ts_eval(first_noo) { update! name: 'Historical Element 3' }
 end

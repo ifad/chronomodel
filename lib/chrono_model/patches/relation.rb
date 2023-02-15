@@ -77,6 +77,26 @@ module ChronoModel
           model: self.model, as_of_time: as_of_time
         )
       end
+
+      def find_nth(*)
+        return super unless try(:history?)
+
+        with_hid_pkey { super }
+      end
+
+      def last(*)
+        return super unless try(:history?)
+
+        with_hid_pkey { super }
+      end
+
+      private
+
+        def ordered_relation
+          return super unless try(:history?)
+
+          with_hid_pkey { super }
+        end
     end
 
   end

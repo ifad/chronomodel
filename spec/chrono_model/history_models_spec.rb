@@ -13,6 +13,7 @@ describe ChronoModel do
       expected['bars']     = Bar::History     if defined?(Bar::History)
       expected['moos']     = Moo::History     if defined?(Moo::History)
       expected['boos']     = Boo::History     if defined?(Boo::History)
+      expected['noos']     = Noo::History     if defined?(Noo::History)
 
       expected['sub_bars'] = SubBar::History  if defined?(SubBar::History)
       expected['sub_sub_bars'] = SubSubBar::History  if defined?(SubSubBar::History)
