@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'support/time_machine/structure'
 
-describe ChronoModel::TimeMachine do
+RSpec.describe ChronoModel::TimeMachine do
   include ChronoTest::TimeMachine::Helpers
 
   # Set up database structure

@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'support/time_machine/structure'
 
-describe ChronoModel do
+RSpec.describe ChronoModel do
   describe '.history_models' do
     subject { ChronoModel.history_models }
 

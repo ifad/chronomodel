@@ -6,7 +6,7 @@ require 'support/time_machine/structure'
 # - https://github.com/ifad/chronomodel/issues/5
 # - https://github.com/ifad/chronomodel/issues/47
 #
-describe 'models with STI' do
+RSpec.describe 'models with STI' do
   include ChronoTest::TimeMachine::Helpers
 
   adapter.create_table 'elements', temporal: true do |t|

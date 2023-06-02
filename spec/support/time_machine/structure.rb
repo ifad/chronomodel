@@ -105,7 +105,6 @@ module ChronoTest::TimeMachine
     has_timeline with: :foo
   end
 
-
   class ::Boo < ActiveRecord::Base
     include ChronoModel::TimeMachine
 

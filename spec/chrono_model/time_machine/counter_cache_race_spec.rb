@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'support/time_machine/structure'
 
-describe 'models with counter cache' do
+RSpec.describe 'models with counter cache' do
   include ChronoTest::TimeMachine::Helpers
 
   adapter.create_table 'sections', temporal: true, no_journal: %w[articles_count] do |t|

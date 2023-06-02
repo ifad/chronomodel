@@ -3,7 +3,7 @@ require 'support/adapter/structure'
 
 # For the structure of these tables, please see spec/support/adabters/structure.rb.
 #
-shared_examples_for 'temporal table' do
+RSpec.shared_examples_for 'temporal table' do
   it { expect(adapter.is_chrono?(subject)).to be(true) }
 
   it { is_expected.to_not have_public_backing }
@@ -19,7 +19,7 @@ shared_examples_for 'temporal table' do
   it { is_expected.to have_history_columns(columns) }
 end
 
-shared_examples_for 'plain table' do
+RSpec.shared_examples_for 'plain table' do
   it { expect(adapter.is_chrono?(subject)).to be(false) }
 
   it { is_expected.to have_public_backing }
@@ -32,7 +32,7 @@ shared_examples_for 'plain table' do
   it { is_expected.to have_columns(columns) }
 end
 
-describe ChronoModel::Adapter do
+RSpec.describe ChronoModel::Adapter do
   include ChronoTest::Adapter::Helpers
   include ChronoTest::Adapter::Structure
 

@@ -4,7 +4,7 @@ unless Bundler.default_gemfile.to_s =~ /rails_5.0/
 
   require 'spec_helper'
 
-  describe 'rails dbconsole' do
+  RSpec.describe 'rails dbconsole' do
     before do
       write_file(
         'config/database.yml',

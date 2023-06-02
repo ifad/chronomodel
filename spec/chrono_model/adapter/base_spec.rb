@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'support/adapter/structure'
 
-describe ChronoModel::Adapter do
+RSpec.describe ChronoModel::Adapter do
   include ChronoTest::Adapter::Helpers
   include ChronoTest::Adapter::Structure
 

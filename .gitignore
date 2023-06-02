@@ -15,6 +15,7 @@ pkg
 rdoc
 spec/reports
 spec/config.yml
+spec/examples.txt
 spec/debug.log
 test/tmp
 test/version_tmp

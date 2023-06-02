@@ -5,7 +5,7 @@ include ChronoTest::Aruba
 # to see the commmands' stdout and stderr output.
 #
 
-describe 'rake tasks', type: :aruba do
+RSpec.describe 'rake tasks', type: :aruba do
   describe 'bundle exec rake -T' do
     before { run_command_and_stop('bundle exec rake -T') }
     subject { last_command_started }
