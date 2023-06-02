@@ -156,7 +156,7 @@ module ChronoTest::TimeMachine
   # Master timeline, used in multiple specs. It is defined here
   # as a global variable to be able to be shared across specs.
   #
-  $t = Struct.new(:foo, :bar, :baz, :subbar, :foos, :bars, :boos, :moos, :noos).new
+  $t = Struct.new(:foo, :bar, :baz, :subbar, :foos, :bars, :boos, :moos, :noos, :noo).new
 
   # Set up associated records, with intertwined updates
   #
@@ -186,7 +186,7 @@ module ChronoTest::TimeMachine
 
   $t.baz = Baz.create! name: 'baz', bar: $t.bar
 
-  first_noo = Noo.create! name: 'Historical Element 1'
+  $t.noo = ts_eval { Noo.create! name: 'Historical Element 1' }
   Noo.create! name: 'Historical Element 2'
-  ts_eval(first_noo) { update! name: 'Historical Element 3' }
+  ts_eval($t.noo) { update! name: 'Historical Element 3' }
 end
