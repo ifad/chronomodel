@@ -7,7 +7,7 @@
 [![Gem Version][gem-version-badge]][gem-version]
 [![Inlinedocs][docs-analysis-badge]][docs-analysis]
 
-![{A Delorean that we all love}][delorean-image]
+![A Delorean that we all love][delorean-image]
 
 ChronoModel implements what Oracle sells as "Flashback Queries", with standard
 SQL on free PostgreSQL. Academically speaking, ChronoModel implements a
