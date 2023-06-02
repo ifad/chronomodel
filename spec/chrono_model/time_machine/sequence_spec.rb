@@ -20,6 +20,11 @@ RSpec.describe ChronoModel::TimeMachine do
       it { is_expected.to eq $t.foo.history[$t.foo.history.size - 2] }
     end
 
+    context 'with current records without an associated timeline' do
+      subject { $t.noo.pred }
+      it { is_expected.to eq $t.noo.history.first }
+    end
+
     context 'on records having history' do
       subject { $t.bar.pred }
       it { expect(subject.name).to eq 'bar bar' }

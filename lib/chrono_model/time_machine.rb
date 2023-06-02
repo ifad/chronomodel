@@ -172,7 +172,7 @@ module ChronoModel
     #
     def pred(options = {})
       if self.class.timeline_associations.empty?
-        history.order(Arel.sql('upper(validity) DESC')).offset(1).first
+        history.reverse_order.second
       else
         return nil unless (ts = pred_timestamp(options))
 
