@@ -2,7 +2,7 @@ require 'spec_helper'
 require 'support/time_machine/structure'
 
 if Rails.version >= '5.1'
-  describe 'delegate_missing_to' do
+  RSpec.describe 'delegate_missing_to' do
     include ChronoTest::TimeMachine::Helpers
 
     adapter.create_table 'attachments' do |t|

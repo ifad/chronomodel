@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe ChronoModel::Conversions do
+RSpec.describe ChronoModel::Conversions do
   describe 'string_to_utc_time' do
     subject { described_class.string_to_utc_time(string) }
 

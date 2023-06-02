@@ -1,7 +1,7 @@
 require 'spec_helper'
 require 'support/time_machine/structure'
 
-describe ChronoModel::TimeMachine::TimeQuery do
+RSpec.describe ChronoModel::TimeMachine::TimeQuery do
   include ChronoTest::TimeMachine::Helpers
 
   adapter.create_table 'events' do |t|

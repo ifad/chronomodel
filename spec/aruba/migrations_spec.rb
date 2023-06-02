@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe 'database migrations', type: :aruba do
+RSpec.describe 'database migrations', type: :aruba do
   context 'after a migration was generated' do
     before { write_file('config/database.yml',
       File.read(File.expand_path('fixtures/database_without_username_and_password.yml', __dir__))) }

@@ -9,7 +9,7 @@ if ENV['HAVE_PLPYTHON'] == '1'
 
   require 'chrono_model/json'
 
-  describe 'JSON equality operator' do
+  RSpec.describe 'JSON equality operator' do
     include ChronoTest::Adapter::Helpers
 
     table 'json_test'
