@@ -31,7 +31,7 @@ module ChronoModel
   end
 end
 
-if defined?(Rails)
+if defined?(Rails::Railtie)
   require 'chrono_model/railtie'
 end
 
