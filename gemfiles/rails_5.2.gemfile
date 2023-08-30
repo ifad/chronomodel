@@ -1,11 +1,6 @@
 source "https://rubygems.org"
 
-# Ref: rails/rails#44966
-if RUBY_VERSION < '2.3'
-  gem "rails", "5.2.7"
-else
-  gem "rails", "~> 5.2.0"
-end
+gem "rails", "~> 5.2.0"
 
 # Fix code coverage on old Ruby versions
 if RUBY_VERSION < '2.5'
