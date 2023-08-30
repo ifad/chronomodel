@@ -22,9 +22,14 @@ module ChronoModel
 
       class << self
         if Rails.version >= '7.0'
-          alias_method :subclasses_with_history, :subclasses
+          alias_method :_subclasses, :subclasses
+
           def subclasses
-            subclasses_with_history.reject(&:history?)
+            _subclasses.reject(&:history?)
+          end
+
+          def subclasses_with_history
+            _subclasses
           end
 
           # `direct_descendants` is deprecated method in 7.0 and has been
