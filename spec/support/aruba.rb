@@ -15,6 +15,10 @@ module ChronoTest
       as_regexp ? Regexp.new(str) : str
     end
 
+    def copy_db_config(file = 'database_without_username_and_password.yml')
+      copy("%/#{file}", 'config/database.yml')
+    end
+
     def dump_schema_task(as_regexp: false)
       str =
       if Rails.version < '7.0'
