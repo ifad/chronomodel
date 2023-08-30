@@ -18,7 +18,7 @@ namespace :testapp do
       FileUtils.rm_rf('railsapp')
       sh 'rails new railsapp --skip-bundle --skip-javascript --skip-webpack-install --skip-git'
     end
-    FileUtils.cp_r('spec/aruba/fixtures/railsapp/.', 'tmp/railsapp/')
+    FileUtils.cp_r('spec/fixtures/railsapp/.', 'tmp/railsapp/')
     FileUtils.rm('tmp/railsapp/Gemfile')
   end
 end
