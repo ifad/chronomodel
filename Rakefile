@@ -15,8 +15,8 @@ namespace :testapp do
   task :create do
     options = %w[
       --skip-action-cable
+      --skip-action-mailer
       --skip-action-text
-      --skip-active-job
       --skip-active-storage
       --skip-asset-pipeline
       --skip-bundle
