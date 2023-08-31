@@ -13,10 +13,22 @@ task :default => ['testapp:create', :spec]
 namespace :testapp do
   desc 'Create a dummy rails application for testing in /tmp'
   task :create do
+    options = %w[
+      --skip-action-cable
+      --skip-action-text
+      --skip-active-job
+      --skip-active-storage
+      --skip-asset-pipeline
+      --skip-bundle
+      --skip-git
+      --skip-javascript
+      --skip-sprockets
+      --skip-webpack-install
+    ]
     FileUtils.mkdir_p('tmp/aruba')
     Dir.chdir('tmp') do
       FileUtils.rm_rf('railsapp')
-      sh 'rails new railsapp --skip-bundle --skip-javascript --skip-webpack-install --skip-git'
+      sh "rails new railsapp #{options.join(' ')}"
     end
     FileUtils.cp_r('spec/fixtures/railsapp/.', 'tmp/railsapp/')
     FileUtils.rm('tmp/railsapp/Gemfile')
