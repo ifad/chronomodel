@@ -9,8 +9,7 @@ Gem::Specification.new do |gem|
   gem.summary       = 'Temporal extensions (SCD Type II) for Active Record'
   gem.homepage      = 'https://github.com/ifad/chronomodel'
 
-  gem.executables   = `git ls-files -- bin/*`.split("\n").map { |f| File.basename(f) }
-  gem.files         = `git ls-files`.split("\n")
+  gem.files         = Dir.glob('{LICENSE,README.md,lib/**/*.rb}', File::FNM_DOTMATCH)
   gem.name          = 'chrono_model'
   gem.license       = 'MIT'
   gem.require_paths = ['lib']

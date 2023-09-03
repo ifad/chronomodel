@@ -12,6 +12,7 @@ gem 'rails'
 gem 'rake'
 gem 'rspec'
 gem 'rubocop', require: false
+gem 'rubocop-packaging', require: false
 gem 'rubocop-performance', require: false
 gem 'rubocop-rails', require: false
 gem 'rubocop-rake', require: false
