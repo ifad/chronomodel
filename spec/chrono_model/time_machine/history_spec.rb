@@ -5,13 +5,13 @@ RSpec.describe ChronoModel::TimeMachine do
   include ChronoTest::TimeMachine::Helpers
 
   describe '.history' do
-    let(:foo_history) {
+    let(:foo_history) do
       ['foo', 'foo bar', 'new foo', 'foo 0', 'foo 1']
-    }
+    end
 
-    let(:bar_history) {
+    let(:bar_history) do
       ['bar', 'foo bar', 'bar bar', 'new bar', 'bar 0', 'bar 1']
-    }
+    end
 
     it { expect(Foo.history.all.map(&:name)).to eq foo_history }
     it { expect(Bar.history.all.map(&:name)).to eq bar_history }

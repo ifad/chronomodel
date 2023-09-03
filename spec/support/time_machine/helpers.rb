@@ -34,9 +34,11 @@ module ChronoTest::TimeMachine
     def ts_eval(ctx = nil, &block)
       ret = (ctx || self).instance_eval(&block)
       (ctx || ret).tap do |obj|
-        obj.singleton_class.instance_eval do
-          define_method(:ts) { @_ts ||= [] }
-        end unless obj.methods.include?(:ts)
+        unless obj.methods.include?(:ts)
+          obj.singleton_class.instance_eval do
+            define_method(:ts) { @_ts ||= [] }
+          end
+        end
 
         now = ChronoTest.connection.select_value('select now()::timestamp')
         case now

@@ -18,10 +18,10 @@ RSpec.describe 'models with STI' do
     include ChronoModel::TimeMachine
   end
 
-  class ::Publication < ::Element
+  class ::Publication < Element
   end
 
-  class ::Magazine < ::Publication
+  class ::Magazine < Publication
   end
 
   describe '.descendants' do
@@ -101,7 +101,7 @@ RSpec.describe 'models with STI' do
       ActiveRecord::Base.connection.execute "truncate #{tables.join(', ')} cascade"
     end
 
-    specify "select" do
+    specify 'select' do
       expect(Animal.first).to be_a(Animal)
       expect(Animal.as_of(@later).first).to be_a(Animal)
 
@@ -115,7 +115,7 @@ RSpec.describe 'models with STI' do
       expect(Goat.as_of(Time.now).first).to be_a(Goat)
     end
 
-    specify "count" do
+    specify 'count' do
       expect(Animal.count).to eq(2)
       expect(Animal.as_of(@later).count).to eq(1)
 

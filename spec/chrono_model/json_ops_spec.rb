@@ -43,13 +43,13 @@ if ENV['HAVE_PLPYTHON'] == '1'
         adapter.drop_table table
       end
 
-      it { expect {
+      it { expect do
         adapter.execute "UPDATE #{table} SET data = NULL"
-      }.to_not raise_error }
+      end.to_not raise_error }
 
-      it { expect {
+      it { expect do
         adapter.execute %(UPDATE #{table} SET data = '{"x":1,"y":2}')
-      }.to_not raise_error }
+      end.to_not raise_error }
     end
   end
 

@@ -62,13 +62,13 @@ module ChronoTest::Matchers
         @function_templates = [
           'chronomodel_%s_insert',
           'chronomodel_%s_update',
-          'chronomodel_%s_delete',
+          'chronomodel_%s_delete'
         ]
         @schema = schema
       end
 
       def matches?(table)
-        @functions = @function_templates.map { |t| t % [table] }
+        @functions = @function_templates.map { |t| format(t, table) }
 
         super(table)
       end

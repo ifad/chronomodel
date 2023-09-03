@@ -36,11 +36,11 @@ RSpec.describe 'models with counter cache' do
 
       num_threads = 10
 
-      expect {
+      expect do
         Array.new(num_threads).map do
           Thread.new { Article.create!(section_id: section.id) }
         end.each(&:join)
-      }.to_not raise_error
+      end.to_not raise_error
     end
   end
 end

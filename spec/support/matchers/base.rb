@@ -11,7 +11,7 @@ module ChronoTest::Matchers
     private :matches? # This is an abstract class
 
     def failure_message_for_should_not
-      failure_message_for_should.gsub(/to /, 'to not ')
+      failure_message_for_should.gsub('to ', 'to not ')
     end
 
     protected

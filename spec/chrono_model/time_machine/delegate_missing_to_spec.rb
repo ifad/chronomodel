@@ -25,9 +25,9 @@ if Rails.version >= '5.1'
     let(:attachment) { Attachment.create!(blob: Blob.create!(name: 'test')).reload }
 
     it 'does not raise errors' do
-      expect {
+      expect do
         attachment.blob
-      }.not_to raise_error
+      end.not_to raise_error
     end
 
     it 'allows delegation to associated models' do

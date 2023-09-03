@@ -23,5 +23,12 @@ Metrics/BlockLength:
     - 'chrono_model.gemspec'
     - 'spec/**/*'
 
+Rails/ApplicationRecord:
+  Enabled: false
+
 Rails/RakeEnvironment:
   Enabled: false
+
+Style/GlobalVars:
+  Exclude:
+    - 'spec/**/*'

@@ -101,8 +101,8 @@ module ChronoTest::Matchers
           message << [
             ("to exist in the #{history_schema} schema"    unless @existance),
             ("to inherit from #{temporal_schema}.#{table}" unless @inheritance),
-            ("to have a timeline consistency constraint"   unless @constraint),
-            ("to have history indexes"                     unless @indexes)
+            ('to have a timeline consistency constraint'   unless @constraint),
+            ('to have history indexes'                     unless @indexes)
           ].compact.to_sentence
         end
       end
@@ -112,8 +112,8 @@ module ChronoTest::Matchers
           message << [
             ("to not exist in the #{history_schema} schema"    if @existance),
             ("to not inherit from #{temporal_schema}.#{table}" if @inheritance),
-            ("to not have a timeline consistency constraint"   if @constraint),
-            ("to not have history indexes"                     if @indexes)
+            ('to not have a timeline consistency constraint'   if @constraint),
+            ('to not have history indexes'                     if @indexes)
           ].compact.to_sentence
         end
       end

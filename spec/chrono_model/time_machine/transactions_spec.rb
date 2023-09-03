@@ -15,7 +15,7 @@ RSpec.describe ChronoModel::TimeMachine do
       end
     end
 
-    it "generate only a single history record" do
+    it 'generate only a single history record' do
       expect(r1.history.size).to eq(2)
 
       expect(r1.history.first.name).to eq 'xact test'

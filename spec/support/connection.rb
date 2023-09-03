@@ -5,15 +5,13 @@ module ChronoTest
   extend self
 
   AR = ActiveRecord::Base
-  log = ENV['VERBOSE'].present? ? $stderr : 'spec/debug.log'.tap { |f| File.open(f, "ab") { |ft| ft.truncate(0) } }
+  log = ENV['VERBOSE'].present? ? $stderr : 'spec/debug.log'.tap { |f| File.open(f, 'ab') { |ft| ft.truncate(0) } }
   AR.logger = ::Logger.new(log).tap do |l|
     l.level = 0
   end
 
   def connect!(spec = config)
-    unless ENV['VERBOSE'].present?
-      spec = spec.merge(min_messages: 'WARNING')
-    end
+    spec = spec.merge(min_messages: 'WARNING') unless ENV['VERBOSE'].present?
     AR.establish_connection spec
   end
 
@@ -44,13 +42,11 @@ module ChronoTest
       conf.update(adapter: 'chronomodel')
 
       def conf.to_s
-        'pgsql://%s:%s@%s/%s' % [
-          self[:username], self[:password], self[:hostname], self[:database]
-        ]
+        format('pgsql://%s:%s@%s/%s', self[:username], self[:password], self[:hostname], self[:database])
       end
     end
   rescue Errno::ENOENT
-    $stderr.puts <<EOM
+    warn <<EOM
 
 Please define your AR database configuration
 in spec/config.yml or reference your own configuration

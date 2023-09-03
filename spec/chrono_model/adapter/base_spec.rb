@@ -77,14 +77,14 @@ RSpec.describe ChronoModel::Adapter do
       it 'saves the schema at each recursion' do
         is_expected.to be_in_schema(:default)
 
-        adapter.on_schema('test_1') { is_expected.to be_in_schema('test_1')
-                                      adapter.on_schema('test_2') { is_expected.to be_in_schema('test_2')
-                                                                    adapter.on_schema('test_3') { is_expected.to be_in_schema('test_3')
-                                                                    }
+        adapter.on_schema('test_1') do is_expected.to be_in_schema('test_1')
+                                      adapter.on_schema('test_2') do is_expected.to be_in_schema('test_2')
+                                                                    adapter.on_schema('test_3') do is_expected.to be_in_schema('test_3')
+                                                                    end
                                                                     is_expected.to be_in_schema('test_2')
-                                      }
+                                      end
                                       is_expected.to be_in_schema('test_1')
-        }
+        end
 
         is_expected.to be_in_schema(:default)
       end
@@ -115,10 +115,10 @@ RSpec.describe ChronoModel::Adapter do
       it 'ignores recursive calls' do
         is_expected.to be_in_schema(:default)
 
-        adapter.on_schema('test_1', recurse: :ignore) { is_expected.to be_in_schema('test_1')
-                                                        adapter.on_schema('test_2', recurse: :ignore) { is_expected.to be_in_schema('test_1')
-                                                                                                        adapter.on_schema('test_3', recurse: :ignore) { is_expected.to be_in_schema('test_1')
-                                                                                                    } } }
+        adapter.on_schema('test_1', recurse: :ignore) do is_expected.to be_in_schema('test_1')
+                                                        adapter.on_schema('test_2', recurse: :ignore) do is_expected.to be_in_schema('test_1')
+                                                                                                        adapter.on_schema('test_3', recurse: :ignore) do is_expected.to be_in_schema('test_1')
+                                                                                                    end end end
 
         is_expected.to be_in_schema(:default)
       end

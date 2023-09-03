@@ -8,11 +8,10 @@ RSpec.describe ChronoModel::TimeMachine do
     split = ->(ts) { ts.map! { |t| [t.to_i, t.usec] } }
 
     timestamps_from = lambda { |*records|
-      records.map(&:history).flatten!.inject([]) { |ret, rec|
+      records.map(&:history).flatten!.each_with_object([]) do |rec, ret|
         ret.push [rec.valid_from.to_i, rec.valid_from.usec] if rec.try(:valid_from)
         ret.push [rec.valid_to  .to_i, rec.valid_to  .usec] if rec.try(:valid_to)
-        ret
-      }.sort.uniq
+      end.sort.uniq
     }
 
     describe 'on records having an :has_many relationship' do
@@ -37,11 +36,12 @@ RSpec.describe ChronoModel::TimeMachine do
       describe 'returns timestamps of the record and its associations' do
         let!(:expected) do
           creat = $t.bar.history.first.valid_from
-          c_sec, c_usec = creat.to_i, creat.usec
+          c_sec = creat.to_i
+          c_usec = creat.usec
 
-          timestamps_from.call($t.foo, $t.bar).reject { |sec, usec|
+          timestamps_from.call($t.foo, $t.bar).reject do |sec, usec|
             sec < c_sec || (sec == c_sec && usec < c_usec)
-          }
+          end
         end
 
         it { expect(subject.size).to eq expected.size }

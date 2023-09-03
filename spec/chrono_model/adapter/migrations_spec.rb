@@ -114,11 +114,11 @@ RSpec.describe ChronoModel::Adapter do
         end
       end
 
-      it "copies plain index to history" do
+      it 'copies plain index to history' do
         expect(history_indexes.find { |i| i.columns == ['foo'] }).to be_present
       end
 
-      it "copies unique index to history without uniqueness constraint" do
+      it 'copies unique index to history without uniqueness constraint' do
         expect(history_indexes.find { |i| i.columns == ['bar'] && i.unique == false }).to be_present
       end
 
@@ -157,7 +157,7 @@ RSpec.describe ChronoModel::Adapter do
 
       after :all do
         adapter.execute "drop table if exists #{table}"
-        adapter.execute "drop sequence temporal.foobar"
+        adapter.execute 'drop sequence temporal.foobar'
       end
 
       it { is_expected.to have_columns([%w[id integer], ['label', 'character varying']]) }
