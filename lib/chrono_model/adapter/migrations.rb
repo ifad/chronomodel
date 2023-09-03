@@ -79,11 +79,11 @@ module ChronoModel
               super table_name, **options, &block
             end
 
-          else
-            if is_chrono?(table_name)
-              chrono_undo_temporal_table(table_name)
-            end
+          elsif options[:temporal] == false && is_chrono?(table_name)
+            chrono_undo_temporal_table(table_name)
 
+            super table_name, **options, &block
+          else
             super table_name, **options, &block
           end
 

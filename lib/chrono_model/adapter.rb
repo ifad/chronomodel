@@ -107,33 +107,33 @@ module ChronoModel
     #
     # See specs for examples and behaviour.
     #
+
+    # def schema_search_path=(schema)
+    #   puts "Setting schema_search_path to #{schema}"
+    #   super
+    # end
+
     def on_schema(schema, recurse: :follow)
-      old_path = self.schema_search_path
+      schema_stack_ensure_default
+      schema = schema_stack.first if schema == :default
 
-      count_recursions do
-        if recurse == :follow or Thread.current['recursions'] == 1
-          self.schema_search_path = schema
-        end
-
-        yield
+      # Keep the value outside of the closure so we can track when
+      #   we need to pop the value for recurse: :ignore
+      pre_push_stack_length = schema_stack.length
+      if recurse == :follow || pre_push_stack_length == 1
+        schema_stack.push(self.schema_search_path = schema)
       end
 
+      yield
     ensure
-      # If the transaction is aborted, any execute() call will raise
-      # "transaction is aborted errors" - thus calling the Adapter's
-      # setter won't update the memoized variable.
-      #
-      # Here we reset it to +nil+ to refresh it on the next call, as
-      # there is no way to know which path will be restored when the
-      # transaction ends.
-      #
-      transaction_aborted =
-        chrono_connection.transaction_status == PG::Connection::PQTRANS_INERROR
-
-      if transaction_aborted && Thread.current['recursions'] == 1
+      if chrono_connection.transaction_status == PG::Connection::PQTRANS_INERROR && pre_push_stack_length > 2
         @schema_search_path = nil
-      else
-        self.schema_search_path = old_path
+        schema_stack.clear
+      end
+
+      if (schema_stack.length > 1 && recurse == :follow) || pre_push_stack_length == 1
+        schema_stack.pop
+        self.schema_search_path = schema_stack.last
       end
     end
 
@@ -174,16 +174,15 @@ module ChronoModel
         @chrono_connection ||= @raw_connection || @connection
       end
 
-      # Counts the number of recursions in a thread local variable
-      #
-      def count_recursions # yield
-        Thread.current['recursions'] ||= 0
-        Thread.current['recursions'] += 1
+      def schema_stack
+        (Thread.current["chronomodel-schema-stack"] ||= [])
+      end
 
-        yield
+      def schema_stack_ensure_default
+        # If we have no default or only the default from a previous `on_schema` call we
+        # need to set the default again
 
-      ensure
-        Thread.current['recursions'] -= 1
+        schema_stack[0] = select_value("SHOW search_path") if schema_stack.length <= 1
       end
 
       # Create the temporal and history schemas, unless they already exist

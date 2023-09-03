@@ -84,12 +84,38 @@ RSpec.describe ChronoModel::Adapter do
   end
 
   describe '.change_table' do
-    with_temporal_table do
-      before :all do
-        adapter.change_table table, temporal: false
-      end
+    context "when explicitly requesting temporal: false" do
+      with_temporal_table do
+        before :all do
+          adapter.change_table table, temporal: false
+        end
 
-      it_should_behave_like 'plain table'
+        it_should_behave_like 'plain table'
+      end
+    end
+
+    context "when explicitly requesting temporal: true" do
+      with_temporal_table do
+        before :all do
+          adapter.change_table table, temporal: true do |t|
+            t.integer Random.uuid.to_sym
+          end
+        end
+
+        it_should_behave_like "temporal table"
+      end
+    end
+
+    context "when adding a column without specifying temporal: true" do
+      with_temporal_table do
+        before :all do
+          adapter.change_table table do |t|
+            t.string Random.uuid.to_sym
+          end
+        end
+
+        it_should_behave_like "temporal table"
+      end
     end
 
     with_plain_table do
