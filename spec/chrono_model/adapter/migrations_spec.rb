@@ -211,7 +211,7 @@ RSpec.describe ChronoModel::Adapter do
     with_temporal_table do
       before :all do
         adapter.add_index table, %i[foo bar], name: 'foobar_index'
-        adapter.add_index table, [:test],      name: 'test_index'
+        adapter.add_index table, [:test], name: 'test_index'
         adapter.add_index table, :baz
       end
 
@@ -230,7 +230,7 @@ RSpec.describe ChronoModel::Adapter do
     with_plain_table do
       before :all do
         adapter.add_index table, %i[foo bar], name: 'foobar_index'
-        adapter.add_index table, [:test],      name: 'test_index'
+        adapter.add_index table, [:test], name: 'test_index'
         adapter.add_index table, :baz
       end
 
@@ -251,7 +251,7 @@ RSpec.describe ChronoModel::Adapter do
     with_temporal_table do
       before :all do
         adapter.add_index table, %i[foo bar], name: 'foobar_index'
-        adapter.add_index table, [:test],      name: 'test_index'
+        adapter.add_index table, [:test], name: 'test_index'
         adapter.add_index table, :baz
 
         adapter.remove_index table, name: 'test_index'
@@ -270,7 +270,7 @@ RSpec.describe ChronoModel::Adapter do
     with_plain_table do
       before :all do
         adapter.add_index table, %i[foo bar], name: 'foobar_index'
-        adapter.add_index table, [:test],      name: 'test_index'
+        adapter.add_index table, [:test], name: 'test_index'
         adapter.add_index table, :baz
 
         adapter.remove_index table, name: 'test_index'
@@ -328,7 +328,7 @@ RSpec.describe ChronoModel::Adapter do
   end
 
   describe '.remove_column' do
-    let(:resulting_columns) { columns.reject { |c,_| c == 'foo' } }
+    let(:resulting_columns) { columns.reject { |c, _| c == 'foo' } }
 
     with_temporal_table do
       before :all do

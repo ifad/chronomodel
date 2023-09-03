@@ -46,19 +46,18 @@ module ChronoTest
       end
     end
   rescue Errno::ENOENT
-    warn <<-EOM
+    warn <<~EOM
 
 Please define your AR database configuration
 in spec/config.yml or reference your own configuration
 file using the TEST_CONFIG environment variable
-EOM
+    EOM
 
     abort
   end
 
   def config_file
     Pathname(ENV['TEST_CONFIG'] ||
-      File.join(File.dirname(__FILE__), '..', 'config.yml')
-            )
+      File.join(File.dirname(__FILE__), '..', 'config.yml'))
   end
 end

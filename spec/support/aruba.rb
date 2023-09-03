@@ -7,11 +7,11 @@ module ChronoTest
   module Aruba
     def load_schema_task(as_regexp: false)
       str =
-      if Rails.version < '7.0'
-        'db:structure:load'
-      else
-        'db:schema:load'
-      end
+        if Rails.version < '7.0'
+          'db:structure:load'
+        else
+          'db:schema:load'
+        end
       as_regexp ? Regexp.new(str) : str
     end
 
@@ -21,11 +21,11 @@ module ChronoTest
 
     def dump_schema_task(as_regexp: false)
       str =
-      if Rails.version < '7.0'
-        'db:structure:dump'
-      else
-        'db:schema:dump'
-      end
+        if Rails.version < '7.0'
+          'db:structure:dump'
+        else
+          'db:schema:dump'
+        end
       as_regexp ? Regexp.new(str) : str
     end
 

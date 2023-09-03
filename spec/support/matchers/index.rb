@@ -1,23 +1,23 @@
 module ChronoTest
   module Matchers
-  module Index
-    class HaveIndex < ChronoTest::Matchers::Base
-      attr_reader :name, :columns, :schema
+    module Index
+      class HaveIndex < ChronoTest::Matchers::Base
+        attr_reader :name, :columns, :schema
 
-      def initialize(name, columns, schema = 'public')
-        @name    = name
-        @columns = columns.sort
-        @schema  = schema
-      end
+        def initialize(name, columns, schema = 'public')
+          @name    = name
+          @columns = columns.sort
+          @schema  = schema
+        end
 
-      def description
-        'have index'
-      end
+        def description
+          'have index'
+        end
 
-      def matches?(table)
-        super(table)
+        def matches?(table)
+          super(table)
 
-        select_values(<<-SQL, [table, name, schema], 'Check index') == columns
+          select_values(<<-SQL, [table, name, schema], 'Check index') == columns
           SELECT a.attname
             FROM pg_class t
             JOIN pg_index d ON t.oid = d.indrelid
@@ -30,41 +30,41 @@ module ChronoTest
               SELECT oid FROM pg_namespace WHERE nspname = ?
             )
            ORDER BY a.attname
-        SQL
+          SQL
+        end
+
+        def failure_message
+          "expected #{schema}.#{table} to have a #{name} index on #{columns}"
+        end
+
+        def failure_message_when_negated
+          "expected #{schema}.#{table} to not have a #{name} index on #{columns}"
+        end
       end
 
-      def failure_message
-        "expected #{schema}.#{table} to have a #{name} index on #{columns}"
+      def have_index(*args)
+        HaveIndex.new(*args)
       end
 
-      def failure_message_when_negated
-        "expected #{schema}.#{table} to not have a #{name} index on #{columns}"
+      class HaveTemporalIndex < HaveIndex
+        def initialize(name, columns)
+          super(name, columns, temporal_schema)
+        end
+      end
+
+      def have_temporal_index(*args)
+        HaveTemporalIndex.new(*args)
+      end
+
+      class HaveHistoryIndex < HaveIndex
+        def initialize(name, columns)
+          super(name, columns, history_schema)
+        end
+      end
+
+      def have_history_index(*args)
+        HaveHistoryIndex.new(*args)
       end
     end
-
-    def have_index(*args)
-      HaveIndex.new(*args)
-    end
-
-    class HaveTemporalIndex < HaveIndex
-      def initialize(name, columns)
-        super(name, columns, temporal_schema)
-      end
-    end
-
-    def have_temporal_index(*args)
-      HaveTemporalIndex.new(*args)
-    end
-
-    class HaveHistoryIndex < HaveIndex
-      def initialize(name, columns)
-        super(name, columns, history_schema)
-      end
-    end
-
-    def have_history_index(*args)
-      HaveHistoryIndex.new(*args)
-    end
-  end
   end
 end

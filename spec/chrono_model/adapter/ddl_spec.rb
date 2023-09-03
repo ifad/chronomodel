@@ -93,8 +93,10 @@ RSpec.describe ChronoModel::Adapter do
     end
 
     it { expect { insert }.to_not raise_error }
-    it { insert
- expect(select.uniq).to eq ['default-value'] }
+    it {
+      insert
+      expect(select.uniq).to eq ['default-value']
+    }
   end
 
   context 'INSERT with string IDs' do

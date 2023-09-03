@@ -41,9 +41,9 @@ RSpec.describe ChronoModel::TimeMachine do
     end
 
     context 'can compare history against history' do
-      it { expect($t.bar.history.first. changes_against($t.bar.history.third)).to eq('name' => ['bar bar', 'bar']) }
+      it { expect($t.bar.history.first.changes_against($t.bar.history.third)).to eq('name' => ['bar bar', 'bar']) }
       it { expect($t.bar.history.second.changes_against($t.bar.history.third)).to eq('name' => ['bar bar', 'foo bar']) }
-      it { expect($t.bar.history.third. changes_against($t.bar.history.third)).to eq({}) }
+      it { expect($t.bar.history.third.changes_against($t.bar.history.third)).to eq({}) }
     end
   end
 end

@@ -10,7 +10,7 @@ RSpec.describe ChronoModel::TimeMachine do
     timestamps_from = lambda { |*records|
       records.map(&:history).flatten!.each_with_object([]) do |rec, ret|
         ret.push [rec.valid_from.to_i, rec.valid_from.usec] if rec.try(:valid_from)
-        ret.push [rec.valid_to  .to_i, rec.valid_to  .usec] if rec.try(:valid_to)
+        ret.push [rec.valid_to.to_i, rec.valid_to.usec] if rec.try(:valid_to)
       end.sort.uniq
     }
 

@@ -39,7 +39,7 @@ RSpec.describe ChronoModel::Adapter do
 
     assert = proc do
       before(:all) do
-        adapter.add_index table, :foo,         name: 'foo_index'
+        adapter.add_index table, :foo, name: 'foo_index'
         adapter.add_index table, %i[bar baz], name: 'bar_index'
       end
 
@@ -77,13 +77,16 @@ RSpec.describe ChronoModel::Adapter do
       it 'saves the schema at each recursion' do
         is_expected.to be_in_schema(:default)
 
-        adapter.on_schema('test_1') do is_expected.to be_in_schema('test_1')
-                                      adapter.on_schema('test_2') do is_expected.to be_in_schema('test_2')
-                                                                    adapter.on_schema('test_3') do is_expected.to be_in_schema('test_3')
-                                                                    end
-                                                                    is_expected.to be_in_schema('test_2')
-                                      end
-                                      is_expected.to be_in_schema('test_1')
+        adapter.on_schema('test_1') do
+          is_expected.to be_in_schema('test_1')
+          adapter.on_schema('test_2') do
+            is_expected.to be_in_schema('test_2')
+            adapter.on_schema('test_3') do
+              is_expected.to be_in_schema('test_3')
+            end
+            is_expected.to be_in_schema('test_2')
+          end
+          is_expected.to be_in_schema('test_1')
         end
 
         is_expected.to be_in_schema(:default)
@@ -100,9 +103,9 @@ RSpec.describe ChronoModel::Adapter do
         end
 
         it {
-          expect { subject }.
-            to raise_error(/current transaction is aborted/).
-            and change { adapter.instance_variable_get(:@schema_search_path) }
+          expect { subject }
+            .to raise_error(/current transaction is aborted/)
+            .and change { adapter.instance_variable_get(:@schema_search_path) }
         }
 
         after do
@@ -115,10 +118,17 @@ RSpec.describe ChronoModel::Adapter do
       it 'ignores recursive calls' do
         is_expected.to be_in_schema(:default)
 
-        adapter.on_schema('test_1', recurse: :ignore) do is_expected.to be_in_schema('test_1')
-                                                        adapter.on_schema('test_2', recurse: :ignore) do is_expected.to be_in_schema('test_1')
-                                                                                                        adapter.on_schema('test_3', recurse: :ignore) do is_expected.to be_in_schema('test_1')
-                                                                                                    end end end
+        adapter.on_schema('test_1', recurse: :ignore) do
+          is_expected.to be_in_schema('test_1')
+          adapter.on_schema('test_2',
+                            recurse: :ignore) do
+            is_expected.to be_in_schema('test_1')
+            adapter.on_schema('test_3',
+                              recurse: :ignore) do
+              is_expected.to be_in_schema('test_1')
+            end
+          end
+        end
 
         is_expected.to be_in_schema(:default)
       end

@@ -16,7 +16,7 @@ RSpec.describe ChronoModel do
       expected['noos']     = Noo::History     if defined?(Noo::History)
 
       expected['sub_bars'] = SubBar::History  if defined?(SubBar::History)
-      expected['sub_sub_bars'] = SubSubBar::History  if defined?(SubSubBar::History)
+      expected['sub_sub_bars'] = SubSubBar::History if defined?(SubSubBar::History)
 
       # default_scope_spec
       expected['defoos']   = Defoo::History   if defined?(Defoo::History)
