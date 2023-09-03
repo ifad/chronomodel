@@ -8,7 +8,8 @@ require 'support/adapter/helpers'
 # defined, ans as a reference of what it is expected to have been created by
 # the +ChronoModel::Adapter+ methods.
 #
-module ChronoTest::Adapter
+module ChronoTest
+  module Adapter
   module Structure
     extend ActiveSupport::Concern
 
@@ -38,5 +39,6 @@ module ChronoTest::Adapter
         native
       end
     end
+  end
   end
 end

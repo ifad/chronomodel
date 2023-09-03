@@ -1,6 +1,7 @@
 require 'support/matchers/base'
 
-module ChronoTest::Matchers
+module ChronoTest
+  module Matchers
   module Schema
     class BeInSchema < ChronoTest::Matchers::Base
       def initialize(expected)
@@ -32,5 +33,6 @@ module ChronoTest::Matchers
     def be_in_schema(schema)
       BeInSchema.new(schema)
     end
+  end
   end
 end

@@ -4,6 +4,7 @@ source 'https://rubygems.org'
 gemspec
 
 gem 'aruba'
+gem 'bundler'
 gem 'byebug'
 gem 'fuubar'
 gem 'hirb'
@@ -11,10 +12,13 @@ gem 'pry'
 gem 'rails'
 gem 'rake'
 gem 'rspec'
-gem 'rubocop', require: false
-gem 'rubocop-packaging', require: false
-gem 'rubocop-performance', require: false
-gem 'rubocop-rails', require: false
-gem 'rubocop-rake', require: false
-gem 'rubocop-rspec', require: false
 gem 'simplecov', require: false
+
+if RUBY_VERSION >= '2.7'
+  gem 'rubocop', require: false
+  gem 'rubocop-packaging', require: false
+  gem 'rubocop-performance', require: false
+  gem 'rubocop-rails', require: false
+  gem 'rubocop-rake', require: false
+  gem 'rubocop-rspec', require: false
+end

@@ -1,6 +1,7 @@
 require 'support/matchers/base'
 
-module ChronoTest::Matchers
+module ChronoTest
+  module Matchers
   module Table
     class Base < ChronoTest::Matchers::Base
       protected
@@ -267,5 +268,6 @@ module ChronoTest::Matchers
     def have_public_interface
       HavePublicInterface.new
     end
+  end
   end
 end

@@ -1,4 +1,5 @@
-module ChronoTest::TimeMachine
+module ChronoTest
+  module TimeMachine
   # This module contains helpers used throughout the
   # +ChronoModel::TimeMachine+ specs.
   #
@@ -51,5 +52,6 @@ module ChronoTest::TimeMachine
         end
       end
     end
+  end
   end
 end

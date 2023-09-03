@@ -1,4 +1,5 @@
-module ChronoTest::Adapter
+module ChronoTest
+  module Adapter
   module Helpers
     def self.included(base)
       base.extend DSL
@@ -47,5 +48,6 @@ module ChronoTest::Adapter
       end
       delegate :columns, :table, :pk_type, to: self
     end
+  end
   end
 end

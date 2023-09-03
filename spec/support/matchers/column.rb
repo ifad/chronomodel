@@ -1,4 +1,5 @@
-module ChronoTest::Matchers
+module ChronoTest
+  module Matchers
   module Column
     class HaveColumns < ChronoTest::Matchers::Base
       def initialize(columns, schema = 'public')
@@ -93,5 +94,6 @@ module ChronoTest::Matchers
     def have_history_extra_columns
       HaveHistoryExtraColumns.new
     end
+  end
   end
 end

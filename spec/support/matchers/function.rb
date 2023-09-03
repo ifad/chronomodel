@@ -1,4 +1,5 @@
-module ChronoTest::Matchers
+module ChronoTest
+  module Matchers
   module Function
     class HaveFunctions < ChronoTest::Matchers::Base
       def initialize(functions, schema = 'public')
@@ -77,5 +78,6 @@ module ChronoTest::Matchers
     def have_history_functions
       HaveHistoryFunctions.new
     end
+  end
   end
 end

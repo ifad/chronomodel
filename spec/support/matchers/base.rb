@@ -1,4 +1,5 @@
-module ChronoTest::Matchers
+module ChronoTest
+  module Matchers
   class Base
     include ActiveRecord::Sanitization::ClassMethods
 
@@ -52,5 +53,6 @@ module ChronoTest::Matchers
       sql = sanitize_sql_array([sql, *Array.wrap(binds)])
       connection.exec_query(sql, name)
     end
+  end
   end
 end

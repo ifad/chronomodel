@@ -13,7 +13,7 @@ RSpec.describe 'rake tasks', type: :aruba do
     it { is_expected.to have_output(load_schema_task(as_regexp: true)) }
   end
 
-  describe "#{dump_schema_task}" do
+  describe dump_schema_task.to_s do
     before { copy_db_config }
 
     before { run_command_and_stop("bundle exec rake #{dump_schema_task} SCHEMA=db/test.sql") }
@@ -46,7 +46,7 @@ RSpec.describe 'rake tasks', type: :aruba do
     it { expect(last_command_started).to be_successfully_executed }
   end
 
-  describe "#{load_schema_task}" do
+  describe load_schema_task.to_s do
     let(:action) { run_command("bundle exec rake #{load_schema_task}") }
     let(:last_command) { action && last_command_started }
 

@@ -42,11 +42,11 @@ module ChronoTest
       conf.update(adapter: 'chronomodel')
 
       def conf.to_s
-        format('pgsql://%s:%s@%s/%s', self[:username], self[:password], self[:hostname], self[:database])
+        format('pgsql://%<username>s:%<password>s@%<hostname>s/%<database>s', **slice(:username, :password, :hostname, :database))
       end
     end
   rescue Errno::ENOENT
-    warn <<EOM
+    warn <<-EOM
 
 Please define your AR database configuration
 in spec/config.yml or reference your own configuration
@@ -59,6 +59,6 @@ EOM
   def config_file
     Pathname(ENV['TEST_CONFIG'] ||
       File.join(File.dirname(__FILE__), '..', 'config.yml')
-    )
+            )
   end
 end

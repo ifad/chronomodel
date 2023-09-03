@@ -1,4 +1,5 @@
-module ChronoTest::Matchers
+module ChronoTest
+  module Matchers
   module Index
     class HaveIndex < ChronoTest::Matchers::Base
       attr_reader :name, :columns, :schema
@@ -64,5 +65,6 @@ module ChronoTest::Matchers
     def have_history_index(*args)
       HaveHistoryIndex.new(*args)
     end
+  end
   end
 end

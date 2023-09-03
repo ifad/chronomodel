@@ -32,3 +32,6 @@ Rails/RakeEnvironment:
 Style/GlobalVars:
   Exclude:
     - 'spec/**/*'
+
+Style/HashExcept:
+  Enabled: false

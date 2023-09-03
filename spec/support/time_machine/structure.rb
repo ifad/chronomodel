@@ -14,7 +14,8 @@ require 'support/time_machine/helpers'
 # the form of .create! and update!, aiming to mimic the most of AR with the
 # least of the effort. Full coverage exercises are most welcome.
 #
-module ChronoTest::TimeMachine
+module ChronoTest
+  module TimeMachine
   include ChronoTest::TimeMachine::Helpers
 
   # Set up database structure
@@ -189,4 +190,5 @@ module ChronoTest::TimeMachine
   $t.noo = ts_eval { Noo.create! name: 'Historical Element 1' }
   Noo.create! name: 'Historical Element 2'
   ts_eval($t.noo) { update! name: 'Historical Element 3' }
+  end
 end
