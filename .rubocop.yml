@@ -1,0 +1,26 @@
+require:
+  - rubocop-performance
+  - rubocop-rails
+  - rubocop-rake
+  - rubocop-rspec
+
+AllCops:
+  NewCops: enable
+  TargetRailsVersion: 5.0
+  TargetRubyVersion: 2.2
+  Exclude:
+    - 'gemfiles/**/*'
+    - 'lib/**/*'
+    - 'vendor/bundle/**/*'
+    - 'tmp/**/*'
+
+Layout/LineLength:
+  Max: 140
+
+Metrics/BlockLength:
+  Exclude:
+    - 'chrono_model.gemspec'
+    - 'spec/**/*'
+
+Rails/RakeEnvironment:
+  Enabled: false
