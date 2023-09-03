@@ -15,6 +15,9 @@ AllCops:
     - 'vendor/bundle/**/*'
     - 'tmp/**/*'
 
+Gemspec/DevelopmentDependencies:
+  Enabled: false
+
 Layout/LineLength:
   Max: 140
 

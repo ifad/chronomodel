@@ -27,4 +27,15 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'activerecord', '>= 5.0'
   gem.add_dependency 'multi_json'
   gem.add_dependency 'pg', '> 1.1'
+
+  gem.add_development_dependency 'aruba'
+  gem.add_development_dependency 'bundler'
+  gem.add_development_dependency 'byebug'
+  gem.add_development_dependency 'fuubar'
+  gem.add_development_dependency 'hirb'
+  gem.add_development_dependency 'pry'
+  gem.add_development_dependency 'rails'
+  gem.add_development_dependency 'rake'
+  gem.add_development_dependency 'rspec'
+  gem.add_development_dependency 'simplecov'
 end
