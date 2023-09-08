@@ -3,10 +3,11 @@ require 'support/adapter/structure'
 
 # For the structure of these tables, please see spec/support/adabters/structure.rb.
 #
+# rubocop:disable RSpec/ScatteredSetup
 RSpec.shared_examples_for 'temporal table' do
   it { expect(adapter.is_chrono?(subject)).to be(true) }
 
-  it { is_expected.to_not have_public_backing }
+  it { is_expected.not_to have_public_backing }
 
   it { is_expected.to have_temporal_backing }
   it { is_expected.to have_history_backing }
@@ -24,10 +25,10 @@ RSpec.shared_examples_for 'plain table' do
 
   it { is_expected.to have_public_backing }
 
-  it { is_expected.to_not have_temporal_backing }
-  it { is_expected.to_not have_history_backing }
-  it { is_expected.to_not have_history_functions }
-  it { is_expected.to_not have_public_interface }
+  it { is_expected.not_to have_temporal_backing }
+  it { is_expected.not_to have_history_backing }
+  it { is_expected.not_to have_history_functions }
+  it { is_expected.not_to have_public_interface }
 
   it { is_expected.to have_columns(columns) }
 end
@@ -38,11 +39,11 @@ RSpec.describe ChronoModel::Adapter do
 
   describe '.create_table' do
     with_temporal_table do
-      it_should_behave_like 'temporal table'
+      it_behaves_like 'temporal table'
     end
 
     with_plain_table do
-      it_should_behave_like 'plain table'
+      it_behaves_like 'plain table'
     end
   end
 
@@ -61,7 +62,7 @@ RSpec.describe ChronoModel::Adapter do
 
       after(:all) { adapter.drop_table(renamed) }
 
-      it_should_behave_like 'temporal table'
+      it_behaves_like 'temporal table'
 
       it 'renames indexes' do
         new_index_names = adapter.indexes(renamed).map(&:name)
@@ -81,7 +82,7 @@ RSpec.describe ChronoModel::Adapter do
 
       after(:all) { adapter.drop_table(renamed) }
 
-      it_should_behave_like 'plain table'
+      it_behaves_like 'plain table'
     end
   end
 
@@ -91,7 +92,7 @@ RSpec.describe ChronoModel::Adapter do
         adapter.change_table table, temporal: false
       end
 
-      it_should_behave_like 'plain table'
+      it_behaves_like 'plain table'
     end
 
     with_plain_table do
@@ -104,7 +105,7 @@ RSpec.describe ChronoModel::Adapter do
         adapter.change_table table, temporal: true
       end
 
-      it_should_behave_like 'temporal table'
+      it_behaves_like 'temporal table'
 
       let(:temporal_indexes) do
         adapter.indexes(table)
@@ -140,12 +141,12 @@ RSpec.describe ChronoModel::Adapter do
 
     with_plain_table do
       before :all do
-        adapter.change_table table do |t|
+        adapter.change_table table do |_t|
           adapter.add_column table, :frupper, :string
         end
       end
 
-      it_should_behave_like 'plain table'
+      it_behaves_like 'plain table'
 
       it { is_expected.to have_columns([['frupper', 'character varying']]) }
     end
@@ -190,11 +191,11 @@ RSpec.describe ChronoModel::Adapter do
         adapter.drop_table table
       end
 
-      it { is_expected.to_not have_public_backing }
-      it { is_expected.to_not have_temporal_backing }
-      it { is_expected.to_not have_history_backing }
-      it { is_expected.to_not have_history_functions }
-      it { is_expected.to_not have_public_interface }
+      it { is_expected.not_to have_public_backing }
+      it { is_expected.not_to have_temporal_backing }
+      it { is_expected.not_to have_history_backing }
+      it { is_expected.not_to have_history_functions }
+      it { is_expected.not_to have_public_interface }
     end
 
     context 'without temporal tables' do
@@ -204,8 +205,8 @@ RSpec.describe ChronoModel::Adapter do
         adapter.drop_table table, temporal: false
       end
 
-      it { is_expected.to_not have_public_backing }
-      it { is_expected.to_not have_public_interface }
+      it { is_expected.not_to have_public_backing }
+      it { is_expected.not_to have_public_interface }
     end
   end
 
@@ -224,9 +225,9 @@ RSpec.describe ChronoModel::Adapter do
       it { is_expected.to have_temporal_index 'index_test_table_on_baz', %w[baz] }
       it { is_expected.to have_history_index  'index_test_table_on_baz', %w[baz] }
 
-      it { is_expected.to_not have_index 'foobar_index', %w[foo bar] }
-      it { is_expected.to_not have_index 'test_index',   %w[test] }
-      it { is_expected.to_not have_index 'index_test_table_on_baz', %w[baz] }
+      it { is_expected.not_to have_index 'foobar_index', %w[foo bar] }
+      it { is_expected.not_to have_index 'test_index',   %w[test] }
+      it { is_expected.not_to have_index 'index_test_table_on_baz', %w[baz] }
     end
 
     with_plain_table do
@@ -236,12 +237,12 @@ RSpec.describe ChronoModel::Adapter do
         adapter.add_index table, :baz
       end
 
-      it { is_expected.to_not have_temporal_index 'foobar_index', %w[foo bar] }
-      it { is_expected.to_not have_history_index  'foobar_index', %w[foo bar] }
-      it { is_expected.to_not have_temporal_index 'test_index',   %w[test] }
-      it { is_expected.to_not have_history_index  'test_index',   %w[test] }
-      it { is_expected.to_not have_temporal_index 'index_test_table_on_baz', %w[baz] }
-      it { is_expected.to_not have_history_index  'index_test_table_on_baz', %w[baz] }
+      it { is_expected.not_to have_temporal_index 'foobar_index', %w[foo bar] }
+      it { is_expected.not_to have_history_index  'foobar_index', %w[foo bar] }
+      it { is_expected.not_to have_temporal_index 'test_index',   %w[test] }
+      it { is_expected.not_to have_history_index  'test_index',   %w[test] }
+      it { is_expected.not_to have_temporal_index 'index_test_table_on_baz', %w[baz] }
+      it { is_expected.not_to have_history_index  'index_test_table_on_baz', %w[baz] }
 
       it { is_expected.to have_index 'foobar_index', %w[foo bar] }
       it { is_expected.to have_index 'test_index',   %w[test] }
@@ -260,13 +261,13 @@ RSpec.describe ChronoModel::Adapter do
         adapter.remove_index table, :baz
       end
 
-      it { is_expected.to_not have_temporal_index 'test_index', %w[test] }
-      it { is_expected.to_not have_history_index  'test_index', %w[test] }
-      it { is_expected.to_not have_index          'test_index', %w[test] }
+      it { is_expected.not_to have_temporal_index 'test_index', %w[test] }
+      it { is_expected.not_to have_history_index  'test_index', %w[test] }
+      it { is_expected.not_to have_index          'test_index', %w[test] }
 
-      it { is_expected.to_not have_temporal_index 'index_test_table_on_baz', %w[baz] }
-      it { is_expected.to_not have_history_index  'index_test_table_on_baz', %w[baz] }
-      it { is_expected.to_not have_index          'index_test_table_on_baz', %w[baz] }
+      it { is_expected.not_to have_temporal_index 'index_test_table_on_baz', %w[baz] }
+      it { is_expected.not_to have_history_index  'index_test_table_on_baz', %w[baz] }
+      it { is_expected.not_to have_index          'index_test_table_on_baz', %w[baz] }
     end
 
     with_plain_table do
@@ -279,13 +280,13 @@ RSpec.describe ChronoModel::Adapter do
         adapter.remove_index table, :baz
       end
 
-      it { is_expected.to_not have_temporal_index 'test_index', %w[test] }
-      it { is_expected.to_not have_history_index  'test_index', %w[test] }
-      it { is_expected.to_not have_index          'test_index', %w[test] }
+      it { is_expected.not_to have_temporal_index 'test_index', %w[test] }
+      it { is_expected.not_to have_history_index  'test_index', %w[test] }
+      it { is_expected.not_to have_index          'test_index', %w[test] }
 
-      it { is_expected.to_not have_temporal_index 'index_test_table_on_baz', %w[baz] }
-      it { is_expected.to_not have_history_index  'index_test_table_on_baz', %w[baz] }
-      it { is_expected.to_not have_index          'index_test_table_on_baz', %w[baz] }
+      it { is_expected.not_to have_temporal_index 'index_test_table_on_baz', %w[baz] }
+      it { is_expected.not_to have_history_index  'index_test_table_on_baz', %w[baz] }
+      it { is_expected.not_to have_index          'index_test_table_on_baz', %w[baz] }
     end
   end
 
@@ -341,9 +342,9 @@ RSpec.describe ChronoModel::Adapter do
       it { is_expected.to have_temporal_columns(resulting_columns) }
       it { is_expected.to have_history_columns(resulting_columns) }
 
-      it { is_expected.to_not have_columns([%w[foo integer]]) }
-      it { is_expected.to_not have_temporal_columns([%w[foo integer]]) }
-      it { is_expected.to_not have_history_columns([%w[foo integer]]) }
+      it { is_expected.not_to have_columns([%w[foo integer]]) }
+      it { is_expected.not_to have_temporal_columns([%w[foo integer]]) }
+      it { is_expected.not_to have_history_columns([%w[foo integer]]) }
     end
 
     with_plain_table do
@@ -352,7 +353,7 @@ RSpec.describe ChronoModel::Adapter do
       end
 
       it { is_expected.to have_columns(resulting_columns) }
-      it { is_expected.to_not have_columns([%w[foo integer]]) }
+      it { is_expected.not_to have_columns([%w[foo integer]]) }
     end
   end
 
@@ -362,9 +363,9 @@ RSpec.describe ChronoModel::Adapter do
         adapter.rename_column table, :foo, :taratapiatapioca
       end
 
-      it { is_expected.to_not have_columns([%w[foo integer]]) }
-      it { is_expected.to_not have_temporal_columns([%w[foo integer]]) }
-      it { is_expected.to_not have_history_columns([%w[foo integer]]) }
+      it { is_expected.not_to have_columns([%w[foo integer]]) }
+      it { is_expected.not_to have_temporal_columns([%w[foo integer]]) }
+      it { is_expected.not_to have_history_columns([%w[foo integer]]) }
 
       it { is_expected.to have_columns([%w[taratapiatapioca integer]]) }
       it { is_expected.to have_temporal_columns([%w[taratapiatapioca integer]]) }
@@ -376,7 +377,7 @@ RSpec.describe ChronoModel::Adapter do
         adapter.rename_column table, :foo, :taratapiatapioca
       end
 
-      it { is_expected.to_not have_columns([%w[foo integer]]) }
+      it { is_expected.not_to have_columns([%w[foo integer]]) }
       it { is_expected.to have_columns([%w[taratapiatapioca integer]]) }
     end
   end
@@ -387,9 +388,9 @@ RSpec.describe ChronoModel::Adapter do
         adapter.change_column table, :foo, :float
       end
 
-      it { is_expected.to_not have_columns([%w[foo integer]]) }
-      it { is_expected.to_not have_temporal_columns([%w[foo integer]]) }
-      it { is_expected.to_not have_history_columns([%w[foo integer]]) }
+      it { is_expected.not_to have_columns([%w[foo integer]]) }
+      it { is_expected.not_to have_temporal_columns([%w[foo integer]]) }
+      it { is_expected.not_to have_history_columns([%w[foo integer]]) }
 
       it { is_expected.to have_columns([['foo', 'double precision']]) }
       it { is_expected.to have_temporal_columns([['foo', 'double precision']]) }
@@ -400,7 +401,7 @@ RSpec.describe ChronoModel::Adapter do
           adapter.change_column table, :foo, :float, default: 0
         end
 
-        it { is_expected.to_not have_columns([%w[foo integer]]) }
+        it { is_expected.not_to have_columns([%w[foo integer]]) }
       end
     end
 
@@ -409,7 +410,7 @@ RSpec.describe ChronoModel::Adapter do
         adapter.change_column table, :foo, :float
       end
 
-      it { is_expected.to_not have_columns([%w[foo integer]]) }
+      it { is_expected.not_to have_columns([%w[foo integer]]) }
       it { is_expected.to have_columns([['foo', 'double precision']]) }
     end
   end
@@ -420,9 +421,9 @@ RSpec.describe ChronoModel::Adapter do
         adapter.remove_column table, :foo
       end
 
-      it { is_expected.to_not have_columns([%w[foo integer]]) }
-      it { is_expected.to_not have_temporal_columns([%w[foo integer]]) }
-      it { is_expected.to_not have_history_columns([%w[foo integer]]) }
+      it { is_expected.not_to have_columns([%w[foo integer]]) }
+      it { is_expected.not_to have_temporal_columns([%w[foo integer]]) }
+      it { is_expected.not_to have_history_columns([%w[foo integer]]) }
     end
 
     with_plain_table do
@@ -430,7 +431,8 @@ RSpec.describe ChronoModel::Adapter do
         adapter.remove_column table, :foo
       end
 
-      it { is_expected.to_not have_columns([%w[foo integer]]) }
+      it { is_expected.not_to have_columns([%w[foo integer]]) }
     end
   end
 end
+# rubocop:enable RSpec/ScatteredSetup
