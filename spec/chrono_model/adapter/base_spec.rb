@@ -102,15 +102,15 @@ RSpec.describe ChronoModel::Adapter do
           end
         end
 
+        after do
+          adapter.execute 'ROLLBACK'
+        end
         it {
           expect { subject }
             .to raise_error(/current transaction is aborted/)
             .and change { adapter.instance_variable_get(:@schema_search_path) }
         }
 
-        after do
-          adapter.execute 'ROLLBACK'
-        end
       end
     end
 

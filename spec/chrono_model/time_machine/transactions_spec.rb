@@ -15,6 +15,10 @@ RSpec.describe ChronoModel::TimeMachine do
       end
     end
 
+    after do
+      r1.destroy
+      r1.history.delete_all
+    end
     it 'generate only a single history record' do
       expect(r1.history.size).to eq(2)
 
@@ -22,10 +26,6 @@ RSpec.describe ChronoModel::TimeMachine do
       expect(r1.history.last.name).to  eq 'does work'
     end
 
-    after do
-      r1.destroy
-      r1.history.delete_all
-    end
   end
 
   context 'insertion and subsequent update' do
@@ -38,15 +38,15 @@ RSpec.describe ChronoModel::TimeMachine do
       end
     end
 
+    after do
+      r2.destroy
+      r2.history.delete_all
+    end
     it 'generates a single history record' do
       expect(r2.history.size).to eq(1)
       expect(r2.history.first.name).to eq 'I am Foo'
     end
 
-    after do
-      r2.destroy
-      r2.history.delete_all
-    end
   end
 
   context 'insertion and subsequent deletion' do
@@ -56,13 +56,13 @@ RSpec.describe ChronoModel::TimeMachine do
       end
     end
 
-    it 'does not generate any history' do
-      expect(Foo.history.where(id: r3.id)).to be_empty
-    end
-
     after do
       r3.destroy
       r3.history.delete_all
     end
+    it 'does not generate any history' do
+      expect(Foo.history.where(id: r3.id)).to be_empty
+    end
+
   end
 end
