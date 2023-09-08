@@ -7,7 +7,7 @@ RSpec.describe ChronoModel::Adapter do
 
   subject { adapter }
 
-  it { is_expected.to be_a_kind_of(ChronoModel::Adapter) }
+  it { is_expected.to be_a(ChronoModel::Adapter) }
 
   context do
     subject { adapter.adapter_name }
@@ -24,7 +24,7 @@ RSpec.describe ChronoModel::Adapter do
   context do
     before { expect(adapter).to receive(:postgresql_version).and_return(90_000) }
 
-    it { is_expected.to_not be_chrono_supported }
+    it { is_expected.not_to be_chrono_supported }
   end
 
   describe '.primary_key' do
@@ -48,7 +48,7 @@ RSpec.describe ChronoModel::Adapter do
       end
 
       it { expect(subject.map(&:name)).to match_array %w[foo_index bar_index] }
-      it { expect(subject.map(&:columns)).to match_array [['foo'], %w[bar baz]] }
+      it { expect(subject.map(&:columns)).to contain_exactly(['foo'], %w[bar baz]) }
     end
 
     with_temporal_table(&assert)
@@ -79,21 +79,21 @@ RSpec.describe ChronoModel::Adapter do
 
     context 'by default' do
       it 'saves the schema at each recursion' do
-        is_expected.to be_in_schema(:default)
+        expect(subject).to be_in_schema(:default)
 
         adapter.on_schema('test_1') do
-          is_expected.to be_in_schema('test_1')
+          expect(subject).to be_in_schema('test_1')
           adapter.on_schema('test_2') do
-            is_expected.to be_in_schema('test_2')
+            expect(subject).to be_in_schema('test_2')
             adapter.on_schema('test_3') do
-              is_expected.to be_in_schema('test_3')
+              expect(subject).to be_in_schema('test_3')
             end
-            is_expected.to be_in_schema('test_2')
+            expect(subject).to be_in_schema('test_2')
           end
-          is_expected.to be_in_schema('test_1')
+          expect(subject).to be_in_schema('test_1')
         end
 
-        is_expected.to be_in_schema(:default)
+        expect(subject).to be_in_schema(:default)
       end
 
       context 'when errors occur' do
@@ -113,28 +113,28 @@ RSpec.describe ChronoModel::Adapter do
         it {
           expect { subject }
             .to raise_error(/current transaction is aborted/)
-            .and change { adapter.instance_variable_get(:@schema_search_path) }
+            .and(change { adapter.instance_variable_get(:@schema_search_path) })
         }
       end
     end
 
     context 'with recurse: :ignore' do
       it 'ignores recursive calls' do
-        is_expected.to be_in_schema(:default)
+        expect(subject).to be_in_schema(:default)
 
         adapter.on_schema('test_1', recurse: :ignore) do
-          is_expected.to be_in_schema('test_1')
+          expect(subject).to be_in_schema('test_1')
           adapter.on_schema('test_2',
                             recurse: :ignore) do
-            is_expected.to be_in_schema('test_1')
+            expect(subject).to be_in_schema('test_1')
             adapter.on_schema('test_3',
                               recurse: :ignore) do
-              is_expected.to be_in_schema('test_1')
+              expect(subject).to be_in_schema('test_1')
             end
           end
         end
 
-        is_expected.to be_in_schema(:default)
+        expect(subject).to be_in_schema(:default)
       end
     end
   end
@@ -160,7 +160,7 @@ RSpec.describe ChronoModel::Adapter do
         adapter.execute 'ROLLBACK'
       end
 
-      it { expect { adapter.is_chrono?(table) }.to_not raise_error }
+      it { expect { adapter.is_chrono?(table) }.not_to raise_error }
 
       it { expect(adapter.is_chrono?(table)).to be(false) }
     end

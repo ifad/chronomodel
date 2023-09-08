@@ -15,7 +15,7 @@ RSpec.describe ChronoModel::TimeMachine do
         subject.save
         subject.reload
 
-        is_expected.to be_a(Bar::History)
+        expect(subject).to be_a(Bar::History)
         expect(another_historical_object.name).not_to eq 'modified bar history'
         expect(subject.name).to eq 'modified bar history'
       end
@@ -33,7 +33,7 @@ RSpec.describe ChronoModel::TimeMachine do
         subject.save!
         subject.reload
 
-        is_expected.to be_a(Bar::History)
+        expect(subject).to be_a(Bar::History)
         expect(first_historical_object.name).not_to eq 'another modified bar history'
         expect(subject.name).to eq 'another modified bar history'
       end
@@ -50,7 +50,7 @@ RSpec.describe ChronoModel::TimeMachine do
         subject.update_columns name: 'another modified bar history'
         subject.reload
 
-        is_expected.to be_a(Bar::History)
+        expect(subject).to be_a(Bar::History)
         expect(another_historical_object.name).not_to eq 'another modified bar history'
         expect(subject.name).to eq 'another modified bar history'
       end
@@ -77,8 +77,7 @@ RSpec.describe ChronoModel::TimeMachine do
         rec.history.delete_all
       end
 
-
-      it { expect { subject }.to_not raise_error }
+      it { expect { subject }.not_to raise_error }
       it { expect { rec.reload }.to raise_error(ActiveRecord::RecordNotFound) }
 
       describe 'does not delete its history' do

@@ -53,8 +53,8 @@ RSpec.describe ChronoModel::TimeMachine do
     end
 
     describe 'does not return read only associated records' do
-      it { expect($t.foo.history[2].bars.all?(&:readonly?)).to_not be(true) }
-      it { expect($t.bar.history.all? { |b| b.foo.readonly? }).to_not be(true) }
+      it { expect($t.foo.history[2].bars.all?(&:readonly?)).not_to be(true) }
+      it { expect($t.bar.history.all? { |b| b.foo.readonly? }).not_to be(true) }
     end
 
     describe 'allows a custom select list' do
@@ -63,7 +63,7 @@ RSpec.describe ChronoModel::TimeMachine do
     end
 
     describe 'does not add as_of_time when there are aggregates' do
-      it { expect($t.foo.history.select('max(id)').to_sql).to_not match(/as_of_time/) }
+      it { expect($t.foo.history.select('max(id)').to_sql).not_to match(/as_of_time/) }
 
       it {
         expect($t.foo.history.reorder('id').select('max(id) as foo, min(id) as bar').group('id').first.attributes.keys).to match_array %w[hid foo

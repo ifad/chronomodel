@@ -29,7 +29,7 @@ RSpec.describe ChronoModel do
       expected['animals']  = Animal::History  if defined?(Animal::History)
       expected['elements'] = Element::History if defined?(Element::History)
 
-      is_expected.to eq(expected)
+      expect(subject).to eq(expected)
     end
 
     it { expect(subject.size).to be > 0 }

@@ -26,6 +26,7 @@ if ENV['HAVE_PLPYTHON'] == '1'
     it { expect(adapter.select_value(%( SELECT '{"a":1}'::json = '{"a" : 1}'::json ))).to eq true }
     it { expect(adapter.select_value(%( SELECT '{"a":1}'::json = '{"a":2}'::json ))).to eq false }
     it { expect(adapter.select_value(%( SELECT '{"a":1,"b":2}'::json = '{"b":2,"a":1}'::json ))).to eq true }
+
     it {
       expect(adapter.select_value(%( SELECT '{"a":1,"b":2,"x":{"c":4,"d":5}}'::json = '{"b":2, "x": { "d": 5, "c": 4}, "a":1}'::json ))).to eq true
     }
@@ -48,13 +49,13 @@ if ENV['HAVE_PLPYTHON'] == '1'
       it {
         expect do
           adapter.execute "UPDATE #{table} SET data = NULL"
-        end.to_not raise_error
+        end.not_to raise_error
       }
 
       it {
         expect do
           adapter.execute %(UPDATE #{table} SET data = '{"x":1,"y":2}')
-        end.to_not raise_error
+        end.not_to raise_error
       }
     end
   end

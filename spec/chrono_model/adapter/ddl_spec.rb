@@ -34,7 +34,7 @@ RSpec.describe ChronoModel::Adapter do
         SQL
       end
 
-      it { expect { insert }.to_not raise_error }
+      it { expect { insert }.not_to raise_error }
       it { expect(count(current)).to eq 2 }
       it { expect(count(history)).to eq 2 }
     end
@@ -62,7 +62,7 @@ RSpec.describe ChronoModel::Adapter do
         SQL
       end
 
-      it { expect { insert }.to_not raise_error }
+      it { expect { insert }.not_to raise_error }
 
       it { expect(count(current)).to eq 4 }
       it { expect(count(history)).to eq 4 }
@@ -92,7 +92,8 @@ RSpec.describe ChronoModel::Adapter do
       SQL
     end
 
-    it { expect { insert }.to_not raise_error }
+    it { expect { insert }.not_to raise_error }
+
     it {
       insert
       expect(select.uniq).to eq ['default-value']
@@ -114,7 +115,7 @@ RSpec.describe ChronoModel::Adapter do
       SQL
     end
 
-    it { expect { insert }.to_not raise_error }
+    it { expect { insert }.not_to raise_error }
     it { expect(count(current)).to eq 1 }
     it { expect(count(history)).to eq 1 }
   end

@@ -27,7 +27,7 @@ RSpec.describe ChronoModel::Conversions do
     context 'given an invalid UTC time string' do
       let(:string) { 'foobar' }
 
-      it { is_expected.to be(nil) }
+      it { is_expected.to be_nil }
     end
   end
 

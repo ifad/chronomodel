@@ -40,7 +40,7 @@ RSpec.describe 'models with counter cache' do
         Array.new(num_threads).map do
           Thread.new { Article.create!(section_id: section.id) }
         end.each(&:join)
-      end.to_not raise_error
+      end.not_to raise_error
     end
   end
 end

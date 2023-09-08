@@ -8,7 +8,7 @@ RSpec.describe ChronoModel::TimeMachine do
     context 'on the first history entry' do
       subject { $t.foo.history.first.pred }
 
-      it { is_expected.to be(nil) }
+      it { is_expected.to be_nil }
     end
 
     context 'on the second history entry' do
@@ -46,10 +46,9 @@ RSpec.describe ChronoModel::TimeMachine do
 
       let(:record) { Bar.create!(name: 'quuuux') }
 
-
       after { record.destroy.history.delete_all }
 
-      it { is_expected.to be(nil) }
+      it { is_expected.to be_nil }
     end
   end
 
@@ -69,7 +68,7 @@ RSpec.describe ChronoModel::TimeMachine do
     context 'on the last history entry' do
       subject { $t.foo.history.last.succ }
 
-      it { is_expected.to be(nil) }
+      it { is_expected.to be_nil }
     end
   end
 

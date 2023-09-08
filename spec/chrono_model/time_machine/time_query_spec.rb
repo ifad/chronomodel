@@ -52,7 +52,7 @@ RSpec.describe ChronoModel::TimeMachine::TimeQuery do
       context 'multiple overlapping records' do
         let(:time) { 14.days.ago }
 
-        it { is_expected.to match_array [think, plan] }
+        it { is_expected.to contain_exactly(think, plan) }
       end
 
       context 'on an edge of an open interval' do
@@ -86,7 +86,7 @@ RSpec.describe ChronoModel::TimeMachine::TimeQuery do
       context 'that is empty' do
         let(:times) { [14.days.ago, 14.days.ago] }
 
-        it { is_expected.to_not be_empty }
+        it { is_expected.not_to be_empty }
       end
 
       context 'overlapping no records' do
@@ -104,7 +104,7 @@ RSpec.describe ChronoModel::TimeMachine::TimeQuery do
       context 'overlapping more records' do
         let(:times) { [16.days.ago, 11.days.ago] }
 
-        it { is_expected.to match_array [think, plan, collect] }
+        it { is_expected.to contain_exactly(think, plan, collect) }
       end
 
       context 'on the edge of an open interval and an hole' do
@@ -119,7 +119,6 @@ RSpec.describe ChronoModel::TimeMachine::TimeQuery do
     subject { Event.time_query(:before, time.try(:to_date) || time, on: :interval, type: :daterange, inclusive: inclusive).to_a }
 
     let(:inclusive) { true }
-
 
     context '16 days ago' do
       let(:time) { 16.days.ago }
@@ -142,7 +141,7 @@ RSpec.describe ChronoModel::TimeMachine::TimeQuery do
     context '11 days ago' do
       let(:time) { 11.days.ago }
 
-      it { is_expected.to match_array [think, plan, collect] }
+      it { is_expected.to contain_exactly(think, plan, collect) }
 
       context 'not inclusive' do
         let(:inclusive) { false }
@@ -154,25 +153,25 @@ RSpec.describe ChronoModel::TimeMachine::TimeQuery do
     context '10 days ago' do
       let(:time) { 10.days.ago }
 
-      it { is_expected.to match_array [think, plan, collect] }
+      it { is_expected.to contain_exactly(think, plan, collect) }
     end
 
     context '8 days ago' do
       let(:time) { 8.days.ago }
 
-      it { is_expected.to match_array [think, plan, collect] }
+      it { is_expected.to contain_exactly(think, plan, collect) }
     end
 
     context 'today' do
       let(:time) { Date.today }
 
-      it { is_expected.to match_array [think, plan, collect, start, build] }
+      it { is_expected.to contain_exactly(think, plan, collect, start, build) }
     end
 
     context ':today' do
       let(:time) { :today }
 
-      it { is_expected.to match_array [think, plan, collect, start, build] }
+      it { is_expected.to contain_exactly(think, plan, collect, start, build) }
     end
   end
 
@@ -181,17 +180,16 @@ RSpec.describe ChronoModel::TimeMachine::TimeQuery do
 
     let(:inclusive) { true }
 
-
     context 'one month ago' do
       let(:time) { 1.month.ago }
 
-      it { is_expected.to match_array [think, plan, collect, start, build, profit] }
+      it { is_expected.to contain_exactly(think, plan, collect, start, build, profit) }
     end
 
     context '10 days ago' do
       let(:time) { 10.days.ago }
 
-      it { is_expected.to match_array [start, build, profit] }
+      it { is_expected.to contain_exactly(start, build, profit) }
     end
 
     context 'yesterday' do
@@ -244,37 +242,37 @@ RSpec.describe ChronoModel::TimeMachine::TimeQuery do
       context '14 days ago' do
         let(:time) { 14.days.ago }
 
-        it { is_expected.to match_array [collect, start, build, profit] }
+        it { is_expected.to contain_exactly(collect, start, build, profit) }
       end
 
       context '9 days ago' do
         let(:time) { 9.days.ago }
 
-        it { is_expected.to match_array [think, plan, collect, start, build, profit] }
+        it { is_expected.to contain_exactly(think, plan, collect, start, build, profit) }
       end
 
       context '8 days ago' do
         let(:time) { 8.days.ago }
 
-        it { is_expected.to match_array [think, plan, collect, build, profit] }
+        it { is_expected.to contain_exactly(think, plan, collect, build, profit) }
       end
 
       context 'today' do
         let(:time) { Date.today }
 
-        it { is_expected.to match_array [think, plan, collect, start, build, profit] }
+        it { is_expected.to contain_exactly(think, plan, collect, start, build, profit) }
       end
 
       context ':today' do
         let(:time) { :today }
 
-        it { is_expected.to match_array [think, plan, collect, start, build, profit] }
+        it { is_expected.to contain_exactly(think, plan, collect, start, build, profit) }
       end
 
       context '1 month from now' do
         let(:time) { 1.month.from_now }
 
-        it { is_expected.to match_array [think, plan, collect, start, build] }
+        it { is_expected.to contain_exactly(think, plan, collect, start, build) }
       end
     end
 
@@ -284,7 +282,7 @@ RSpec.describe ChronoModel::TimeMachine::TimeQuery do
       context 'eliminating a single record' do
         let(:time) { [1.month.ago, 14.days.ago] }
 
-        it { is_expected.to match_array [plan, collect, start, build, profit] }
+        it { is_expected.to contain_exactly(plan, collect, start, build, profit) }
       end
 
       context 'eliminating multiple records' do

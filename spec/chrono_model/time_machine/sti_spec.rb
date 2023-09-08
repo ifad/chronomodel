@@ -111,7 +111,7 @@ RSpec.describe 'models with STI' do
 
       expect(Animal.where(type: 'Goat').first).to be_a(Goat)
       expect(Goat.first).to be_a(Goat)
-      expect(Goat.as_of(@later).first).to be(nil)
+      expect(Goat.as_of(@later).first).to be_nil
       expect(Goat.as_of(Time.now).first).to be_a(Goat)
     end
 

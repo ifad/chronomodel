@@ -17,10 +17,10 @@ RSpec.describe 'database migrations', type: :aruba do
 
   describe 'rerun bundle exec rake db:drop db:create db:migrate', issue: 56 do
     let(:command) { 'bundle exec rake db:drop db:create db:migrate' }
-    before { copy('%/migrations/56/', 'db/migrate') }
-
     let(:action) { run_command(command) }
     let(:regex) { /-- change_table\(:impressions, {:temporal=>true, :copy_data=>true}\)/ }
+
+    before { copy('%/migrations/56/', 'db/migrate') }
 
     describe 'once' do
       let(:last_command) { action && last_command_started }

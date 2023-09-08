@@ -55,7 +55,7 @@ module ChronoTest
       connection.create_database database
     end
 
-    def file_mangle!(file, &block)
+    def file_mangle!(file)
       # Read
       file_contents = read(file).join("\n")
 
