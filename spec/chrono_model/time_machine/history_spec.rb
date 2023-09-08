@@ -120,17 +120,20 @@ RSpec.describe ChronoModel::TimeMachine do
 
     describe 'on plain records' do
       let(:record) { $t.foo }
+
       it { is_expected.to be(false) }
     end
 
     describe 'on historical records' do
       describe 'from #history' do
         let(:record) { $t.foo.history.first }
+
         it { is_expected.to be(true) }
       end
 
       describe 'from #as_of' do
         let(:record) { $t.foo.as_of(Time.now) }
+
         it { is_expected.to be(true) }
       end
     end

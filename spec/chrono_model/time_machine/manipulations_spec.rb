@@ -69,6 +69,7 @@ RSpec.describe ChronoModel::TimeMachine do
         rec = ts_eval { Foo.create!(name: 'alive foo', fooity: 42) }
         ts_eval(rec) { update!(name: 'dying foo') }
       end
+
       after(:all) do
         rec.history.delete_all
       end
@@ -83,16 +84,19 @@ RSpec.describe ChronoModel::TimeMachine do
 
         context do
           let(:record) { rec.as_of(rec.ts.first) }
+
           it { is_expected.to eq 'alive foo' }
         end
 
         context do
           let(:record) { rec.as_of(rec.ts.last) }
+
           it { is_expected.to eq 'dying foo' }
         end
 
         context do
           let(:record) { Foo.as_of(rec.ts.first).where(fooity: 42).first }
+
           it { is_expected.to eq 'alive foo' }
         end
 

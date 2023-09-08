@@ -58,6 +58,7 @@ RSpec.describe ChronoModel::Adapter do
 
         adapter.rename_table table, renamed
       end
+
       after(:all) { adapter.drop_table(renamed) }
 
       it_should_behave_like 'temporal table'
@@ -77,6 +78,7 @@ RSpec.describe ChronoModel::Adapter do
 
         adapter.rename_table table, renamed
       end
+
       after(:all) { adapter.drop_table(renamed) }
 
       it_should_behave_like 'plain table'

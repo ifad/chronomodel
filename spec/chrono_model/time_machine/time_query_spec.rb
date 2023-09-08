@@ -39,36 +39,43 @@ RSpec.describe ChronoModel::TimeMachine::TimeQuery do
 
       context 'no records' do
         let(:time) { 16.days.ago }
+
         it { is_expected.to be_empty }
       end
 
       context 'single record' do
         let(:time) { 15.days.ago }
+
         it { is_expected.to eq [think] }
       end
 
       context 'multiple overlapping records' do
         let(:time) { 14.days.ago }
+
         it { is_expected.to match_array [think, plan] }
       end
 
       context 'on an edge of an open interval' do
         let(:time) { 10.days.ago }
+
         it { is_expected.to be_empty }
       end
 
       context 'in an hole' do
         let(:time) { 9.days.ago }
+
         it { is_expected.to be_empty }
       end
 
       context 'today' do
         let(:time) { Date.today }
+
         it { is_expected.to be_empty }
       end
 
       context 'server-side :today' do
         let(:time) { :today }
+
         it { is_expected.to be_empty }
       end
     end
@@ -78,26 +85,31 @@ RSpec.describe ChronoModel::TimeMachine::TimeQuery do
 
       context 'that is empty' do
         let(:times) { [14.days.ago, 14.days.ago] }
+
         it { is_expected.to_not be_empty }
       end
 
       context 'overlapping no records' do
         let(:times) { [20.days.ago, 16.days.ago] }
+
         it { is_expected.to be_empty }
       end
 
       context 'overlapping a single record' do
         let(:times) { [16.days.ago, 14.days.ago] }
+
         it { is_expected.to eq [think] }
       end
 
       context 'overlapping more records' do
         let(:times) { [16.days.ago, 11.days.ago] }
+
         it { is_expected.to match_array [think, plan, collect] }
       end
 
       context 'on the edge of an open interval and an hole' do
         let(:times) { [10.days.ago, 9.days.ago] }
+
         it { is_expected.to be_empty }
       end
     end
@@ -105,100 +117,120 @@ RSpec.describe ChronoModel::TimeMachine::TimeQuery do
 
   describe :before do
     let(:inclusive) { true }
+
     subject { Event.time_query(:before, time.try(:to_date) || time, on: :interval, type: :daterange, inclusive: inclusive).to_a }
 
     context '16 days ago' do
       let(:time) { 16.days.ago }
+
       it { is_expected.to be_empty }
     end
 
     context '14 days ago' do
       let(:time) { 14.days.ago }
+
       it { is_expected.to eq [think] }
 
       context 'not inclusive' do
         let(:inclusive) { false }
+
         it { is_expected.to be_empty }
       end
     end
 
     context '11 days ago' do
       let(:time) { 11.days.ago }
+
       it { is_expected.to match_array [think, plan, collect] }
 
       context 'not inclusive' do
         let(:inclusive) { false }
+
         it { is_expected.to eq [think, plan] }
       end
     end
 
     context '10 days ago' do
       let(:time) { 10.days.ago }
+
       it { is_expected.to match_array [think, plan, collect] }
     end
 
     context '8 days ago' do
       let(:time) { 8.days.ago }
+
       it { is_expected.to match_array [think, plan, collect] }
     end
 
     context 'today' do
       let(:time) { Date.today }
+
       it { is_expected.to match_array [think, plan, collect, start, build] }
     end
 
     context ':today' do
       let(:time) { :today }
+
       it { is_expected.to match_array [think, plan, collect, start, build] }
     end
   end
 
   describe :after do
     let(:inclusive) { true }
+
     subject { Event.time_query(:after, time.try(:to_date) || time, on: :interval, type: :daterange, inclusive: inclusive).to_a }
 
     context 'one month ago' do
       let(:time) { 1.month.ago }
+
       it { is_expected.to match_array [think, plan, collect, start, build, profit] }
     end
 
     context '10 days ago' do
       let(:time) { 10.days.ago }
+
       it { is_expected.to match_array [start, build, profit] }
     end
 
     context 'yesterday' do
       let(:time) { Date.yesterday }
+
       it { is_expected.to eq [profit] }
     end
 
     context 'today' do
       let(:time) { Date.today }
+
       it { is_expected.to eq [profit] }
     end
 
     context 'server-side :today' do
       let(:time) { :today }
+
       it { is_expected.to eq [profit] }
     end
 
     context 'tomorrow' do
       let(:time) { Date.tomorrow }
+
       it { is_expected.to eq [profit] }
     end
 
     context 'one month from now' do
       let(:time) { 1.month.from_now }
+
       it { is_expected.to eq [profit] }
 
       context 'not inclusive' do
         let(:inclusive) { false }
+
         it { is_expected.to be_empty }
       end
     end
 
     context 'far future' do
       let(:time) { 1.year.from_now }
+
       it { is_expected.to be_empty }
     end
   end
@@ -209,31 +241,37 @@ RSpec.describe ChronoModel::TimeMachine::TimeQuery do
 
       context '14 days ago' do
         let(:time) { 14.days.ago }
+
         it { is_expected.to match_array [collect, start, build, profit] }
       end
 
       context '9 days ago' do
         let(:time) { 9.days.ago }
+
         it { is_expected.to match_array [think, plan, collect, start, build, profit] }
       end
 
       context '8 days ago' do
         let(:time) { 8.days.ago }
+
         it { is_expected.to match_array [think, plan, collect, build, profit] }
       end
 
       context 'today' do
         let(:time) { Date.today }
+
         it { is_expected.to match_array [think, plan, collect, start, build, profit] }
       end
 
       context ':today' do
         let(:time) { :today }
+
         it { is_expected.to match_array [think, plan, collect, start, build, profit] }
       end
 
       context '1 month from now' do
         let(:time) { 1.month.from_now }
+
         it { is_expected.to match_array [think, plan, collect, start, build] }
       end
     end
@@ -243,16 +281,19 @@ RSpec.describe ChronoModel::TimeMachine::TimeQuery do
 
       context 'eliminating a single record' do
         let(:time) { [1.month.ago, 14.days.ago] }
+
         it { is_expected.to match_array [plan, collect, start, build, profit] }
       end
 
       context 'eliminating multiple records' do
         let(:time) { [1.month.ago, Date.today] }
+
         it { is_expected.to eq [profit] }
       end
 
       context 'from an edge' do
         let(:time) { [14.days.ago, 10.days.ago] }
+
         it { is_expected.to eq [start, build, profit] }
       end
     end

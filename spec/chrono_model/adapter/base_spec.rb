@@ -15,11 +15,13 @@ RSpec.describe ChronoModel::Adapter do
 
   context do
     before { expect(adapter).to receive(:postgresql_version).and_return(90_300) }
+
     it { is_expected.to be_chrono_supported }
   end
 
   context do
     before { expect(adapter).to receive(:postgresql_version).and_return(90_000) }
+
     it { is_expected.to_not be_chrono_supported }
   end
 
@@ -105,6 +107,7 @@ RSpec.describe ChronoModel::Adapter do
         after do
           adapter.execute 'ROLLBACK'
         end
+
         it {
           expect { subject }
             .to raise_error(/current transaction is aborted/)

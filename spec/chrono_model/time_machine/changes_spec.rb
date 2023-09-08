@@ -13,8 +13,10 @@ RSpec.describe ChronoModel::TimeMachine do
 
       context 'without history' do
         let(:record) { Bar.create!(name: 'foreveralone') }
+
         subject { record.last_changes }
         after { record.destroy.history.delete_all } # UGLY
+
         it { is_expected.to be_nil }
       end
     end

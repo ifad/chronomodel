@@ -24,12 +24,14 @@ RSpec.describe 'database migrations', type: :aruba do
 
     describe 'once' do
       let(:last_command) { action && last_command_started }
+
       it { expect(last_command).to be_successfully_executed }
       it { expect(last_command).to have_output(regex) }
     end
 
     describe 'twice' do
       let(:last_command) { run_command_and_stop(command) && action && last_command_started }
+
       it { expect(last_command).to be_successfully_executed }
       it { expect(last_command).to have_output(regex) }
     end

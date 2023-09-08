@@ -24,6 +24,7 @@ RSpec.describe ChronoModel::Adapter do
     after do
       adapter.remove_temporal_indexes :meetings, :interval
     end
+
     it {
       expect(adapter.indexes(:meetings).map(&:name)).to eq %w[
         index_meetings_temporal_on_interval
@@ -53,6 +54,7 @@ RSpec.describe ChronoModel::Adapter do
     after do
       adapter.remove_timeline_consistency_constraint(:meetings)
     end
+
     it {
       expect(adapter.indexes(:meetings).map(&:name)).to eq [
         'meetings_timeline_consistency'
