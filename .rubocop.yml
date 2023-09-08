@@ -29,7 +29,13 @@ Metrics/BlockLength:
 Rails/ApplicationRecord:
   Enabled: false
 
+Rails/Date:
+  Enabled: false
+
 Rails/RakeEnvironment:
+  Enabled: false
+
+Rails/TimeZone:
   Enabled: false
 
 Style/GlobalVars:
@@ -38,3 +44,4 @@ Style/GlobalVars:
 
 Style/HashExcept:
   Enabled: false
+

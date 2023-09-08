@@ -3,7 +3,7 @@ require 'support/time_machine/structure'
 
 RSpec.describe ChronoModel do
   describe '.history_models' do
-    subject { ChronoModel.history_models }
+    subject { described_class.history_models }
 
     it 'tracks recorded history models' do
       expected = {}

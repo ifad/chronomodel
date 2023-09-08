@@ -13,7 +13,7 @@ RSpec.describe ChronoModel::TimeMachine do
 
     it { expect(Foo.includes(bars: :sub_bars)).to eq all_foos }
     it { expect(Foo.includes(:bars).preload(bars: :sub_bars)).to eq all_foos }
-    it { expect(Foo.includes(:bars).preload(bars: :sub_bars).as_of(Time.new)).to eq all_foos }
+    it { expect(Foo.includes(:bars).preload(bars: :sub_bars).as_of(Time.now)).to eq all_foos }
 
     it { expect(Foo.includes(:bars).first.name).to eq 'new foo' }
     it { expect(Foo.includes(:bars).as_of($t.foo.ts[0]).first.name).to eq 'foo' }
@@ -26,6 +26,6 @@ RSpec.describe ChronoModel::TimeMachine do
     it { expect(Foo.first.bars.includes(:sub_bars)).to eq [$t.bar] }
 
     it { expect(Moo.first.boos).to eq(Boo.all) }
-    it { expect(Moo.first.boos.as_of(Time.new)).to eq(Boo.all.as_of(Time.new)) }
+    it { expect(Moo.first.boos.as_of(Time.now)).to eq(Boo.all.as_of(Time.now)) }
   end
 end

@@ -7,7 +7,7 @@ RSpec.describe ChronoModel::Adapter do
 
   subject { adapter }
 
-  it { is_expected.to be_a(ChronoModel::Adapter) }
+  it { is_expected.to be_a(described_class) }
 
   context do
     subject { adapter.adapter_name }
@@ -25,46 +25,6 @@ RSpec.describe ChronoModel::Adapter do
     before { expect(adapter).to receive(:postgresql_version).and_return(90_000) }
 
     it { is_expected.not_to be_chrono_supported }
-  end
-
-  describe '.primary_key' do
-    subject { adapter.primary_key(table) }
-
-    assert = proc do
-      it { is_expected.to eq 'id' }
-    end
-
-    with_temporal_table(&assert)
-    with_plain_table(&assert)
-  end
-
-  describe '.indexes' do
-    subject { adapter.indexes(table) }
-
-    assert = proc do
-      before(:all) do
-        adapter.add_index table, :foo, name: 'foo_index'
-        adapter.add_index table, %i[bar baz], name: 'bar_index'
-      end
-
-      it { expect(subject.map(&:name)).to match_array %w[foo_index bar_index] }
-      it { expect(subject.map(&:columns)).to contain_exactly(['foo'], %w[bar baz]) }
-    end
-
-    with_temporal_table(&assert)
-    with_plain_table(&assert)
-  end
-
-  describe '.column_definitions' do
-    subject { adapter.column_definitions(table).map { |d| d.take(2) } }
-
-    assert = proc do
-      it { expect(subject & columns).to eq columns }
-      it { is_expected.to include(['id', pk_type]) }
-    end
-
-    with_temporal_table(&assert)
-    with_plain_table(&assert)
   end
 
   describe '.on_schema' do

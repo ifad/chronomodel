@@ -92,7 +92,7 @@ RSpec.describe 'models with STI' do
 
     before do
       Dog.create!
-      @later = Time.new
+      @later = Time.now
       Goat.create!
     end
 

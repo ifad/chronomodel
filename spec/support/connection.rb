@@ -11,7 +11,7 @@ module ChronoTest
   end
 
   def connect!(spec = config)
-    spec = spec.merge(min_messages: 'WARNING') unless ENV['VERBOSE'].present?
+    spec = spec.merge(min_messages: 'WARNING') if ENV['VERBOSE'].blank?
     AR.establish_connection spec
   end
 

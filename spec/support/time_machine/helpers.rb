@@ -37,7 +37,7 @@ module ChronoTest
         (ctx || ret).tap do |obj|
           unless obj.methods.include?(:ts)
             obj.singleton_class.instance_eval do
-              define_method(:ts) { @_ts ||= [] }
+              define_method(:ts) { @ts ||= [] }
             end
           end
 
