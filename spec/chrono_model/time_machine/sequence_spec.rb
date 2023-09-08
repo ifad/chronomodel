@@ -42,7 +42,6 @@ RSpec.describe ChronoModel::TimeMachine do
 
       after { record.destroy.history.delete_all }
       it { is_expected.to be(nil) }
-
     end
   end
 

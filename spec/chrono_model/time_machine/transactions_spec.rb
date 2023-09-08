@@ -25,7 +25,6 @@ RSpec.describe ChronoModel::TimeMachine do
       expect(r1.history.first.name).to eq 'xact test'
       expect(r1.history.last.name).to  eq 'does work'
     end
-
   end
 
   context 'insertion and subsequent update' do
@@ -46,7 +45,6 @@ RSpec.describe ChronoModel::TimeMachine do
       expect(r2.history.size).to eq(1)
       expect(r2.history.first.name).to eq 'I am Foo'
     end
-
   end
 
   context 'insertion and subsequent deletion' do
@@ -63,6 +61,5 @@ RSpec.describe ChronoModel::TimeMachine do
     it 'does not generate any history' do
       expect(Foo.history.where(id: r3.id)).to be_empty
     end
-
   end
 end

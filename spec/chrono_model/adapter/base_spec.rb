@@ -110,7 +110,6 @@ RSpec.describe ChronoModel::Adapter do
             .to raise_error(/current transaction is aborted/)
             .and change { adapter.instance_variable_get(:@schema_search_path) }
         }
-
       end
     end
 

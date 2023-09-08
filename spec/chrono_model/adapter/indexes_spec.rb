@@ -31,7 +31,6 @@ RSpec.describe ChronoModel::Adapter do
         index_meetings_temporal_on_upper_interval
       ]
     }
-
   end
 
   describe '.remove_temporal_indexes' do
@@ -59,7 +58,6 @@ RSpec.describe ChronoModel::Adapter do
         'meetings_timeline_consistency'
       ]
     }
-
   end
 
   describe '.remove_timeline_consistency_constraint' do

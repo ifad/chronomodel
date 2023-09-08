@@ -2,7 +2,7 @@ require 'pathname'
 require 'active_record'
 
 module ChronoTest
-  extend self
+  extend self # rubocop:disable Style/ModuleFunction
 
   AR = ActiveRecord::Base
   log = ENV['VERBOSE'].present? ? $stderr : 'spec/debug.log'.tap { |f| File.open(f, 'ab') { |ft| ft.truncate(0) } }
@@ -37,7 +37,7 @@ module ChronoTest
   end
 
   def config
-    @config ||= YAML.load(config_file.read).tap do |conf|
+    @config ||= YAML.safe_load(config_file.read).tap do |conf|
       conf.symbolize_keys!
       conf.update(adapter: 'chronomodel')
 
