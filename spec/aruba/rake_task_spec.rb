@@ -7,26 +7,28 @@ include ChronoTest::Aruba
 
 RSpec.describe 'rake tasks', type: :aruba do
   describe 'bundle exec rake -T' do
-    before { run_command_and_stop('bundle exec rake -T') }
-
     subject { last_command_started }
+
+    before { run_command_and_stop('bundle exec rake -T') }
 
     it { is_expected.to have_output(load_schema_task(as_regexp: true)) }
   end
 
   describe dump_schema_task.to_s do
-    before { copy_db_config }
-
-    before { run_command_and_stop("bundle exec rake #{dump_schema_task} SCHEMA=db/test.sql") }
+    before do
+      copy_db_config
+      run_command_and_stop("bundle exec rake #{dump_schema_task} SCHEMA=db/test.sql")
+    end
 
     it { expect(last_command_started).to be_successfully_executed }
     it { expect('db/test.sql').to be_an_existing_file }
     it { expect('db/test.sql').not_to have_file_content(/\A--/) }
 
     context 'with schema_search_path option' do
-      before { copy_db_config('database_with_schema_search_path.yml') }
-
-      before { run_command_and_stop("bundle exec rake #{dump_schema_task} SCHEMA=db/test.sql") }
+      before do
+        copy_db_config('database_with_schema_search_path.yml')
+        run_command_and_stop("bundle exec rake #{dump_schema_task} SCHEMA=db/test.sql")
+      end
 
       it 'includes chronomodel schemas' do
         expect('db/test.sql').to have_file_content(/^CREATE SCHEMA IF NOT EXISTS history;$/)
@@ -40,9 +42,8 @@ RSpec.describe 'rake tasks', type: :aruba do
     before do
       copy_db_config
       copy('%/set_config.sql', 'db/test.sql')
+      run_command_and_stop('bundle exec rake db:schema:load SCHEMA=db/test.sql')
     end
-
-    before { run_command_and_stop('bundle exec rake db:schema:load SCHEMA=db/test.sql') }
 
     it { expect(last_command_started).to be_successfully_executed }
   end
@@ -57,11 +58,11 @@ RSpec.describe 'rake tasks', type: :aruba do
       end
 
       context 'with default username and password', issue: 55 do
-        before { copy_db_config('database_with_default_username_and_password.yml') }
-
-        # Handle Homebrew on MacOS, whose database superuser name is
-        # equal to the name of the current user.
         before do
+          copy_db_config('database_with_default_username_and_password.yml')
+
+          # Handle Homebrew on MacOS, whose database superuser name is
+          # equal to the name of the current user.
           if which 'brew'
             file_mangle!('config/database.yml') do |contents|
               contents.sub('username: postgres', "username: #{Etc.getlogin}")
@@ -84,9 +85,8 @@ RSpec.describe 'rake tasks', type: :aruba do
     before do
       copy_db_config
       copy('%/set_config.sql', 'db/test.sql')
+      run_command_and_stop('bundle exec rake db:data:dump DUMP=db/test.sql')
     end
-
-    before { run_command_and_stop('bundle exec rake db:data:dump DUMP=db/test.sql') }
 
     it { expect(last_command_started).to be_successfully_executed }
     it { expect('db/test.sql').to be_an_existing_file }
@@ -96,9 +96,8 @@ RSpec.describe 'rake tasks', type: :aruba do
     before do
       copy_db_config
       copy('%/empty_structure.sql', 'db/test.sql')
+      run_command_and_stop('bundle exec rake db:data:load DUMP=db/test.sql')
     end
-
-    before { run_command_and_stop('bundle exec rake db:data:load DUMP=db/test.sql') }
 
     it { expect(last_command_started).to be_successfully_executed }
   end
