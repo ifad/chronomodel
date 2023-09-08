@@ -60,11 +60,14 @@ RSpec.describe ChronoModel::TimeMachine do
   describe '#destroy' do
     describe 'on historical records' do
       subject { $t.foo.history.first.destroy }
+
       it { expect { subject }.to raise_error(ActiveRecord::ReadOnlyRecord) }
     end
 
     describe 'on current records' do
       rec = nil
+      subject { rec.destroy }
+
       before(:all) do
         rec = ts_eval { Foo.create!(name: 'alive foo', fooity: 42) }
         ts_eval(rec) { update!(name: 'dying foo') }
@@ -74,7 +77,6 @@ RSpec.describe ChronoModel::TimeMachine do
         rec.history.delete_all
       end
 
-      subject { rec.destroy }
 
       it { expect { subject }.to_not raise_error }
       it { expect { rec.reload }.to raise_error(ActiveRecord::RecordNotFound) }
@@ -102,6 +104,7 @@ RSpec.describe ChronoModel::TimeMachine do
 
         context do
           subject { Foo.history.where(fooity: 42).map(&:name) }
+
           it { is_expected.to eq ['alive foo', 'dying foo'] }
         end
       end

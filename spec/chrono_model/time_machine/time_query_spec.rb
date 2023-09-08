@@ -116,9 +116,10 @@ RSpec.describe ChronoModel::TimeMachine::TimeQuery do
   end
 
   describe :before do
+    subject { Event.time_query(:before, time.try(:to_date) || time, on: :interval, type: :daterange, inclusive: inclusive).to_a }
+
     let(:inclusive) { true }
 
-    subject { Event.time_query(:before, time.try(:to_date) || time, on: :interval, type: :daterange, inclusive: inclusive).to_a }
 
     context '16 days ago' do
       let(:time) { 16.days.ago }
@@ -176,9 +177,10 @@ RSpec.describe ChronoModel::TimeMachine::TimeQuery do
   end
 
   describe :after do
+    subject { Event.time_query(:after, time.try(:to_date) || time, on: :interval, type: :daterange, inclusive: inclusive).to_a }
+
     let(:inclusive) { true }
 
-    subject { Event.time_query(:after, time.try(:to_date) || time, on: :interval, type: :daterange, inclusive: inclusive).to_a }
 
     context 'one month ago' do
       let(:time) { 1.month.ago }

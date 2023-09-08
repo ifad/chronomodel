@@ -8,13 +8,15 @@ RSpec.describe ChronoModel::TimeMachine do
     context 'on plain records' do
       context 'having history' do
         subject { $t.bar.last_changes }
+
         it { is_expected.to eq('name' => ['bar bar', 'new bar']) }
       end
 
       context 'without history' do
+        subject { record.last_changes }
+
         let(:record) { Bar.create!(name: 'foreveralone') }
 
-        subject { record.last_changes }
         after { record.destroy.history.delete_all } # UGLY
 
         it { is_expected.to be_nil }
@@ -24,11 +26,13 @@ RSpec.describe ChronoModel::TimeMachine do
     context 'on history records' do
       context 'at the beginning of the timeline' do
         subject { $t.bar.history.first.last_changes }
+
         it { is_expected.to be_nil }
       end
 
       context 'in the middle of the timeline' do
         subject { $t.bar.history.second.last_changes }
+
         it { is_expected.to eq('name' => ['bar', 'foo bar']) }
       end
     end

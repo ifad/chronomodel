@@ -6,10 +6,12 @@ RSpec.describe ChronoModel::Adapter do
   include ChronoTest::Adapter::Structure
 
   subject { adapter }
+
   it { is_expected.to be_a_kind_of(ChronoModel::Adapter) }
 
   context do
     subject { adapter.adapter_name }
+
     it { is_expected.to eq 'PostgreSQL' }
   end
 

@@ -48,6 +48,7 @@ RSpec.describe ChronoModel::TimeMachine do
 
     describe 'takes care of associated records' do
       subject { $t.foo.history.map { |f| f.bars.first.try(:name) } }
+
       it { is_expected.to eq [nil, 'foo bar', 'new bar'] }
     end
 
@@ -91,7 +92,7 @@ RSpec.describe ChronoModel::TimeMachine do
       end
     end
 
-    context '.sorted' do
+    describe '.sorted' do
       describe 'orders by recorded_at, hid' do
         it { expect($t.foo.history.sorted.to_sql).to match(/order by .+"recorded_at" ASC, .+"hid" ASC/i) }
       end
@@ -101,16 +102,19 @@ RSpec.describe ChronoModel::TimeMachine do
   describe '#current_version' do
     describe 'on plain records' do
       subject { $t.foo.current_version }
+
       it { is_expected.to eq $t.foo }
     end
 
     describe 'from #as_of' do
       subject { $t.foo.as_of(Time.now) }
+
       it { is_expected.to eq $t.foo }
     end
 
     describe 'on historical records' do
       subject { $t.foo.history.sample.current_version }
+
       it { is_expected.to eq $t.foo }
     end
   end
