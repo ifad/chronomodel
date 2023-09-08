@@ -16,13 +16,13 @@ RSpec.describe ChronoModel::Adapter do
   end
 
   context do
-    before { expect(adapter).to receive(:postgresql_version).and_return(90_300) }
+    before { allow(adapter).to receive(:postgresql_version).and_return(90_300) }
 
     it { is_expected.to be_chrono_supported }
   end
 
   context do
-    before { expect(adapter).to receive(:postgresql_version).and_return(90_000) }
+    before { allow(adapter).to receive(:postgresql_version).and_return(90_000) }
 
     it { is_expected.not_to be_chrono_supported }
   end
