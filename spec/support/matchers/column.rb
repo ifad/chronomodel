@@ -38,7 +38,7 @@ module ChronoTest
         def column_type(name)
           table = "#{@schema}.#{self.table}"
 
-          select_rows(<<-SQL, [table, name], 'Check column').first
+          select_rows(<<-SQL.squish, [table, name], 'Check column').first
             SELECT attname, FORMAT_TYPE(atttypid, atttypmod)
               FROM pg_attribute
              WHERE attrelid = ?::regclass::oid

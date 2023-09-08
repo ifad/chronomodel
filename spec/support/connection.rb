@@ -46,12 +46,11 @@ module ChronoTest
       end
     end
   rescue Errno::ENOENT
-    warn <<~EOM
-
-Please define your AR database configuration
-in spec/config.yml or reference your own configuration
-file using the TEST_CONFIG environment variable
-    EOM
+    warn <<-MSG.squish
+      Please define your AR database configuration
+      in spec/config.yml or reference your own configuration
+      file using the TEST_CONFIG environment variable
+    MSG
 
     abort
   end

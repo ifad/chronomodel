@@ -17,7 +17,7 @@ module ChronoTest
         def matches?(table)
           super(table)
 
-          select_values(<<-SQL, [table, name, schema], 'Check index') == columns
+          select_values(<<-SQL.squish, [table, name, schema], 'Check index') == columns
           SELECT a.attname
             FROM pg_class t
             JOIN pg_index d ON t.oid = d.indrelid

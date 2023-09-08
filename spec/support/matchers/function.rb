@@ -32,7 +32,7 @@ module ChronoTest
         protected
 
         def has_function?(name)
-          select_value(<<-SQL, [@schema, name], 'Check function') == true
+          select_value(<<-SQL.squish, [@schema, name], 'Check function') == true
             SELECT EXISTS(
               SELECT 1
               FROM pg_catalog.pg_proc p, pg_catalog.pg_namespace n

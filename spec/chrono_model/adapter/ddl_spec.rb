@@ -27,7 +27,7 @@ RSpec.describe ChronoModel::Adapter do
 
     context 'when succeeding' do
       def insert
-        adapter.execute <<-SQL
+        adapter.execute <<-SQL.squish
           INSERT INTO #{table} (test, foo) VALUES
             ('test1', 1),
             ('test2', 2);
@@ -41,7 +41,7 @@ RSpec.describe ChronoModel::Adapter do
 
     context 'when failing' do
       def insert
-        adapter.execute <<-SQL
+        adapter.execute <<-SQL.squish
           INSERT INTO #{table} (test, foo) VALUES
             ('test3', 3),
             (NULL,    0);
@@ -55,7 +55,7 @@ RSpec.describe ChronoModel::Adapter do
 
     context 'after a failure' do
       def insert
-        adapter.execute <<-SQL
+        adapter.execute <<-SQL.squish
           INSERT INTO #{table} (test, foo) VALUES
             ('test4', 3),
             ('test5', 4);
@@ -81,13 +81,13 @@ RSpec.describe ChronoModel::Adapter do
     end
 
     def insert
-      adapter.execute <<-SQL
+      adapter.execute <<-SQL.squish
         INSERT INTO #{table} DEFAULT VALUES
       SQL
     end
 
     def select
-      adapter.select_values <<-SQL
+      adapter.select_values <<-SQL.squish
         SELECT test FROM #{table}
       SQL
     end
@@ -109,7 +109,7 @@ RSpec.describe ChronoModel::Adapter do
     end
 
     def insert
-      adapter.execute <<-SQL
+      adapter.execute <<-SQL.squish
         INSERT INTO #{table} (test, id) VALUES ('test1', 'hello');
       SQL
     end
@@ -123,15 +123,15 @@ RSpec.describe ChronoModel::Adapter do
     before :all do
       adapter.create_table table, temporal: true, &columns
 
-      adapter.execute <<-SQL
+      adapter.execute <<-SQL.squish
         INSERT INTO #{table} (test, foo) VALUES ('test1', 1);
       SQL
 
-      adapter.execute <<-SQL
+      adapter.execute <<-SQL.squish
         UPDATE #{table} SET test = 'test2';
       SQL
 
-      adapter.execute <<-SQL
+      adapter.execute <<-SQL.squish
         UPDATE #{table} SET test = 'test2';
       SQL
     end
@@ -151,20 +151,20 @@ RSpec.describe ChronoModel::Adapter do
         t.timestamps null: false
       end
 
-      adapter.execute <<-SQL
+      adapter.execute <<-SQL.squish
         INSERT INTO #{table} (test, created_at, updated_at) VALUES ('test', now(), now());
       SQL
 
-      adapter.execute <<-SQL
+      adapter.execute <<-SQL.squish
         UPDATE #{table} SET test = 'test2', updated_at = now();
       SQL
 
       2.times do
-        adapter.execute <<-SQL # Redundant update with only updated_at change
+        adapter.execute <<-SQL.squish # Redundant update with only updated_at change
           UPDATE #{table} SET test = 'test2', updated_at = now();
         SQL
 
-        adapter.execute <<-SQL
+        adapter.execute <<-SQL.squish
           UPDATE #{table} SET updated_at = now();
         SQL
       end
@@ -186,16 +186,16 @@ RSpec.describe ChronoModel::Adapter do
           t.string 'bar'
         end
 
-        adapter.execute <<-SQL
+        adapter.execute <<-SQL.squish
           INSERT INTO #{table} (foo, bar) VALUES ('test foo', 'test bar');
         SQL
 
-        adapter.execute <<-SQL
+        adapter.execute <<-SQL.squish
           UPDATE #{table} SET foo = 'test foo', bar = 'no history';
         SQL
 
         2.times do
-          adapter.execute <<-SQL
+          adapter.execute <<-SQL.squish
             UPDATE #{table} SET bar = 'really no history';
           SQL
         end
@@ -225,14 +225,14 @@ RSpec.describe ChronoModel::Adapter do
       it 'preserves options upon column change' do
         adapter.change_table table, temporal: true, journal: %w[foo bar]
 
-        adapter.execute <<-SQL
+        adapter.execute <<-SQL.squish
           INSERT INTO #{table} (foo, bar) VALUES ('test foo', 'test bar');
         SQL
 
         expect(count(current)).to eq 1
         expect(count(history)).to eq 1
 
-        adapter.execute <<-SQL
+        adapter.execute <<-SQL.squish
           UPDATE #{table} SET foo = 'test foo', bar = 'chronomodel';
         SQL
 
@@ -243,7 +243,7 @@ RSpec.describe ChronoModel::Adapter do
       it 'changes option upon table change' do
         adapter.change_table table, temporal: true, journal: %w[bar]
 
-        adapter.execute <<-SQL
+        adapter.execute <<-SQL.squish
           INSERT INTO #{table} (foo, bar) VALUES ('test foo', 'test bar');
           UPDATE #{table} SET foo = 'test foo', bar = 'no history';
         SQL
@@ -251,7 +251,7 @@ RSpec.describe ChronoModel::Adapter do
         expect(count(current)).to eq 1
         expect(count(history)).to eq 1
 
-        adapter.execute <<-SQL
+        adapter.execute <<-SQL.squish
           UPDATE #{table} SET foo = 'test foo again', bar = 'no history';
         SQL
 

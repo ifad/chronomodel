@@ -22,7 +22,7 @@ module ChronoTest
         end
 
         def matches?(*)
-          @current = select_value(<<-SQL, [], 'Current schema')
+          @current = select_value(<<-SQL.squish, [], 'Current schema')
           SHOW search_path
           SQL
 
