@@ -1,6 +1,5 @@
 module ChronoModel
   module Patches
-
     # Patches ActiveRecord::Associations::Association to add support for
     # temporal associations.
     #
@@ -34,19 +33,18 @@ module ChronoModel
       end
 
       private
-        def _chrono_record?
-          owner.class.include?(ChronoModel::Patches::AsOfTimeHolder) && owner.as_of_time.present?
-        end
 
-        def _chrono_target?
-          @_target_klass ||= reflection.options[:polymorphic] ?
-            owner.public_send(reflection.foreign_type).constantize :
-            reflection.klass
+      def _chrono_record?
+        owner.class.include?(ChronoModel::Patches::AsOfTimeHolder) && owner.as_of_time.present?
+      end
 
-          @_target_klass.chrono?
-        end
+      def _chrono_target?
+        @_target_klass ||= reflection.options[:polymorphic] ?
+          owner.public_send(reflection.foreign_type).constantize :
+          reflection.klass
 
+        @_target_klass.chrono?
+      end
     end
-
   end
 end

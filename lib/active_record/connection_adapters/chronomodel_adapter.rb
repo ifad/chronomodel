@@ -28,14 +28,13 @@ module ActiveRecord
       adapter = ChronoModel::Adapter.new(conn, logger, conn_params, config)
 
       unless adapter.chrono_supported?
-        raise ChronoModel::Error, "Your database server is not supported by ChronoModel. "\
-          "Currently, only PostgreSQL >= 9.3 is supported."
+        raise ChronoModel::Error, "Your database server is not supported by ChronoModel. " \
+                                  "Currently, only PostgreSQL >= 9.3 is supported."
       end
 
       adapter.chrono_setup!
 
       return adapter
-
     rescue ::PG::Error => error
       if error.message.include?(conn_params[:dbname])
         raise ActiveRecord::NoDatabaseError
@@ -43,7 +42,5 @@ module ActiveRecord
         raise
       end
     end
-
   end
 end
-

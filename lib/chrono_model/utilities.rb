@@ -1,5 +1,4 @@
 module ChronoModel
-
   module Utilities
     # Amends the given history item setting a different period.
     # Useful when migrating from legacy systems.
@@ -11,7 +10,7 @@ module ChronoModel
     #   end
     #
     def amend_period!(hid, from, to)
-      unless [from, to].any? {|ts| ts.respond_to?(:zone) && ts.zone == 'UTC'}
+      unless [from, to].any? { |ts| ts.respond_to?(:zone) && ts.zone == 'UTC' }
         raise 'Can amend history only with UTC timestamps'
       end
 
@@ -23,5 +22,4 @@ module ChronoModel
       ]
     end
   end
-
 end

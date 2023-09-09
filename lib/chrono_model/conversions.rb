@@ -1,5 +1,4 @@
 module ChronoModel
-
   module Conversions
     extend self
 
@@ -18,5 +17,4 @@ module ChronoModel
       [time.to_formatted_s(:db), sprintf('%06d', time.usec)].join '.'
     end
   end
-
 end

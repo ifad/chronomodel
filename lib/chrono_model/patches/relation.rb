@@ -1,6 +1,5 @@
 module ChronoModel
   module Patches
-
     module Relation
       include ChronoModel::Patches::AsOfTimeHolder
 
@@ -26,7 +25,7 @@ module ChronoModel
       def load
         return super unless @_as_of_time && !loaded?
 
-        super.each {|record| record.as_of_time!(@_as_of_time) }
+        super.each { |record| record.as_of_time!(@_as_of_time) }
       end
 
       def merge(*)
@@ -39,11 +38,9 @@ module ChronoModel
         return super unless @_as_of_time
 
         super.tap do |arel|
-
           arel.join_sources.each do |join|
             chrono_join_history(join)
           end
-
         end
       end
 
@@ -92,12 +89,11 @@ module ChronoModel
 
       private
 
-        def ordered_relation
-          return super unless try(:history?)
+      def ordered_relation
+        return super unless try(:history?)
 
-          with_hid_pkey { super }
-        end
+        with_hid_pkey { super }
+      end
     end
-
   end
 end

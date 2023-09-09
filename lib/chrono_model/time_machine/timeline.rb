@@ -1,6 +1,5 @@
 module ChronoModel
   module TimeMachine
-
     module Timeline
       # Returns an Array of unique UTC timestamps for which at least an
       # history record exists. Takes temporal associations into account.
@@ -13,14 +12,14 @@ module ChronoModel
 
         models = []
         models.push self if self.chrono?
-        models.concat(assocs.map {|a| a.klass.history})
+        models.concat(assocs.map { |a| a.klass.history })
 
         return [] if models.empty?
 
-        fields = models.inject([]) {|a,m| a.concat m.quoted_history_fields}
+        fields = models.inject([]) { |a, m| a.concat m.quoted_history_fields }
 
         relation = self.except(:order).
-          select("DISTINCT UNNEST(ARRAY[#{fields.join(',')}]) AS ts")
+                   select("DISTINCT UNNEST(ARRAY[#{fields.join(',')}]) AS ts")
 
         if assocs.present?
           assocs.each do |ass|
@@ -36,7 +35,7 @@ module ChronoModel
         end
 
         relation = relation.
-          order('ts ' << (options[:reverse] ? 'DESC' : 'ASC'))
+                   order('ts ' << (options[:reverse] ? 'DESC' : 'ASC'))
 
         relation = relation.from(%["public".#{quoted_table_name}]) unless self.chrono?
         relation = relation.where(id: rid) if rid
@@ -48,7 +47,7 @@ module ChronoModel
         end
 
         if options.key?(:after)
-          sql << " AND ts > '#{Conversions.time_to_utc_string(options[:after ])}'"
+          sql << " AND ts > '#{Conversions.time_to_utc_string(options[:after])}'"
         end
 
         if rid && !options[:with]
@@ -81,7 +80,7 @@ module ChronoModel
       def timeline_associations_from(names)
         Array.wrap(names).map do |name|
           reflect_on_association(name) or raise ArgumentError,
-            "No association found for name `#{name}'"
+                                                "No association found for name `#{name}'"
         end
       end
 
@@ -92,10 +91,9 @@ module ChronoModel
              connection.quote_column_name('validity')
             ].join('.')
 
-          [:lower, :upper].map! {|func| "#{func}(#{validity})"}
+          [:lower, :upper].map! { |func| "#{func}(#{validity})" }
         end
       end
     end
-
   end
 end

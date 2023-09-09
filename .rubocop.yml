@@ -1,3 +1,5 @@
+inherit_from: .rubocop_todo.yml
+
 require:
   - rubocop-packaging
   - rubocop-performance
@@ -11,7 +13,6 @@ AllCops:
   TargetRubyVersion: 2.2
   Exclude:
     - 'gemfiles/**/*'
-    - 'lib/**/*'
     - 'vendor/bundle/**/*'
     - 'tmp/**/*'
 
@@ -19,9 +20,7 @@ Gemspec/DevelopmentDependencies:
   Enabled: false
 
 Layout/LineLength:
-  Max: 140
-  Exclude:
-    - 'spec/**/*'
+  Enabled: false
 
 Lint/MissingSuper:
   Exclude:
@@ -39,6 +38,15 @@ Metrics/BlockLength:
 Metrics/MethodLength:
   Exclude:
     - 'spec/**/*'
+
+Naming/MethodName:
+  AllowedPatterns:
+    - '_INSERT_'
+    - '_UPDATE_'
+    - '_DELETE_'
+
+Naming/PredicateName:
+  Enabled: false
 
 Rails/ApplicationRecord:
   Enabled: false
@@ -74,6 +82,9 @@ RSpec/SpecFilePathFormat:
 Style/GlobalVars:
   Exclude:
     - 'spec/**/*'
+
+Style/IfUnlessModifier:
+  Enabled: false
 
 # NOTE: This cop is enabled by RuboCop Rails, because active support adds this
 # method to hash, but `except` is not available in specs

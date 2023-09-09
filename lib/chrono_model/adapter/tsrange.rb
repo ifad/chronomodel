@@ -1,6 +1,5 @@
 module ChronoModel
   class Adapter < ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
-
     module TSRange
       # HACK: Redefine tsrange parsing support, as it is broken currently.
       #
@@ -26,7 +25,7 @@ module ChronoModel
           extracted = extract_bounds(value)
 
           from = Conversions.string_to_utc_time extracted[:from]
-          to   = Conversions.string_to_utc_time extracted[:to  ]
+          to   = Conversions.string_to_utc_time extracted[:to]
 
           [from, to]
         end
@@ -34,8 +33,8 @@ module ChronoModel
         def extract_bounds(value)
           from, to = value[1..-2].split(',')
           {
-            from:          (value[1] == ',' || from == '-infinity') ? nil : from[1..-2],
-            to:            (value[-2] == ',' || to == 'infinity') ? nil : to[1..-2],
+            from: (value[1] == ',' || from == '-infinity') ? nil : from[1..-2],
+            to: (value[-2] == ',' || to == 'infinity') ? nil : to[1..-2],
           }
         end
       end
@@ -52,6 +51,5 @@ module ChronoModel
         end
       end
     end
-
   end
 end

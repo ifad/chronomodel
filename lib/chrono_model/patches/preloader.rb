@@ -1,6 +1,5 @@
 module ChronoModel
   module Patches
-
     # Patches ActiveRecord::Associations::Preloader to add support for
     # temporal associations. This is tying itself to Rails internals
     # and it is ugly :-(.
@@ -93,6 +92,5 @@ module ChronoModel
         end
       end
     end
-
   end
 end

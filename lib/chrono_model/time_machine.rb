@@ -3,7 +3,6 @@ require 'chrono_model/time_machine/timeline'
 require 'chrono_model/time_machine/history_model'
 
 module ChronoModel
-
   module TimeMachine
     include ChronoModel::Patches::AsOfTimeHolder
 
@@ -107,7 +106,7 @@ module ChronoModel
 
       def attribute_names_for_history_changes
         @attribute_names_for_history_changes ||= attribute_names -
-          %w( id hid validity recorded_at )
+                                                 %w(id hid validity recorded_at)
       end
 
       def has_timeline(options)
@@ -169,6 +168,7 @@ module ChronoModel
     #
     def destroy
       raise ActiveRecord::ReadOnlyRecord, 'Cannot delete historical records' if historical?
+
       super
     end
 
@@ -236,7 +236,5 @@ module ChronoModel
         end
       end
     end
-
   end
-
 end

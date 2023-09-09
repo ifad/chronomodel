@@ -14,7 +14,6 @@ require 'chrono_model/adapter/tsrange'
 require 'chrono_model/adapter/upgrade'
 
 module ChronoModel
-
   # This class implements all ActiveRecord::ConnectionAdapters::SchemaStatements
   # methods adding support for temporal extensions. It inherits from the Postgres
   # adapter for a clean override of its methods using super.
@@ -67,6 +66,7 @@ module ChronoModel
       define_method(method) do |*args|
         table_name = args.first
         return super(*args) unless is_chrono?(table_name)
+
         on_schema(TEMPORAL_SCHEMA, recurse: :ignore) { super(*args) }
       end
     end
@@ -85,6 +85,7 @@ module ChronoModel
 
     define_method(:column_definitions) do |table_name|
       return super(table_name) unless is_chrono?(table_name)
+
       on_schema(TEMPORAL_SCHEMA + ',' + self.schema_search_path, recurse: :ignore) { super(table_name) }
     end
 
@@ -117,7 +118,6 @@ module ChronoModel
 
         yield
       end
-
     ensure
       # If the transaction is aborted, any execute() call will raise
       # "transaction is aborted errors" - thus calling the Adapter's
@@ -168,31 +168,30 @@ module ChronoModel
     end
 
     private
-      # Rails 7.1 uses `@raw_connection`, older versions use `@connection`
-      #
-      def chrono_connection
-        @chrono_connection ||= @raw_connection || @connection
+
+    # Rails 7.1 uses `@raw_connection`, older versions use `@connection`
+    #
+    def chrono_connection
+      @chrono_connection ||= @raw_connection || @connection
+    end
+
+    # Counts the number of recursions in a thread local variable
+    #
+    def count_recursions # yield
+      Thread.current['recursions'] ||= 0
+      Thread.current['recursions'] += 1
+
+      yield
+    ensure
+      Thread.current['recursions'] -= 1
+    end
+
+    # Create the temporal and history schemas, unless they already exist
+    #
+    def chrono_ensure_schemas
+      [TEMPORAL_SCHEMA, HISTORY_SCHEMA].each do |schema|
+        execute "CREATE SCHEMA #{schema}" unless schema_exists?(schema)
       end
-
-      # Counts the number of recursions in a thread local variable
-      #
-      def count_recursions # yield
-        Thread.current['recursions'] ||= 0
-        Thread.current['recursions'] += 1
-
-        yield
-
-      ensure
-        Thread.current['recursions'] -= 1
-      end
-
-      # Create the temporal and history schemas, unless they already exist
-      #
-      def chrono_ensure_schemas
-        [TEMPORAL_SCHEMA, HISTORY_SCHEMA].each do |schema|
-          execute "CREATE SCHEMA #{schema}" unless schema_exists?(schema)
-        end
-      end
+    end
   end
-
 end

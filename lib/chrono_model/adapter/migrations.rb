@@ -1,6 +1,5 @@
 module ChronoModel
   class Adapter < ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
-
     module Migrations
       # Creates the given table, possibly creating the temporal schema
       # objects if the `:temporal` option is given and set to true.
@@ -65,10 +64,9 @@ module ChronoModel
       #
       def change_table(table_name, **options, &block)
         transaction do
-
           # Add an empty proc to support calling change_table without a block.
           #
-          block ||= proc { }
+          block ||= proc {}
 
           if options[:temporal]
             if !is_chrono?(table_name)
@@ -86,7 +84,6 @@ module ChronoModel
 
             super table_name, **options, &block
           end
-
         end
       end
 
@@ -138,6 +135,7 @@ module ChronoModel
       #
       def change_column(table_name, column_name, type, **options)
         return super unless is_chrono?(table_name)
+
         drop_and_recreate_public_view(table_name) { super }
       end
 
@@ -145,6 +143,7 @@ module ChronoModel
       #
       def change_column_default(table_name, *)
         return super unless is_chrono?(table_name)
+
         on_temporal_schema { super }
       end
 
@@ -152,6 +151,7 @@ module ChronoModel
       #
       def change_column_null(table_name, *)
         return super unless is_chrono?(table_name)
+
         on_temporal_schema { super }
       end
 
@@ -161,52 +161,54 @@ module ChronoModel
       #
       def remove_column(table_name, column_name, type = nil, **options)
         return super unless is_chrono?(table_name)
+
         drop_and_recreate_public_view(table_name) { super }
       end
 
       private
-        # In destructive changes, such as removing columns or changing column
-        # types, the view must be dropped and recreated, while the change has
-        # to be applied to the table in the temporal schema.
-        #
-        def drop_and_recreate_public_view(table_name, opts = {})
-          transaction do
-            options = chrono_metadata_for(table_name).merge(opts)
 
-            execute "DROP VIEW #{table_name}"
+      # In destructive changes, such as removing columns or changing column
+      # types, the view must be dropped and recreated, while the change has
+      # to be applied to the table in the temporal schema.
+      #
+      def drop_and_recreate_public_view(table_name, opts = {})
+        transaction do
+          options = chrono_metadata_for(table_name).merge(opts)
 
-            on_temporal_schema { yield }
+          execute "DROP VIEW #{table_name}"
 
-            # Recreate the triggers
-            chrono_public_view_ddl(table_name, options)
-          end
-        end
+          on_temporal_schema { yield }
 
-        def chrono_make_temporal_table(table_name, options)
-          # Add temporal features to this table
-          #
-          if !primary_key(table_name)
-            execute "ALTER TABLE #{table_name} ADD __chrono_id SERIAL PRIMARY KEY"
-          end
-
-          execute "ALTER TABLE #{table_name} SET SCHEMA #{TEMPORAL_SCHEMA}"
-          on_history_schema { chrono_history_table_ddl(table_name) }
+          # Recreate the triggers
           chrono_public_view_ddl(table_name, options)
-          chrono_copy_indexes_to_history(table_name)
+        end
+      end
 
-          # Optionally copy the plain table data, setting up history
-          # retroactively.
-          #
-          if options[:copy_data]
-            chrono_copy_temporal_to_history(table_name, options)
-          end
+      def chrono_make_temporal_table(table_name, options)
+        # Add temporal features to this table
+        #
+        if !primary_key(table_name)
+          execute "ALTER TABLE #{table_name} ADD __chrono_id SERIAL PRIMARY KEY"
         end
 
-        def chrono_copy_temporal_to_history(table_name, options)
-          seq  = on_history_schema { pk_and_sequence_for(table_name).last.to_s }
-          from = options[:validity] || '0001-01-01 00:00:00'
+        execute "ALTER TABLE #{table_name} SET SCHEMA #{TEMPORAL_SCHEMA}"
+        on_history_schema { chrono_history_table_ddl(table_name) }
+        chrono_public_view_ddl(table_name, options)
+        chrono_copy_indexes_to_history(table_name)
 
-          execute %[
+        # Optionally copy the plain table data, setting up history
+        # retroactively.
+        #
+        if options[:copy_data]
+          chrono_copy_temporal_to_history(table_name, options)
+        end
+      end
+
+      def chrono_copy_temporal_to_history(table_name, options)
+        seq  = on_history_schema { pk_and_sequence_for(table_name).last.to_s }
+        from = options[:validity] || '0001-01-01 00:00:00'
+
+        execute %[
               INSERT INTO #{HISTORY_SCHEMA}.#{table_name}
               SELECT *,
                 nextval('#{seq}')        AS hid,
@@ -214,39 +216,38 @@ module ChronoModel
                 timezone('UTC', now())   AS recorded_at
               FROM #{TEMPORAL_SCHEMA}.#{table_name}
           ]
-        end
+      end
 
-        # Removes temporal features from this table
-        #
-        def chrono_undo_temporal_table(table_name)
-          execute "DROP VIEW #{table_name}"
+      # Removes temporal features from this table
+      #
+      def chrono_undo_temporal_table(table_name)
+        execute "DROP VIEW #{table_name}"
 
-          chrono_drop_trigger_functions_for(table_name)
+        chrono_drop_trigger_functions_for(table_name)
 
-          on_history_schema { execute "DROP TABLE #{table_name}" }
+        on_history_schema { execute "DROP TABLE #{table_name}" }
 
-          default_schema = select_value 'SELECT current_schema()'
-          on_temporal_schema do
-            if primary_key(table_name) == '__chrono_id'
-              execute "ALTER TABLE #{table_name} DROP __chrono_id"
-            end
-
-            execute "ALTER TABLE #{table_name} SET SCHEMA #{default_schema}"
+        default_schema = select_value 'SELECT current_schema()'
+        on_temporal_schema do
+          if primary_key(table_name) == '__chrono_id'
+            execute "ALTER TABLE #{table_name} DROP __chrono_id"
           end
-        end
 
-        # Renames a table and its primary key sequence name
-        #
-        def rename_table_and_pk(name, new_name)
-          seq     = pk_and_sequence_for(name).last.to_s
-          new_seq = seq.sub(name.to_s, new_name.to_s).split('.').last
-
-          execute "ALTER SEQUENCE #{seq}  RENAME TO #{new_seq}"
-          execute "ALTER TABLE    #{name} RENAME TO #{new_name}"
+          execute "ALTER TABLE #{table_name} SET SCHEMA #{default_schema}"
         end
+      end
+
+      # Renames a table and its primary key sequence name
+      #
+      def rename_table_and_pk(name, new_name)
+        seq     = pk_and_sequence_for(name).last.to_s
+        new_seq = seq.sub(name.to_s, new_name.to_s).split('.').last
+
+        execute "ALTER SEQUENCE #{seq}  RENAME TO #{new_seq}"
+        execute "ALTER TABLE    #{name} RENAME TO #{new_name}"
+      end
 
       # private
     end
-
   end
 end

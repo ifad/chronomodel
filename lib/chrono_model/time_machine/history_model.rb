@@ -1,6 +1,5 @@
 module ChronoModel
   module TimeMachine
-
     module HistoryModel
       extend ActiveSupport::Concern
 
@@ -121,13 +120,14 @@ module ChronoModel
         end
 
         private
-          # STI fails when a Foo::History record has Foo as type in the
-          # inheritance column; AR expects the type to be an instance of the
-          # current class or a descendant (or self).
-          #
-          def find_sti_class(type_name)
-            super(type_name + "::History")
-          end
+
+        # STI fails when a Foo::History record has Foo as type in the
+        # inheritance column; AR expects the type to be an instance of the
+        # current class or a descendant (or self).
+        #
+        def find_sti_class(type_name)
+          super(type_name + "::History")
+        end
       end
 
       # The history id is `hid`, but this cannot set as primary key
@@ -203,7 +203,7 @@ module ChronoModel
         self.class.superclass.find(rid)
       end
 
-      def record #:nodoc:
+      def record # :nodoc:
         ActiveSupport::Deprecation.warn '.record is deprecated in favour of .current_version'
         self.current_version
       end
@@ -246,6 +246,5 @@ module ChronoModel
         @primary_key = old_primary_key
       end
     end
-
   end
 end
