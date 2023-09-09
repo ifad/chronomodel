@@ -12,7 +12,7 @@ RSpec.describe 'subclasses spec', type: :aruba do
     copy_db_config
     write_file(
       'app/models/foo.rb',
-      'class Foo < ApplicationRecord; include ChronoModel::TimeMachine; end; '
+      'class Foo < ApplicationRecord; include ChronoModel::TimeMachine; end;'
     )
   end
 
