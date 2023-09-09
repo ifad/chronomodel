@@ -18,7 +18,7 @@ RSpec.describe ChronoModel::Adapter do
     adapter.select_values("SELECT id FROM ONLY #{table} ORDER BY id")
   end
 
-  context 'INSERT multiple values' do
+  describe 'INSERT multiple values' do
     before :all do
       adapter.create_table table, temporal: true, &columns
     end
@@ -73,7 +73,7 @@ RSpec.describe ChronoModel::Adapter do
     end
   end
 
-  context 'INSERT on NOT NULL columns but with a DEFAULT value' do
+  describe 'INSERT on NOT NULL columns but with a DEFAULT value' do
     before :all do
       adapter.create_table table, temporal: true, &columns
     end
@@ -102,7 +102,7 @@ RSpec.describe ChronoModel::Adapter do
     }
   end
 
-  context 'INSERT with string IDs' do
+  describe 'INSERT with string IDs' do
     before :all do
       adapter.create_table table, temporal: true, id: :string, &columns
     end
@@ -122,7 +122,7 @@ RSpec.describe ChronoModel::Adapter do
     it { expect(count(history)).to eq 1 }
   end
 
-  context 'redundant UPDATEs' do
+  describe 'redundant UPDATEs' do
     before :all do
       adapter.create_table table, temporal: true, &columns
 
@@ -147,7 +147,7 @@ RSpec.describe ChronoModel::Adapter do
     it { expect(count(history)).to eq 2 }
   end
 
-  context 'updates on non-journaled fields' do
+  describe 'UPDATEs on non-journaled fields' do
     before :all do
       adapter.create_table table, temporal: true do |t|
         t.string 'test'
@@ -181,7 +181,7 @@ RSpec.describe ChronoModel::Adapter do
     it { expect(count(history)).to eq 2 }
   end
 
-  context 'selective journaled fields' do
+  context 'with selective journaled fields' do
     describe 'basic behaviour' do
       specify do
         adapter.create_table table, temporal: true, journal: %w[foo] do |t|
