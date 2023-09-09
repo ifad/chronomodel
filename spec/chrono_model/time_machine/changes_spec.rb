@@ -25,7 +25,7 @@ RSpec.describe ChronoModel::TimeMachine do
       end
     end
 
-    context 'with history records' do
+    context 'with historical records' do
       context 'when at the beginning of the timeline' do
         subject { $t.bar.history.first.last_changes }
 

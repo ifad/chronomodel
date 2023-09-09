@@ -9,7 +9,7 @@ RSpec.describe ChronoModel::TimeMachine do
   history_methods = %w[valid_from valid_to recorded_at]
   current_methods = %w[as_of_time]
 
-  context 'with history records' do
+  context 'with historical records' do
     let(:record) { $t.foo.history.first }
 
     (history_methods + current_methods).each do |attr|
