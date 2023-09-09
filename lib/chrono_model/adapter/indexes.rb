@@ -93,10 +93,10 @@ module ChronoModel
             recorded_at timeline_consistency )
 
           old_names = temporal_index_names(name, :validity) +
-            standard_index_names.map { |i| [name, i].join('_') }
+                      standard_index_names.map { |i| [name, i].join('_') }
 
           new_names = temporal_index_names(new_name, :validity) +
-            standard_index_names.map { |i| [new_name, i].join('_') }
+                      standard_index_names.map { |i| [new_name, i].join('_') }
 
           old_names.zip(new_names).each do |old, new|
             execute "ALTER INDEX #{old} RENAME TO #{new}"
