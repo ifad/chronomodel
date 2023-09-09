@@ -4,13 +4,13 @@ require 'pathname'
 require 'active_record'
 
 module ChronoTest
-  extend self # rubocop:disable Style/ModuleFunction
-
   AR = ActiveRecord::Base
   log = ENV['VERBOSE'].present? ? $stderr : 'spec/debug.log'.tap { |f| File.open(f, 'ab') { |ft| ft.truncate(0) } }
   AR.logger = ::Logger.new(log).tap do |l|
     l.level = 0
   end
+
+  module_function
 
   def connect!(spec = config)
     spec = spec.merge(min_messages: 'WARNING') if ENV['VERBOSE'].blank?
@@ -18,13 +18,16 @@ module ChronoTest
   end
 
   def logger
-    AR.logger
+    @logger ||= AR.logger
   end
 
   def connection
     AR.connection
   end
-  alias adapter connection
+
+  def adapter
+    @adapter ||= connection
+  end
 
   def recreate_database!
     database = config.fetch(:database)
@@ -58,7 +61,6 @@ module ChronoTest
   end
 
   def config_file
-    Pathname(ENV['TEST_CONFIG'] ||
-      File.join(File.dirname(__FILE__), '..', 'config.yml'))
+    Pathname(ENV['TEST_CONFIG'] || File.join(File.dirname(__FILE__), '..', 'config.yml'))
   end
 end
