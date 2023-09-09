@@ -30,7 +30,7 @@ RSpec.describe ChronoModel::TimeMachine do
   end
 
   describe '.history?' do
-    subject { model.history? }
+    subject(:history?) { model.history? }
 
     context 'with a temporal parent model' do
       let(:model) { Foo }
@@ -47,7 +47,7 @@ RSpec.describe ChronoModel::TimeMachine do
     context 'with a plain model' do
       let(:model) { Plain }
 
-      it { expect { subject }.to raise_error(NoMethodError) }
+      it { expect { history? }.to raise_error(NoMethodError) }
     end
   end
 end

@@ -16,15 +16,15 @@ RSpec.describe ChronoModel::TimeMachine do
       end.sort.uniq
     }
 
-    describe 'on records having an :has_many relationship' do
-      describe 'by default returns timestamps of the record only' do
+    context 'with records having an :has_many relationship' do
+      context 'with default settings' do
         subject { split.call($t.foo.timeline) }
 
         it { expect(subject.size).to eq $t.foo.ts.size }
         it { is_expected.to eq timestamps_from.call($t.foo) }
       end
 
-      describe 'when asked, returns timestamps including the related objects' do
+      context 'when association is requested in options' do
         subject { split.call($t.foo.timeline(with: :bars)) }
 
         it { expect(subject.size).to eq($t.foo.ts.size + $t.bar.ts.size) }
@@ -32,32 +32,28 @@ RSpec.describe ChronoModel::TimeMachine do
       end
     end
 
-    describe 'on records using has_timeline :with' do
+    context 'with records using has_timeline :with' do
       subject { split.call($t.bar.timeline) }
 
-      describe 'returns timestamps of the record and its associations' do
-        let!(:expected) do
-          creat = $t.bar.history.first.valid_from
-          c_sec = creat.to_i
-          c_usec = creat.usec
+      let!(:expected) do
+        creat = $t.bar.history.first.valid_from
+        c_sec = creat.to_i
+        c_usec = creat.usec
 
-          timestamps_from.call($t.foo, $t.bar).reject do |sec, usec|
-            sec < c_sec || (sec == c_sec && usec < c_usec)
-          end
+        timestamps_from.call($t.foo, $t.bar).reject do |sec, usec|
+          sec < c_sec || (sec == c_sec && usec < c_usec)
         end
-
-        it { expect(subject.size).to eq expected.size }
-        it { is_expected.to eq expected }
       end
+
+      it { expect(subject.size).to eq expected.size }
+      it { is_expected.to eq expected }
     end
 
-    describe 'on non-temporal records using has_timeline :with' do
+    context 'with non-temporal records using has_timeline :with' do
       subject { split.call($t.baz.timeline) }
 
-      describe 'returns timestamps of its temporal associations' do
-        it { expect(subject.size).to eq $t.bar.ts.size }
-        it { is_expected.to eq timestamps_from.call($t.bar) }
-      end
+      it { expect(subject.size).to eq $t.bar.ts.size }
+      it { is_expected.to eq timestamps_from.call($t.bar) }
     end
   end
 end

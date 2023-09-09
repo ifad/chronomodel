@@ -71,7 +71,6 @@ RSpec/NamedSubject:
     - 'spec/chrono_model/history_models_spec.rb'
     - 'spec/chrono_model/time_machine/as_of_spec.rb'
     - 'spec/chrono_model/time_machine/manipulations_spec.rb'
-    - 'spec/chrono_model/time_machine/model_identification_spec.rb'
     - 'spec/chrono_model/time_machine/sequence_spec.rb'
     - 'spec/chrono_model/time_machine/timeline_spec.rb'
     - 'spec/chrono_model/time_machine/timestamps_spec.rb'
