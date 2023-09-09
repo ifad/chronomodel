@@ -79,6 +79,8 @@ RSpec.describe ChronoModel::TimeMachine do
     end
 
     describe 'identity' do
+      let(:timestamp) { Time.now }
+
       adapter.create_table 'animals', temporal: true do |t|
         t.string :type
       end
@@ -95,7 +97,7 @@ RSpec.describe ChronoModel::TimeMachine do
 
       before do
         Dog.create!
-        @later = Time.now
+        timestamp
         Goat.create!
       end
 
@@ -106,27 +108,27 @@ RSpec.describe ChronoModel::TimeMachine do
 
       specify 'select' do
         expect(Animal.first).to be_a(Animal)
-        expect(Animal.as_of(@later).first).to be_a(Animal)
+        expect(Animal.as_of(timestamp).first).to be_a(Animal)
 
         expect(Animal.where(type: 'Dog').first).to be_a(Dog)
         expect(Dog.first).to be_a(Dog)
-        expect(Dog.as_of(@later).first).to be_a(Dog)
+        expect(Dog.as_of(timestamp).first).to be_a(Dog)
 
         expect(Animal.where(type: 'Goat').first).to be_a(Goat)
         expect(Goat.first).to be_a(Goat)
-        expect(Goat.as_of(@later).first).to be_nil
+        expect(Goat.as_of(timestamp).first).to be_nil
         expect(Goat.as_of(Time.now).first).to be_a(Goat)
       end
 
       specify 'count' do
         expect(Animal.count).to eq(2)
-        expect(Animal.as_of(@later).count).to eq(1)
+        expect(Animal.as_of(timestamp).count).to eq(1)
 
         expect(Dog.count).to eq(1)
-        expect(Dog.as_of(@later).count).to eq(1)
+        expect(Dog.as_of(timestamp).count).to eq(1)
 
         expect(Goat.count).to eq(1)
-        expect(Goat.as_of(@later).count).to eq(0)
+        expect(Goat.as_of(timestamp).count).to eq(0)
       end
     end
   end

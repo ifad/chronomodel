@@ -17,15 +17,6 @@ Lint/ConstantDefinitionInBlock:
     - 'spec/chrono_model/time_machine/sti_spec.rb'
     - 'spec/chrono_model/time_machine/time_query_spec.rb'
 
-# Configuration parameters: AllowedParentClasses.
-Lint/MissingSuper:
-  Exclude:
-    - 'spec/support/matchers/column.rb'
-    - 'spec/support/matchers/function.rb'
-    - 'spec/support/matchers/index.rb'
-    - 'spec/support/matchers/schema.rb'
-    - 'spec/support/matchers/source.rb'
-
 RSpec/BeforeAfterAll:
   Exclude:
     - 'spec/chrono_model/adapter/base_spec.rb'
@@ -48,11 +39,6 @@ RSpec/ContextWording:
     - 'spec/chrono_model/time_machine/time_query_spec.rb'
     - 'spec/support/adapter/helpers.rb'
 
-# Configuration parameters: AssignmentOnly.
-RSpec/InstanceVariable:
-  Exclude:
-    - 'spec/chrono_model/time_machine/sti_spec.rb'
-
 RSpec/LeakyConstantDeclaration:
   Exclude:
     - 'spec/chrono_model/time_machine/counter_cache_race_spec.rb'
@@ -65,8 +51,3 @@ RSpec/LeakyConstantDeclaration:
 RSpec/RepeatedExample:
   Exclude:
     - 'spec/chrono_model/adapter/migrations_spec.rb'
-
-# Configuration parameters: Include, CustomTransform, IgnoreMethods, IgnoreMetadata.
-# Include: **/*_spec.rb
-RSpec/SpecFilePathFormat:
-  Enabled: false

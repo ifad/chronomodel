@@ -25,6 +25,10 @@ Layout/LineLength:
   Exclude:
     - 'spec/**/*'
 
+Lint/MissingSuper:
+  Exclude:
+    - 'spec/**/*'
+
 Metrics/AbcSize:
   Exclude:
     - 'spec/**/*'
@@ -62,9 +66,15 @@ RSpec/MultipleExpectations:
 RSpec/NestedGroups:
   Enabled: false
 
+RSpec/SpecFilePathFormat:
+  Enabled: false
+
 Style/GlobalVars:
   Exclude:
     - 'spec/**/*'
 
+# NOTE: This cop is enabled by RuboCop Rails, because active support adds this
+# method to hash, but `except` is not available in specs
 Style/HashExcept:
-  Enabled: false
+  Exclude:
+    - 'spec/**/*'
