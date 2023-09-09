@@ -55,7 +55,7 @@ RSpec.describe ChronoModel::Adapter do
       it { expect(count(history)).to eq 2 } # records are preserved
     end
 
-    context 'after a failure' do
+    context 'when inserting after a failure' do
       def insert
         adapter.execute <<-SQL.squish
           INSERT INTO #{table} (test, foo) VALUES
@@ -183,7 +183,7 @@ RSpec.describe ChronoModel::Adapter do
 
   context 'with selective journaled fields' do
     describe 'basic behaviour' do
-      specify do
+      it 'does not record history when ignored fields change' do
         adapter.create_table table, temporal: true, journal: %w[foo] do |t|
           t.string 'foo'
           t.string 'bar'

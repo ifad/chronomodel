@@ -18,7 +18,7 @@ end
 RSpec.describe ChronoModel::TimeMachine do
   include ChronoTest::TimeMachine::Helpers
 
-  context 'with models with counter cache' do
+  context 'when models have a counter cache' do
     adapter.create_table 'sections', temporal: true, no_journal: %w[articles_count] do |t|
       t.string :name
       t.integer :articles_count, default: 0
@@ -29,22 +29,20 @@ RSpec.describe ChronoModel::TimeMachine do
       t.references :section
     end
 
-    describe 'are not subject to race condition if no_journal is set on the counter cache column' do
-      specify do
-        section = Section.create!
+    it 'is not subject to race condition if no_journal is set on the counter cache column' do
+      section = Section.create!
 
-        expect(section.articles_count).to eq(0)
-        Article.create!(section_id: section.id)
-        expect(section.reload.articles_count).to eq(1)
+      expect(section.articles_count).to eq(0)
+      Article.create!(section_id: section.id)
+      expect(section.reload.articles_count).to eq(1)
 
-        num_threads = 10
+      num_threads = 10
 
-        expect do
-          Array.new(num_threads).map do
-            Thread.new { Article.create!(section_id: section.id) }
-          end.each(&:join)
-        end.not_to raise_error
-      end
+      expect do
+        Array.new(num_threads).map do
+          Thread.new { Article.create!(section_id: section.id) }
+        end.each(&:join)
+      end.not_to raise_error
     end
   end
 end

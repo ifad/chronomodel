@@ -133,44 +133,44 @@ RSpec.describe ChronoModel::TimeMachine::TimeQuery do
 
       it { is_expected.to eq [think] }
 
-      context 'not inclusive' do
+      context 'when not inclusive' do
         let(:inclusive) { false }
 
         it { is_expected.to be_empty }
       end
     end
 
-    context '11 days ago' do
+    context 'when 11 days ago' do
       let(:time) { 11.days.ago }
 
       it { is_expected.to contain_exactly(think, plan, collect) }
 
-      context 'not inclusive' do
+      context 'when not inclusive' do
         let(:inclusive) { false }
 
         it { is_expected.to eq [think, plan] }
       end
     end
 
-    context '10 days ago' do
+    context 'when 10 days ago' do
       let(:time) { 10.days.ago }
 
       it { is_expected.to contain_exactly(think, plan, collect) }
     end
 
-    context '8 days ago' do
+    context 'when 8 days ago' do
       let(:time) { 8.days.ago }
 
       it { is_expected.to contain_exactly(think, plan, collect) }
     end
 
-    context 'today' do
+    context 'when today' do
       let(:time) { Date.today }
 
       it { is_expected.to contain_exactly(think, plan, collect, start, build) }
     end
 
-    context ':today' do
+    context 'when server-side :today' do
       let(:time) { :today }
 
       it { is_expected.to contain_exactly(think, plan, collect, start, build) }
@@ -182,55 +182,55 @@ RSpec.describe ChronoModel::TimeMachine::TimeQuery do
 
     let(:inclusive) { true }
 
-    context 'one month ago' do
+    context 'when one month ago' do
       let(:time) { 1.month.ago }
 
       it { is_expected.to contain_exactly(think, plan, collect, start, build, profit) }
     end
 
-    context '10 days ago' do
+    context 'when 10 days ago' do
       let(:time) { 10.days.ago }
 
       it { is_expected.to contain_exactly(start, build, profit) }
     end
 
-    context 'yesterday' do
+    context 'when yesterday' do
       let(:time) { Date.yesterday }
 
       it { is_expected.to eq [profit] }
     end
 
-    context 'today' do
+    context 'when today' do
       let(:time) { Date.today }
 
       it { is_expected.to eq [profit] }
     end
 
-    context 'server-side :today' do
+    context 'when server-side :today' do
       let(:time) { :today }
 
       it { is_expected.to eq [profit] }
     end
 
-    context 'tomorrow' do
+    context 'when tomorrow' do
       let(:time) { Date.tomorrow }
 
       it { is_expected.to eq [profit] }
     end
 
-    context 'one month from now' do
+    context 'when one month from now' do
       let(:time) { 1.month.from_now }
 
       it { is_expected.to eq [profit] }
 
-      context 'not inclusive' do
+      context 'when not inclusive' do
         let(:inclusive) { false }
 
         it { is_expected.to be_empty }
       end
     end
 
-    context 'far future' do
+    context 'when far future' do
       let(:time) { 1.year.from_now }
 
       it { is_expected.to be_empty }
@@ -241,37 +241,37 @@ RSpec.describe ChronoModel::TimeMachine::TimeQuery do
     context 'with a single timestamp' do
       subject { Event.time_query(:not, time.try(:to_date) || time, on: :interval, type: :daterange).to_a }
 
-      context '14 days ago' do
+      context 'when 14 days ago' do
         let(:time) { 14.days.ago }
 
         it { is_expected.to contain_exactly(collect, start, build, profit) }
       end
 
-      context '9 days ago' do
+      context 'when 9 days ago' do
         let(:time) { 9.days.ago }
 
         it { is_expected.to contain_exactly(think, plan, collect, start, build, profit) }
       end
 
-      context '8 days ago' do
+      context 'when 8 days ago' do
         let(:time) { 8.days.ago }
 
         it { is_expected.to contain_exactly(think, plan, collect, build, profit) }
       end
 
-      context 'today' do
+      context 'when today' do
         let(:time) { Date.today }
 
         it { is_expected.to contain_exactly(think, plan, collect, start, build, profit) }
       end
 
-      context ':today' do
+      context 'when server-side :today' do
         let(:time) { :today }
 
         it { is_expected.to contain_exactly(think, plan, collect, start, build, profit) }
       end
 
-      context '1 month from now' do
+      context 'when 1 month from now' do
         let(:time) { 1.month.from_now }
 
         it { is_expected.to contain_exactly(think, plan, collect, start, build) }
@@ -293,7 +293,7 @@ RSpec.describe ChronoModel::TimeMachine::TimeQuery do
         it { is_expected.to eq [profit] }
       end
 
-      context 'from an edge' do
+      context 'with an edge' do
         let(:time) { [14.days.ago, 10.days.ago] }
 
         it { is_expected.to eq [start, build, profit] }

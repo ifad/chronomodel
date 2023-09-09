@@ -7,19 +7,19 @@ RSpec.describe ChronoModel::TimeMachine do
   include ChronoTest::TimeMachine::Helpers
 
   describe '#pred' do
-    context 'on the first history entry' do
+    context 'with the first history entry' do
       subject { $t.foo.history.first.pred }
 
       it { is_expected.to be_nil }
     end
 
-    context 'on the second history entry' do
+    context 'with the second history entry' do
       subject { $t.foo.history.second.pred }
 
       it { is_expected.to eq $t.foo.history.first }
     end
 
-    context 'on the last history entry' do
+    context 'with the last history entry' do
       subject { $t.foo.history.last.pred }
 
       it { is_expected.to eq $t.foo.history[$t.foo.history.size - 2] }
@@ -31,7 +31,7 @@ RSpec.describe ChronoModel::TimeMachine do
       it { is_expected.to eq $t.noo.history.first }
     end
 
-    context 'on records having history' do
+    context 'with records having history' do
       subject(:pred) { $t.bar.pred }
 
       it { expect(pred.name).to eq 'bar bar' }
@@ -55,19 +55,19 @@ RSpec.describe ChronoModel::TimeMachine do
   end
 
   describe '#succ' do
-    context 'on the first history entry' do
+    context 'with the first history entry' do
       subject { $t.foo.history.first.succ }
 
       it { is_expected.to eq $t.foo.history.second }
     end
 
-    context 'on the second history entry' do
+    context 'with the second history entry' do
       subject { $t.foo.history.second.succ }
 
       it { is_expected.to eq $t.foo.history.third }
     end
 
-    context 'on the last history entry' do
+    context 'with the last history entry' do
       subject { $t.foo.history.last.succ }
 
       it { is_expected.to be_nil }

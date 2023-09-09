@@ -56,7 +56,7 @@ RSpec.describe 'rake tasks', type: :aruba do
     let(:action) { run_command("bundle exec rake #{load_schema_task}") }
     let(:last_command) { action && last_command_started }
 
-    context 'given a file db/structure.sql' do
+    context 'with db/structure.sql' do
       before do
         copy('%/empty_structure.sql', 'db/structure.sql')
       end

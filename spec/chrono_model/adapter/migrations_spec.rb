@@ -53,7 +53,7 @@ RSpec.describe ChronoModel::Adapter do
     renamed = 'foo_table'
     subject { renamed }
 
-    context 'temporal: true' do
+    context 'with temporal tables' do
       before :all do
         adapter.create_table table, temporal: true, &columns
         adapter.add_index table, :test
@@ -75,7 +75,7 @@ RSpec.describe ChronoModel::Adapter do
       end
     end
 
-    context 'temporal: false' do
+    context 'with plain tables' do
       before :all do
         adapter.create_table table, temporal: false, &columns
 
@@ -154,7 +154,7 @@ RSpec.describe ChronoModel::Adapter do
     end
 
     # https://github.com/ifad/chronomodel/issues/91
-    context 'given a table using a sequence not owned by a column' do
+    context 'with a table using a sequence not owned by a column' do
       before :all do
         adapter.execute 'create sequence temporal.foobar owned by none'
         adapter.execute "create table #{table} (id integer primary key default nextval('temporal.foobar'::regclass), label character varying)"
@@ -200,7 +200,7 @@ RSpec.describe ChronoModel::Adapter do
       it { is_expected.not_to have_public_interface }
     end
 
-    context 'without temporal tables' do
+    context 'with plain tables' do
       before :all do
         adapter.create_table table, temporal: false, &columns
 
