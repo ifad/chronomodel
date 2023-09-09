@@ -6,7 +6,7 @@ RSpec.describe ChronoModel::Conversions do
   describe '.string_to_utc_time' do
     subject(:string_to_utc_time) { described_class.string_to_utc_time(string) }
 
-    context 'given a valid UTC time string' do
+    context 'with a valid UTC time string' do
       let(:string) { '2017-02-06 09:46:31.129626' }
 
       it { is_expected.to be_a(Time) }
@@ -19,14 +19,14 @@ RSpec.describe ChronoModel::Conversions do
       it { expect(string_to_utc_time.usec).to  eq 129_626 } # Ref Issue #32
     end
 
-    context 'given a valid UTC string without least significant zeros' do
+    context 'with a valid UTC string without least significant zeros' do
       let(:string) { '2017-02-06 09:46:31.129' }
 
       it { is_expected.to be_a(Time) }
       it { expect(string_to_utc_time.usec).to eq 129_000 } # Ref Issue #32
     end
 
-    context 'given an invalid UTC time string' do
+    context 'with an invalid UTC time string' do
       let(:string) { 'foobar' }
 
       it { is_expected.to be_nil }
