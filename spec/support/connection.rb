@@ -47,7 +47,7 @@ module ChronoTest
       conf.update(adapter: 'chronomodel')
 
       def conf.to_s
-        format('pgsql://%<username>s:%<password>s@%<hostname>s/%<database>s', **slice(:username, :password, :hostname, :database))
+        format('pgsql://%<username>s:%<password>s@%<host>s/%<database>s', **slice(:username, :password, :host, :database))
       end
     end
   rescue Errno::ENOENT
