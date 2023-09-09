@@ -40,7 +40,6 @@ RSpec/BeforeAfterAll:
 RSpec/ContextWording:
   Exclude:
     - 'spec/aruba/rake_task_spec.rb'
-    - 'spec/chrono_model/adapter/base_spec.rb'
     - 'spec/chrono_model/adapter/ddl_spec.rb'
     - 'spec/chrono_model/adapter/migrations_spec.rb'
     - 'spec/chrono_model/conversions_spec.rb'
@@ -69,8 +68,6 @@ RSpec/LeakyConstantDeclaration:
 # SupportedStyles: always, named_only
 RSpec/NamedSubject:
   Exclude:
-    - 'spec/chrono_model/adapter/base_spec.rb'
-    - 'spec/chrono_model/conversions_spec.rb'
     - 'spec/chrono_model/history_models_spec.rb'
     - 'spec/chrono_model/time_machine/as_of_spec.rb'
     - 'spec/chrono_model/time_machine/manipulations_spec.rb'
