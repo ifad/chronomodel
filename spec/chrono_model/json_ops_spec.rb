@@ -31,7 +31,7 @@ if ENV['HAVE_PLPYTHON'] == '1'
       expect(adapter.select_value(%( SELECT '{"a":1,"b":2,"x":{"c":4,"d":5}}'::json = '{"b":2, "x": { "d": 5, "c": 4}, "a":1}'::json ))).to be true
     }
 
-    context 'on a temporal table' do
+    context 'with a temporal table' do
       before :all do
         adapter.create_table table, temporal: true do |t|
           t.json 'data'

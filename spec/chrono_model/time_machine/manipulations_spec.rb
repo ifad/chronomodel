@@ -83,25 +83,25 @@ RSpec.describe ChronoModel::TimeMachine do
       describe 'does not delete its history' do
         subject { record.name }
 
-        context do
+        context 'with first timestamp' do
           let(:record) { rec.as_of(rec.ts.first) }
 
           it { is_expected.to eq 'alive foo' }
         end
 
-        context do
+        context 'with last timestamp' do
           let(:record) { rec.as_of(rec.ts.last) }
 
           it { is_expected.to eq 'dying foo' }
         end
 
-        context do
+        context 'when searching with as_of' do
           let(:record) { Foo.as_of(rec.ts.first).where(fooity: 42).first }
 
           it { is_expected.to eq 'alive foo' }
         end
 
-        context do
+        context 'when searching in history' do
           subject { Foo.history.where(fooity: 42).map(&:name) }
 
           it { is_expected.to eq ['alive foo', 'dying foo'] }

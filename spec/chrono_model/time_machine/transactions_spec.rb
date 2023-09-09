@@ -5,12 +5,12 @@ RSpec.describe ChronoModel::TimeMachine do
   include ChronoTest::TimeMachine::Helpers
 
   # Transactions
-  context 'multiple updates to an existing record' do
+  context 'with multiple updates to an existing record' do
     let!(:r1) do
       Foo.create!(name: 'xact test').tap do |record|
         Foo.transaction do
-          record.update_attribute 'name', 'lost into oblivion'
-          record.update_attribute 'name', 'does work'
+          record.update_column 'name', 'lost into oblivion'
+          record.update_column 'name', 'does work'
         end
       end
     end
@@ -32,8 +32,8 @@ RSpec.describe ChronoModel::TimeMachine do
     let!(:r2) do
       Foo.transaction do
         Foo.create!(name: 'lost into oblivion').tap do |record|
-          record.update_attribute 'name', 'I am Bar'
-          record.update_attribute 'name', 'I am Foo'
+          record.update_column 'name', 'I am Bar'
+          record.update_column 'name', 'I am Foo'
         end
       end
     end

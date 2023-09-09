@@ -14,13 +14,13 @@ RSpec.describe ChronoModel::TimeMachine do
   describe '.chrono?' do
     subject { model.chrono? }
 
-    context 'on a temporal model' do
+    context 'with a temporal model' do
       let(:model) { Foo }
 
       it { is_expected.to be(true) }
     end
 
-    context 'on a plain model' do
+    context 'with a plain model' do
       let(:model) { Plain }
 
       it { is_expected.to be(false) }
@@ -30,19 +30,19 @@ RSpec.describe ChronoModel::TimeMachine do
   describe '.history?' do
     subject { model.history? }
 
-    context 'on a temporal parent model' do
+    context 'with a temporal parent model' do
       let(:model) { Foo }
 
       it { is_expected.to be(false) }
     end
 
-    context 'on a temporal history model' do
+    context 'with a temporal history model' do
       let(:model) { Foo::History }
 
       it { is_expected.to be(true) }
     end
 
-    context 'on a plain model' do
+    context 'with a plain model' do
       let(:model) { Plain }
 
       it { expect { subject }.to raise_error(NoMethodError) }

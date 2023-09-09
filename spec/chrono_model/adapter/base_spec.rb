@@ -9,22 +9,28 @@ RSpec.describe ChronoModel::Adapter do
 
   it { is_expected.to be_a(described_class) }
 
-  context do
+  describe '.adapter_name' do
     subject { adapter.adapter_name }
 
     it { is_expected.to eq 'PostgreSQL' }
   end
 
-  context do
-    before { allow(adapter).to receive(:postgresql_version).and_return(90_300) }
+  describe '.chrono_supported?' do
+    subject { adapter.chrono_supported? }
 
-    it { is_expected.to be_chrono_supported }
-  end
+    before { allow(adapter).to receive(:postgresql_version).and_return(postgres_version) }
 
-  context do
-    before { allow(adapter).to receive(:postgresql_version).and_return(90_000) }
+    context 'with Postgres 9.3' do
+      let(:postgres_version) { 90_300 }
 
-    it { is_expected.not_to be_chrono_supported }
+      it { is_expected.to be true }
+    end
+
+    context 'with Postgres 9.0' do
+      let(:postgres_version) { 90_000 }
+
+      it { is_expected.to be false }
+    end
   end
 
   describe '.on_schema' do

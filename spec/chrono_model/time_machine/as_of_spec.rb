@@ -20,8 +20,7 @@ RSpec.describe ChronoModel::TimeMachine do
     it { expect(Foo.as_of($t.foos[0].ts[0]).first).to be_a(Foo) }
     it { expect(Bar.as_of($t.foos[0].ts[0]).first).to be_a(Bar) }
 
-    # Associations
-    context do
+    context 'with associations' do
       subject { $t.foos[0].id }
 
       it { expect(Foo.as_of($t.foos[0].ts[0]).find(subject).bars).to eq [] }
@@ -33,7 +32,7 @@ RSpec.describe ChronoModel::TimeMachine do
       it { expect(Foo.as_of($t.bars[0].ts[0]).find(subject).bars.first).to be_a(Bar) }
     end
 
-    context do
+    context 'with association at a different timestamp' do
       subject { $t.foos[1].id }
 
       it { expect { Foo.as_of($t.foos[0].ts[0]).find(subject) }.to raise_error(ActiveRecord::RecordNotFound) }

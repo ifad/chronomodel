@@ -355,6 +355,24 @@ RSpec.describe ChronoModel::Adapter do
       it { is_expected.to have_columns(resulting_columns) }
       it { is_expected.not_to have_columns([%w[foo integer]]) }
     end
+
+    with_temporal_table do
+      before :all do
+        adapter.remove_column table, :foo
+      end
+
+      it { is_expected.not_to have_columns([%w[foo integer]]) }
+      it { is_expected.not_to have_temporal_columns([%w[foo integer]]) }
+      it { is_expected.not_to have_history_columns([%w[foo integer]]) }
+    end
+
+    with_plain_table do
+      before :all do
+        adapter.remove_column table, :foo
+      end
+
+      it { is_expected.not_to have_columns([%w[foo integer]]) }
+    end
   end
 
   describe '.rename_column' do
@@ -412,26 +430,6 @@ RSpec.describe ChronoModel::Adapter do
 
       it { is_expected.not_to have_columns([%w[foo integer]]) }
       it { is_expected.to have_columns([['foo', 'double precision']]) }
-    end
-  end
-
-  describe '.remove_column' do
-    with_temporal_table do
-      before :all do
-        adapter.remove_column table, :foo
-      end
-
-      it { is_expected.not_to have_columns([%w[foo integer]]) }
-      it { is_expected.not_to have_temporal_columns([%w[foo integer]]) }
-      it { is_expected.not_to have_history_columns([%w[foo integer]]) }
-    end
-
-    with_plain_table do
-      before :all do
-        adapter.remove_column table, :foo
-      end
-
-      it { is_expected.not_to have_columns([%w[foo integer]]) }
     end
   end
 end

@@ -3,7 +3,7 @@ require 'spec_helper'
 RSpec.describe 'database migrations', type: :aruba do
   before { copy_db_config }
 
-  context 'after a migration was generated' do
+  context 'when a migration is generated' do
     before { run_command_and_stop('bundle exec rails g migration CreateModels name:string') }
 
     describe 'bundle exec rake db:migrate' do

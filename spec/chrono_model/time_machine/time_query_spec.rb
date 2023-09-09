@@ -33,47 +33,47 @@ RSpec.describe ChronoModel::TimeMachine::TimeQuery do
   build   = Event.create! name: 'build',   interval: (7.days.ago.to_date...Date.yesterday)
   profit  = Event.create! name: 'profit',  interval: (Date.tomorrow...1.year.from_now.to_date)
 
-  describe :at do
-    describe 'with a single timestamp' do
+  describe 'at' do
+    context 'with a single timestamp' do
       subject { Event.time_query(:at, time.try(:to_date) || time, on: :interval).to_a }
 
-      context 'no records' do
+      context 'without records' do
         let(:time) { 16.days.ago }
 
         it { is_expected.to be_empty }
       end
 
-      context 'single record' do
+      context 'with a single record' do
         let(:time) { 15.days.ago }
 
         it { is_expected.to eq [think] }
       end
 
-      context 'multiple overlapping records' do
+      context 'with multiple overlapping records' do
         let(:time) { 14.days.ago }
 
         it { is_expected.to contain_exactly(think, plan) }
       end
 
-      context 'on an edge of an open interval' do
+      context 'when on an edge of an open interval' do
         let(:time) { 10.days.ago }
 
         it { is_expected.to be_empty }
       end
 
-      context 'in an hole' do
+      context 'with a hole' do
         let(:time) { 9.days.ago }
 
         it { is_expected.to be_empty }
       end
 
-      context 'today' do
+      context 'when today' do
         let(:time) { Date.today }
 
         it { is_expected.to be_empty }
       end
 
-      context 'server-side :today' do
+      context 'when server-side :today' do
         let(:time) { :today }
 
         it { is_expected.to be_empty }
@@ -83,31 +83,31 @@ RSpec.describe ChronoModel::TimeMachine::TimeQuery do
     describe 'with a range' do
       subject { Event.time_query(:at, times.map!(&:to_date), on: :interval, type: :daterange).to_a }
 
-      context 'that is empty' do
+      context 'with an empty range' do
         let(:times) { [14.days.ago, 14.days.ago] }
 
         it { is_expected.not_to be_empty }
       end
 
-      context 'overlapping no records' do
+      context 'when range has no records' do
         let(:times) { [20.days.ago, 16.days.ago] }
 
         it { is_expected.to be_empty }
       end
 
-      context 'overlapping a single record' do
+      context 'when range has a single record' do
         let(:times) { [16.days.ago, 14.days.ago] }
 
         it { is_expected.to eq [think] }
       end
 
-      context 'overlapping more records' do
+      context 'when range has multiple records' do
         let(:times) { [16.days.ago, 11.days.ago] }
 
         it { is_expected.to contain_exactly(think, plan, collect) }
       end
 
-      context 'on the edge of an open interval and an hole' do
+      context 'when on the edge of an open interval and a hole' do
         let(:times) { [10.days.ago, 9.days.ago] }
 
         it { is_expected.to be_empty }
@@ -115,18 +115,18 @@ RSpec.describe ChronoModel::TimeMachine::TimeQuery do
     end
   end
 
-  describe :before do
+  describe 'before' do
     subject { Event.time_query(:before, time.try(:to_date) || time, on: :interval, type: :daterange, inclusive: inclusive).to_a }
 
     let(:inclusive) { true }
 
-    context '16 days ago' do
+    context 'when 16 days ago' do
       let(:time) { 16.days.ago }
 
       it { is_expected.to be_empty }
     end
 
-    context '14 days ago' do
+    context 'when 14 days ago' do
       let(:time) { 14.days.ago }
 
       it { is_expected.to eq [think] }
@@ -175,7 +175,7 @@ RSpec.describe ChronoModel::TimeMachine::TimeQuery do
     end
   end
 
-  describe :after do
+  describe 'after' do
     subject { Event.time_query(:after, time.try(:to_date) || time, on: :interval, type: :daterange, inclusive: inclusive).to_a }
 
     let(:inclusive) { true }
@@ -235,7 +235,7 @@ RSpec.describe ChronoModel::TimeMachine::TimeQuery do
     end
   end
 
-  describe :not do
+  describe 'not' do
     context 'with a single timestamp' do
       subject { Event.time_query(:not, time.try(:to_date) || time, on: :interval, type: :daterange).to_a }
 
@@ -279,13 +279,13 @@ RSpec.describe ChronoModel::TimeMachine::TimeQuery do
     context 'with a range' do
       subject { Event.time_query(:not, time.map(&:to_date), on: :interval, type: :daterange).to_a }
 
-      context 'eliminating a single record' do
+      context 'when eliminating a single record' do
         let(:time) { [1.month.ago, 14.days.ago] }
 
         it { is_expected.to contain_exactly(plan, collect, start, build, profit) }
       end
 
-      context 'eliminating multiple records' do
+      context 'when eliminating multiple records' do
         let(:time) { [1.month.ago, Date.today] }
 
         it { is_expected.to eq [profit] }
