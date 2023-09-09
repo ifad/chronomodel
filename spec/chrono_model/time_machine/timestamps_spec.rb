@@ -9,7 +9,7 @@ RSpec.describe ChronoModel::TimeMachine do
   history_methods = %w[valid_from valid_to recorded_at]
   current_methods = %w[as_of_time]
 
-  context 'on history records' do
+  context 'with history records' do
     let(:record) { $t.foo.history.first }
 
     (history_methods + current_methods).each do |attr|
@@ -23,14 +23,14 @@ RSpec.describe ChronoModel::TimeMachine do
     end
   end
 
-  context 'on current records' do
+  context 'with current records' do
     let(:record) { $t.foo }
 
     history_methods.each do |attr|
       describe ['#', attr].join do
-        subject { record.public_send(attr) }
+        subject(:attribute) { record.public_send(attr) }
 
-        it { expect { subject }.to raise_error(NoMethodError) }
+        it { expect { attribute }.to raise_error(NoMethodError) }
       end
     end
 

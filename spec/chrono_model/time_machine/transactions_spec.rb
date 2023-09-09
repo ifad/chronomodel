@@ -22,7 +22,7 @@ RSpec.describe ChronoModel::TimeMachine do
       r1.history.delete_all
     end
 
-    it 'generate only a single history record' do
+    it 'generates a single history record' do
       expect(r1.history.size).to eq(2)
 
       expect(r1.history.first.name).to eq 'xact test'
@@ -30,7 +30,7 @@ RSpec.describe ChronoModel::TimeMachine do
     end
   end
 
-  context 'insertion and subsequent update' do
+  context 'with an insertion and subsequent update' do
     let!(:r2) do
       Foo.transaction do
         Foo.create!(name: 'lost into oblivion').tap do |record|
@@ -51,7 +51,7 @@ RSpec.describe ChronoModel::TimeMachine do
     end
   end
 
-  context 'insertion and subsequent deletion' do
+  context 'with an insertion and subsequent deletion' do
     let!(:r3) do
       Foo.transaction do
         Foo.create!(name: 'it never happened').destroy

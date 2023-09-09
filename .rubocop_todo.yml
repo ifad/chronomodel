@@ -46,8 +46,6 @@ RSpec/ContextWording:
     - 'spec/chrono_model/time_machine/changes_spec.rb'
     - 'spec/chrono_model/time_machine/sequence_spec.rb'
     - 'spec/chrono_model/time_machine/time_query_spec.rb'
-    - 'spec/chrono_model/time_machine/timestamps_spec.rb'
-    - 'spec/chrono_model/time_machine/transactions_spec.rb'
     - 'spec/support/adapter/helpers.rb'
 
 # Configuration parameters: AssignmentOnly.
@@ -68,12 +66,10 @@ RSpec/LeakyConstantDeclaration:
 # SupportedStyles: always, named_only
 RSpec/NamedSubject:
   Exclude:
-    - 'spec/chrono_model/history_models_spec.rb'
     - 'spec/chrono_model/time_machine/as_of_spec.rb'
     - 'spec/chrono_model/time_machine/manipulations_spec.rb'
     - 'spec/chrono_model/time_machine/sequence_spec.rb'
     - 'spec/chrono_model/time_machine/timeline_spec.rb'
-    - 'spec/chrono_model/time_machine/timestamps_spec.rb'
 
 RSpec/RepeatedExample:
   Exclude:

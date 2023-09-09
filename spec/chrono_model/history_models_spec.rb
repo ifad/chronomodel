@@ -5,7 +5,7 @@ require 'support/time_machine/structure'
 
 RSpec.describe ChronoModel do
   describe '.history_models' do
-    subject { described_class.history_models }
+    subject(:history_models) { described_class.history_models }
 
     it 'tracks recorded history models' do
       expected = {}
@@ -31,9 +31,9 @@ RSpec.describe ChronoModel do
       expected['animals']  = Animal::History  if defined?(Animal::History)
       expected['elements'] = Element::History if defined?(Element::History)
 
-      expect(subject).to eq(expected)
+      expect(history_models).to eq(expected)
     end
 
-    it { expect(subject.size).to be > 0 }
+    it { is_expected.to be_present }
   end
 end
