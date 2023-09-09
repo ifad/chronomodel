@@ -36,10 +36,10 @@ module ChronoModel
             execute "ALTER VIEW #{table} ALTER COLUMN #{quote_column_name(column.name)} SET DEFAULT #{default}"
           end
 
-          columns = self.columns(table).map {|c| quote_column_name(c.name)}
+          columns = self.columns(table).map { |c| quote_column_name(c.name) }
           columns.delete(quote_column_name(pk))
 
-          fields, values = columns.join(', '), columns.map {|c| "NEW.#{c}"}.join(', ')
+          fields, values = columns.join(', '), columns.map { |c| "NEW.#{c}" }.join(', ')
 
           chrono_create_INSERT_trigger(table, pk, current, history, fields, values)
           chrono_create_UPDATE_trigger(table, pk, current, history, fields, values, options, columns)
@@ -116,16 +116,16 @@ module ChronoModel
           # Columns to be journaled. By default everything except updated_at (GH #7)
           #
           journal = if options[:journal]
-            options[:journal].map {|col| quote_column_name(col)}
+            options[:journal].map { |col| quote_column_name(col) }
 
           elsif options[:no_journal]
-            columns - options[:no_journal].map {|col| quote_column_name(col)}
+            columns - options[:no_journal].map { |col| quote_column_name(col) }
 
           elsif options[:full_journal]
             columns
 
           else
-            columns - [ quote_column_name('updated_at') ]
+            columns - [quote_column_name('updated_at')]
           end
 
           journal &= columns
@@ -141,8 +141,8 @@ module ChronoModel
                         RETURN NULL;
                     END IF;
 
-                    _old := row(#{journal.map {|c| "OLD.#{c}" }.join(', ')});
-                    _new := row(#{journal.map {|c| "NEW.#{c}" }.join(', ')});
+                    _old := row(#{journal.map { |c| "OLD.#{c}" }.join(', ')});
+                    _new := row(#{journal.map { |c| "NEW.#{c}" }.join(', ')});
 
                     IF _old IS NOT DISTINCT FROM _new THEN
                         UPDATE ONLY #{current} SET ( #{fields} ) = ( #{values} ) WHERE #{pk} = OLD.#{pk};
@@ -212,7 +212,7 @@ module ChronoModel
         end
 
         def chrono_drop_trigger_functions_for(table_name)
-          %w( insert update delete ).each do |func|
+          %w(insert update delete).each do |func|
             execute "DROP FUNCTION IF EXISTS chronomodel_#{table_name}_#{func}()"
           end
         end

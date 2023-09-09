@@ -38,7 +38,7 @@ module ChronoModel
         indexes = temporal_index_names(table, range, options)
 
         chrono_alter_index(table, options) do
-          indexes.each {|idx| execute "DROP INDEX #{idx}" }
+          indexes.each { |idx| execute "DROP INDEX #{idx}" }
         end
       end
 
@@ -93,10 +93,10 @@ module ChronoModel
               recorded_at timeline_consistency )
 
             old_names = temporal_index_names(name, :validity) +
-              standard_index_names.map {|i| [name, i].join('_') }
+              standard_index_names.map { |i| [name, i].join('_') }
 
             new_names = temporal_index_names(new_name, :validity) +
-              standard_index_names.map {|i| [new_name, i].join('_') }
+              standard_index_names.map { |i| [new_name, i].join('_') }
 
             old_names.zip(new_names).each do |old, new|
               execute "ALTER INDEX #{old} RENAME TO #{new}"
@@ -108,7 +108,7 @@ module ChronoModel
         #
         def chrono_rename_temporal_indexes(name, new_name)
           on_temporal_schema do
-            temporal_indexes =  indexes(new_name)
+            temporal_indexes = indexes(new_name)
             temporal_indexes.map(&:name).each do |old_idx_name|
               if old_idx_name =~ /^index_#{name}_on_(?<columns>.+)/
                 new_idx_name = "index_#{new_name}_on_#{$~['columns']}"

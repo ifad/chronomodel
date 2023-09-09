@@ -203,7 +203,7 @@ module ChronoModel
         self.class.superclass.find(rid)
       end
 
-      def record #:nodoc:
+      def record # :nodoc:
         ActiveSupport::Deprecation.warn '.record is deprecated in favour of .current_version'
         self.current_version
       end

@@ -25,7 +25,7 @@ module ChronoModel
       def load
         return super unless @_as_of_time && !loaded?
 
-        super.each {|record| record.as_of_time!(@_as_of_time) }
+        super.each { |record| record.as_of_time!(@_as_of_time) }
       end
 
       def merge(*)

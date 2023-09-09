@@ -12,7 +12,7 @@ module ChronoModel
         # Locate tables needing a structure upgrade
         #
         def chrono_tables_needing_upgrade
-          tables = { }
+          tables = {}
 
           on_temporal_schema { self.tables }.each do |table_name|
             next unless is_chrono?(table_name)

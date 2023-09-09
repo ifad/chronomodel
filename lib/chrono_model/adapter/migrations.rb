@@ -66,7 +66,7 @@ module ChronoModel
         transaction do
           # Add an empty proc to support calling change_table without a block.
           #
-          block ||= proc { }
+          block ||= proc {}
 
           if options[:temporal]
             if !is_chrono?(table_name)

@@ -10,7 +10,7 @@ module ChronoModel
     #   end
     #
     def amend_period!(hid, from, to)
-      unless [from, to].any? {|ts| ts.respond_to?(:zone) && ts.zone == 'UTC'}
+      unless [from, to].any? { |ts| ts.respond_to?(:zone) && ts.zone == 'UTC' }
         raise 'Can amend history only with UTC timestamps'
       end
 
