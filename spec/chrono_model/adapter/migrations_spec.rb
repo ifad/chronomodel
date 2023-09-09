@@ -5,7 +5,10 @@ require 'support/adapter/structure'
 
 # For the structure of these tables, please see spec/support/adabters/structure.rb.
 #
-# rubocop:disable RSpec/ScatteredSetup
+
+# TODO: `with_temporal_table` and `with_plain_table` are confusing Rubocop.
+# They create a context and run examples inside that context
+# rubocop:disable RSpec/RepeatedExample,RSpec/ScatteredSetup
 RSpec.shared_examples_for 'temporal table' do
   it { expect(adapter.is_chrono?(subject)).to be(true) }
 
@@ -435,4 +438,4 @@ RSpec.describe ChronoModel::Adapter do
     end
   end
 end
-# rubocop:enable RSpec/ScatteredSetup
+# rubocop:enable RSpec/RepeatedExample,RSpec/ScatteredSetup

@@ -2,6 +2,8 @@
 
 require 'spec_helper'
 require 'rake'
+
+# TODO: Understand why this is needed at root level and fix the RuboCop offense
 include ChronoTest::Aruba # rubocop:disable Style/MixinUsage
 # add :announce_stdout, :announce_stderr, before the type: aruba tag in order
 # to see the commmands' stdout and stderr output.

@@ -73,6 +73,7 @@ RSpec.describe ChronoModel::TimeMachine do
       end
 
       after do
+        rec.destroy
         rec.history.delete_all
       end
 
