@@ -51,11 +51,6 @@ RSpec/ContextWording:
     - 'spec/chrono_model/time_machine/transactions_spec.rb'
     - 'spec/support/adapter/helpers.rb'
 
-# This cop supports safe autocorrection (--autocorrect).
-RSpec/ExpectActual:
-  Exclude:
-    - 'spec/aruba/rake_task_spec.rb'
-
 # Configuration parameters: AssignmentOnly.
 RSpec/InstanceVariable:
   Exclude:

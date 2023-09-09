@@ -15,14 +15,16 @@ RSpec.describe 'rake tasks', type: :aruba do
   end
 
   describe dump_schema_task.to_s do
+    let(:db_file) { 'db/test.sql' }
+
     before do
       copy_db_config
       run_command_and_stop("bundle exec rake #{dump_schema_task} SCHEMA=db/test.sql")
     end
 
     it { expect(last_command_started).to be_successfully_executed }
-    it { expect('db/test.sql').to be_an_existing_file }
-    it { expect('db/test.sql').not_to have_file_content(/\A--/) }
+    it { expect(db_file).to be_an_existing_file }
+    it { expect(db_file).not_to have_file_content(/\A--/) }
 
     context 'with schema_search_path option' do
       before do
@@ -31,7 +33,7 @@ RSpec.describe 'rake tasks', type: :aruba do
       end
 
       it 'includes chronomodel schemas' do
-        expect('db/test.sql').to have_file_content(/^CREATE SCHEMA IF NOT EXISTS history;$/)
+        expect(db_file).to have_file_content(/^CREATE SCHEMA IF NOT EXISTS history;$/)
           .and have_file_content(/^CREATE SCHEMA IF NOT EXISTS temporal;$/)
           .and have_file_content(/^CREATE SCHEMA IF NOT EXISTS public;$/)
       end
