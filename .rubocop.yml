@@ -21,9 +21,17 @@ Gemspec/DevelopmentDependencies:
 Layout/LineLength:
   Max: 140
 
+Metrics/AbcSize:
+  Exclude:
+    - 'spec/**/*'
+
 Metrics/BlockLength:
   Exclude:
     - 'chrono_model.gemspec'
+    - 'spec/**/*'
+
+Metrics/MethodLength:
+  Exclude:
     - 'spec/**/*'
 
 Rails/ApplicationRecord:
@@ -35,7 +43,19 @@ Rails/Date:
 Rails/RakeEnvironment:
   Enabled: false
 
+Rails/SkipsModelValidations:
+  AllowedMethods: ['touch', 'touch_all', 'update_column', 'update_columns']
+
 Rails/TimeZone:
+  Enabled: false
+
+RSpec/ExampleLength:
+  Enabled: false
+
+RSpec/MultipleExpectations:
+  Enabled: false
+
+RSpec/NestedGroups:
   Enabled: false
 
 Style/GlobalVars:
@@ -44,4 +64,3 @@ Style/GlobalVars:
 
 Style/HashExcept:
   Enabled: false
-
