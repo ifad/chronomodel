@@ -1,6 +1,5 @@
 module ChronoModel
   module Patches
-
     # Patches ActiveRecord::Associations::Association to add support for
     # temporal associations.
     #
@@ -34,6 +33,7 @@ module ChronoModel
       end
 
       private
+
         def _chrono_record?
           owner.class.include?(ChronoModel::Patches::AsOfTimeHolder) && owner.as_of_time.present?
         end
@@ -45,8 +45,6 @@ module ChronoModel
 
           @_target_klass.chrono?
         end
-
     end
-
   end
 end

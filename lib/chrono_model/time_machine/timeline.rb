@@ -1,6 +1,5 @@
 module ChronoModel
   module TimeMachine
-
     module Timeline
       # Returns an Array of unique UTC timestamps for which at least an
       # history record exists. Takes temporal associations into account.
@@ -96,6 +95,5 @@ module ChronoModel
         end
       end
     end
-
   end
 end

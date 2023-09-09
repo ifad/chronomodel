@@ -1,6 +1,5 @@
 module ChronoModel
   module TimeMachine
-
     module HistoryModel
       extend ActiveSupport::Concern
 
@@ -121,6 +120,7 @@ module ChronoModel
         end
 
         private
+
           # STI fails when a Foo::History record has Foo as type in the
           # inheritance column; AR expects the type to be an instance of the
           # current class or a descendant (or self).
@@ -246,6 +246,5 @@ module ChronoModel
         @primary_key = old_primary_key
       end
     end
-
   end
 end

@@ -1,6 +1,5 @@
 module ChronoModel
   module Patches
-
     module Relation
       include ChronoModel::Patches::AsOfTimeHolder
 
@@ -39,11 +38,9 @@ module ChronoModel
         return super unless @_as_of_time
 
         super.tap do |arel|
-
           arel.join_sources.each do |join|
             chrono_join_history(join)
           end
-
         end
       end
 
@@ -98,6 +95,5 @@ module ChronoModel
           with_hid_pkey { super }
         end
     end
-
   end
 end

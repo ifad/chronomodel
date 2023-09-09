@@ -40,6 +40,7 @@ ActiveRecord::Base.instance_eval do
   #
   def chrono?
     return false unless connection.respond_to? :is_chrono?
+
     connection.is_chrono?(table_name)
   end
 end

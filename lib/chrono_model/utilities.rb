@@ -1,5 +1,4 @@
 module ChronoModel
-
   module Utilities
     # Amends the given history item setting a different period.
     # Useful when migrating from legacy systems.
@@ -23,5 +22,4 @@ module ChronoModel
       ]
     end
   end
-
 end

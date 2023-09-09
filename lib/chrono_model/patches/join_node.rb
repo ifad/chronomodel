@@ -1,6 +1,5 @@
 module ChronoModel
   module Patches
-
     # This class supports the AR 5.0 code that expects to receive an
     # Arel::Table as the left join node. We need to replace the node
     # with a virtual table that fetches from the history at a given
@@ -27,6 +26,5 @@ module ChronoModel
         super(virtual_table)
       end
     end
-
   end
 end

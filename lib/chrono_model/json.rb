@@ -1,5 +1,4 @@
 module ChronoModel
-
   module Json
     extend self
 
@@ -18,6 +17,7 @@ module ChronoModel
     end
 
     private
+
     def sql(file)
       File.dirname(__FILE__) + '/../../sql/' + file
     end
@@ -26,5 +26,4 @@ module ChronoModel
       ActiveRecord::Base.connection
     end
   end
-
 end

@@ -1,6 +1,5 @@
 module ChronoModel
   class Adapter < ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
-
     module Upgrade
       def chrono_upgrade!
         chrono_ensure_schemas
@@ -9,6 +8,7 @@ module ChronoModel
       end
 
       private
+
         # Locate tables needing a structure upgrade
         #
         def chrono_tables_needing_upgrade
@@ -16,6 +16,7 @@ module ChronoModel
 
           on_temporal_schema { self.tables }.each do |table_name|
             next unless is_chrono?(table_name)
+
             metadata = chrono_metadata_for(table_name)
             version = metadata['chronomodel']
 
@@ -49,9 +50,7 @@ module ChronoModel
         #
         def chrono_upgrade_structure!
           transaction do
-
             chrono_tables_needing_upgrade.each do |table_name, desc|
-
               if desc[:version].blank?
                 logger.info "ChronoModel: Upgrading legacy PG 9.0 table #{table_name} to #{VERSION}"
                 chrono_upgrade_from_postgres_9_0(table_name)
@@ -61,7 +60,6 @@ module ChronoModel
                 chrono_public_view_ddl(table_name)
                 logger.info "ChronoModel: #{table_name} upgrade complete"
               end
-
             end
           end
         rescue => e
@@ -114,7 +112,5 @@ module ChronoModel
         end
       # private
     end
-
   end
-
 end

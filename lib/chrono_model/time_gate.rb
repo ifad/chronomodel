@@ -1,5 +1,4 @@
 module ChronoModel
-
   # Provides the TimeMachine API to non-temporal models that associate
   # temporal ones.
   #
@@ -24,5 +23,4 @@ module ChronoModel
       self.class.timeline(self)
     end
   end
-
 end

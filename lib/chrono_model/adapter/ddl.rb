@@ -3,9 +3,9 @@ require 'multi_json'
 
 module ChronoModel
   class Adapter < ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
-
     module DDL
       private
+
         # Create the public view and its INSTEAD OF triggers
         #
         def chrono_public_view_ddl(table, options = nil)
@@ -231,6 +231,5 @@ module ChronoModel
         end
       # private
     end
-
   end
 end

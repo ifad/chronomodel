@@ -1,6 +1,5 @@
 module ChronoModel
   module Patches
-
     # Added to classes that need to carry the As-Of date around
     #
     module AsOfTimeHolder
@@ -18,6 +17,5 @@ module ChronoModel
         @_as_of_time
       end
     end
-
   end
 end

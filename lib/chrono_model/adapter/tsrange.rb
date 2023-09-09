@@ -1,6 +1,5 @@
 module ChronoModel
   class Adapter < ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
-
     module TSRange
       # HACK: Redefine tsrange parsing support, as it is broken currently.
       #
@@ -52,6 +51,5 @@ module ChronoModel
         end
       end
     end
-
   end
 end

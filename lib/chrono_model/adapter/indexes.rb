@@ -1,6 +1,5 @@
 module ChronoModel
   class Adapter < ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
-
     module Indexes
       # Create temporal indexes for timestamp search.
       #
@@ -74,6 +73,7 @@ module ChronoModel
       end
 
       private
+
         # Creates indexes for a newly made history table
         #
         def chrono_create_history_indexes_for(table, p_pkey)
@@ -191,9 +191,6 @@ module ChronoModel
             yield
           end
         end
-
-
     end
-
   end
 end

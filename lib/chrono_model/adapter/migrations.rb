@@ -1,6 +1,5 @@
 module ChronoModel
   class Adapter < ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
-
     module Migrations
       # Creates the given table, possibly creating the temporal schema
       # objects if the `:temporal` option is given and set to true.
@@ -65,7 +64,6 @@ module ChronoModel
       #
       def change_table(table_name, **options, &block)
         transaction do
-
           # Add an empty proc to support calling change_table without a block.
           #
           block ||= proc { }
@@ -86,7 +84,6 @@ module ChronoModel
 
             super table_name, **options, &block
           end
-
         end
       end
 
@@ -138,6 +135,7 @@ module ChronoModel
       #
       def change_column(table_name, column_name, type, **options)
         return super unless is_chrono?(table_name)
+
         drop_and_recreate_public_view(table_name) { super }
       end
 
@@ -145,6 +143,7 @@ module ChronoModel
       #
       def change_column_default(table_name, *)
         return super unless is_chrono?(table_name)
+
         on_temporal_schema { super }
       end
 
@@ -152,6 +151,7 @@ module ChronoModel
       #
       def change_column_null(table_name, *)
         return super unless is_chrono?(table_name)
+
         on_temporal_schema { super }
       end
 
@@ -161,10 +161,12 @@ module ChronoModel
       #
       def remove_column(table_name, column_name, type = nil, **options)
         return super unless is_chrono?(table_name)
+
         drop_and_recreate_public_view(table_name) { super }
       end
 
       private
+
         # In destructive changes, such as removing columns or changing column
         # types, the view must be dropped and recreated, while the change has
         # to be applied to the table in the temporal schema.
@@ -247,6 +249,5 @@ module ChronoModel
 
       # private
     end
-
   end
 end

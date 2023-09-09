@@ -1,6 +1,5 @@
 module ChronoModel
   module TimeMachine
-
     #
     # TODO Documentation
     #
@@ -12,6 +11,7 @@ module ChronoModel
       end
 
       private
+
         def time_query_sql(match, time, range, options)
           case match
           when :at
@@ -81,6 +81,5 @@ module ChronoModel
           end
         end
     end
-
   end
 end
