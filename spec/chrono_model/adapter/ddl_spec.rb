@@ -28,7 +28,7 @@ RSpec.describe ChronoModel::Adapter do
     end
 
     context 'when succeeding' do
-      def insert
+      let(:insert) do
         adapter.execute <<-SQL.squish
           INSERT INTO #{table} (test, foo) VALUES
             ('test1', 1),
@@ -42,7 +42,7 @@ RSpec.describe ChronoModel::Adapter do
     end
 
     context 'when failing' do
-      def insert
+      let(:insert) do
         adapter.execute <<-SQL.squish
           INSERT INTO #{table} (test, foo) VALUES
             ('test3', 3),
@@ -56,7 +56,7 @@ RSpec.describe ChronoModel::Adapter do
     end
 
     context 'when inserting after a failure' do
-      def insert
+      let(:insert) do
         adapter.execute <<-SQL.squish
           INSERT INTO #{table} (test, foo) VALUES
             ('test4', 3),
@@ -82,13 +82,13 @@ RSpec.describe ChronoModel::Adapter do
       adapter.drop_table table
     end
 
-    def insert
+    let(:insert) do
       adapter.execute <<-SQL.squish
         INSERT INTO #{table} DEFAULT VALUES
       SQL
     end
 
-    def select
+    let(:select) do
       adapter.select_values <<-SQL.squish
         SELECT test FROM #{table}
       SQL
@@ -111,7 +111,7 @@ RSpec.describe ChronoModel::Adapter do
       adapter.drop_table table
     end
 
-    def insert
+    let(:insert) do
       adapter.execute <<-SQL.squish
         INSERT INTO #{table} (test, id) VALUES ('test1', 'hello');
       SQL

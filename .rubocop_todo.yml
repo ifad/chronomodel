@@ -9,8 +9,6 @@
 RSpec/BeforeAfterAll:
   Exclude:
     - 'spec/chrono_model/adapter/ddl_spec.rb'
-    - 'spec/chrono_model/adapter/indexes_spec.rb'
-    - 'spec/chrono_model/adapter/migrations_spec.rb'
     - 'spec/chrono_model/json_ops_spec.rb'
 
 RSpec/RepeatedExample:
