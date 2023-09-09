@@ -89,11 +89,11 @@ module ChronoModel
 
       private
 
-        def ordered_relation
-          return super unless try(:history?)
+      def ordered_relation
+        return super unless try(:history?)
 
-          with_hid_pkey { super }
-        end
+        with_hid_pkey { super }
+      end
     end
   end
 end

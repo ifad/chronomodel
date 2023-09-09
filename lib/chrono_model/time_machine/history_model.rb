@@ -121,13 +121,13 @@ module ChronoModel
 
         private
 
-          # STI fails when a Foo::History record has Foo as type in the
-          # inheritance column; AR expects the type to be an instance of the
-          # current class or a descendant (or self).
-          #
-          def find_sti_class(type_name)
-            super(type_name + "::History")
-          end
+        # STI fails when a Foo::History record has Foo as type in the
+        # inheritance column; AR expects the type to be an instance of the
+        # current class or a descendant (or self).
+        #
+        def find_sti_class(type_name)
+          super(type_name + "::History")
+        end
       end
 
       # The history id is `hid`, but this cannot set as primary key

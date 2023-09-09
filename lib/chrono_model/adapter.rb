@@ -169,29 +169,29 @@ module ChronoModel
 
     private
 
-      # Rails 7.1 uses `@raw_connection`, older versions use `@connection`
-      #
-      def chrono_connection
-        @chrono_connection ||= @raw_connection || @connection
-      end
+    # Rails 7.1 uses `@raw_connection`, older versions use `@connection`
+    #
+    def chrono_connection
+      @chrono_connection ||= @raw_connection || @connection
+    end
 
-      # Counts the number of recursions in a thread local variable
-      #
-      def count_recursions # yield
-        Thread.current['recursions'] ||= 0
-        Thread.current['recursions'] += 1
+    # Counts the number of recursions in a thread local variable
+    #
+    def count_recursions # yield
+      Thread.current['recursions'] ||= 0
+      Thread.current['recursions'] += 1
 
-        yield
-      ensure
-        Thread.current['recursions'] -= 1
-      end
+      yield
+    ensure
+      Thread.current['recursions'] -= 1
+    end
 
-      # Create the temporal and history schemas, unless they already exist
-      #
-      def chrono_ensure_schemas
-        [TEMPORAL_SCHEMA, HISTORY_SCHEMA].each do |schema|
-          execute "CREATE SCHEMA #{schema}" unless schema_exists?(schema)
-        end
+    # Create the temporal and history schemas, unless they already exist
+    #
+    def chrono_ensure_schemas
+      [TEMPORAL_SCHEMA, HISTORY_SCHEMA].each do |schema|
+        execute "CREATE SCHEMA #{schema}" unless schema_exists?(schema)
       end
+    end
   end
 end
