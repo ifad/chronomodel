@@ -67,17 +67,22 @@ RSpec.describe ChronoModel::TimeMachine do
       rec = nil
       subject(:destroy) { rec.destroy }
 
-      before(:all) do
+      before do
         rec = ts_eval { Foo.create!(name: 'alive foo', fooity: 42) }
         ts_eval(rec) { update!(name: 'dying foo') }
       end
 
-      after(:all) do
+      after do
         rec.history.delete_all
       end
 
       it { expect { destroy }.not_to raise_error }
-      it { expect { rec.reload }.to raise_error(ActiveRecord::RecordNotFound) }
+
+      it 'raises an error when record is reloaded' do
+        destroy
+
+        expect { rec.reload }.to raise_error(ActiveRecord::RecordNotFound)
+      end
 
       describe 'does not delete its history' do
         subject { record.name }

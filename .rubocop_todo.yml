@@ -12,7 +12,6 @@ RSpec/BeforeAfterAll:
     - 'spec/chrono_model/adapter/indexes_spec.rb'
     - 'spec/chrono_model/adapter/migrations_spec.rb'
     - 'spec/chrono_model/json_ops_spec.rb'
-    - 'spec/chrono_model/time_machine/manipulations_spec.rb'
 
 # Configuration parameters: Prefixes, AllowedPatterns.
 # Prefixes: when, with, without
@@ -25,8 +24,3 @@ RSpec/ContextWording:
     - 'spec/chrono_model/time_machine/changes_spec.rb'
     - 'spec/chrono_model/time_machine/sequence_spec.rb'
     - 'spec/chrono_model/time_machine/time_query_spec.rb'
-    - 'spec/support/adapter/helpers.rb'
-
-RSpec/RepeatedExample:
-  Exclude:
-    - 'spec/chrono_model/adapter/migrations_spec.rb'
