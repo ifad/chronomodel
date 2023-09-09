@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 require 'support/time_machine/structure'
 
 RSpec.describe ChronoModel do
   describe '.history_models' do
-    subject { ChronoModel.history_models }
+    subject(:history_models) { described_class.history_models }
 
     it 'tracks recorded history models' do
       expected = {}
@@ -16,7 +18,7 @@ RSpec.describe ChronoModel do
       expected['noos']     = Noo::History     if defined?(Noo::History)
 
       expected['sub_bars'] = SubBar::History  if defined?(SubBar::History)
-      expected['sub_sub_bars'] = SubSubBar::History  if defined?(SubSubBar::History)
+      expected['sub_sub_bars'] = SubSubBar::History if defined?(SubSubBar::History)
 
       # default_scope_spec
       expected['defoos']   = Defoo::History   if defined?(Defoo::History)
@@ -29,9 +31,9 @@ RSpec.describe ChronoModel do
       expected['animals']  = Animal::History  if defined?(Animal::History)
       expected['elements'] = Element::History if defined?(Element::History)
 
-      is_expected.to eq(expected)
+      expect(history_models).to eq(expected)
     end
 
-    it { expect(subject.size).to be > 0 }
+    it { is_expected.to be_present }
   end
 end

@@ -72,7 +72,7 @@ jobs:
     continue-on-error: ${{ matrix.channel != 'stable' }}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Database
       run: |
         psql -c "CREATE ROLE runner SUPERUSER LOGIN CREATEDB;" -U postgres -h localhost

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class AddTemporalExtensionToImpressions < ActiveRecord::Migration[5.0]
   def self.up
     enable_extension 'btree_gist' unless extension_enabled?('btree_gist')

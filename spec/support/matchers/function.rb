@@ -1,37 +1,40 @@
-module ChronoTest::Matchers
-  module Function
-    class HaveFunctions < ChronoTest::Matchers::Base
-      def initialize(functions, schema = 'public')
-        @functions = functions
-        @schema    = schema
-      end
+# frozen_string_literal: true
 
-      def description
-        'have functions'
-      end
-
-      def matches?(table)
-        super(table)
-
-        @matches = @functions.inject({}) do |h, name|
-          h.update(name => has_function?(name))
+module ChronoTest
+  module Matchers
+    module Function
+      class HaveFunctions < ChronoTest::Matchers::Base
+        def initialize(functions, schema = 'public')
+          @functions = functions
+          @schema    = schema
         end
 
-        @matches.values.all?
-      end
+        def description
+          'have functions'
+        end
 
-      def failure_message
-        message_matches("expected #{@schema}.#{table} to have")
-      end
+        def matches?(table)
+          super(table)
 
-      def failure_message_when_negated
-        message_matches("expected #{@schema}.#{table} to not have")
-      end
+          @matches = @functions.inject({}) do |h, name|
+            h.update(name => has_function?(name))
+          end
 
-      protected
+          @matches.values.all?
+        end
 
-      def has_function?(name)
-        select_value(<<-SQL, [@schema, name], 'Check function') == true
+        def failure_message
+          message_matches("expected #{@schema}.#{table} to have")
+        end
+
+        def failure_message_when_negated
+          message_matches("expected #{@schema}.#{table} to not have")
+        end
+
+        protected
+
+        def has_function?(name)
+          select_value(<<-SQL.squish, [@schema, name], 'Check function') == true
             SELECT EXISTS(
               SELECT 1
               FROM pg_catalog.pg_proc p, pg_catalog.pg_namespace n
@@ -40,42 +43,43 @@ module ChronoTest::Matchers
                 AND p.proname = ?
             )
           SQL
-      end
+        end
 
-      private
+        private
 
-      def message_matches(message)
-        (message << ' ').tap do |m|
-          m << @matches.map do |name, match|
-            "a #{name} function"
-          end.compact.to_sentence
+        def message_matches(message)
+          (message << ' ').tap do |m|
+            m << @matches.map do |name, _match|
+              "a #{name} function"
+            end.compact.to_sentence
+          end
         end
       end
-    end
 
-    def have_functions(*args)
-      HaveFunctions.new(*args)
-    end
-
-    class HaveHistoryFunctions < HaveFunctions
-      def initialize(schema = 'public')
-        @function_templates = [
-          'chronomodel_%s_insert',
-          'chronomodel_%s_update',
-          'chronomodel_%s_delete',
-        ]
-        @schema = schema
+      def have_functions(*args)
+        HaveFunctions.new(*args)
       end
 
-      def matches?(table)
-        @functions = @function_templates.map { |t| t % [table] }
+      class HaveHistoryFunctions < HaveFunctions
+        def initialize(schema = 'public')
+          @function_templates = [
+            'chronomodel_%s_insert',
+            'chronomodel_%s_update',
+            'chronomodel_%s_delete'
+          ]
+          @schema = schema
+        end
 
-        super(table)
+        def matches?(table)
+          @functions = @function_templates.map { |t| format(t, table) }
+
+          super(table)
+        end
       end
-    end
 
-    def have_history_functions
-      HaveHistoryFunctions.new
+      def have_history_functions
+        HaveHistoryFunctions.new
+      end
     end
   end
 end

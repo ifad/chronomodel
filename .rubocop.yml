@@ -1,0 +1,82 @@
+require:
+  - rubocop-packaging
+  - rubocop-performance
+  - rubocop-rails
+  - rubocop-rake
+  - rubocop-rspec
+
+AllCops:
+  NewCops: enable
+  TargetRailsVersion: 5.0
+  TargetRubyVersion: 2.2
+  Exclude:
+    - 'gemfiles/**/*'
+    - 'lib/**/*'
+    - 'vendor/bundle/**/*'
+    - 'tmp/**/*'
+
+Gemspec/DevelopmentDependencies:
+  Enabled: false
+
+Layout/LineLength:
+  Max: 140
+  Exclude:
+    - 'spec/**/*'
+
+Lint/MissingSuper:
+  Exclude:
+    - 'spec/**/*'
+
+Metrics/AbcSize:
+  Exclude:
+    - 'spec/**/*'
+
+Metrics/BlockLength:
+  Exclude:
+    - 'chrono_model.gemspec'
+    - 'spec/**/*'
+
+Metrics/MethodLength:
+  Exclude:
+    - 'spec/**/*'
+
+Rails/ApplicationRecord:
+  Enabled: false
+
+Rails/Date:
+  Enabled: false
+
+Rails/RakeEnvironment:
+  Enabled: false
+
+Rails/SkipsModelValidations:
+  AllowedMethods: ['touch', 'touch_all', 'update_column', 'update_columns']
+
+Rails/TimeZone:
+  Enabled: false
+
+RSpec/BeforeAfterAll:
+  Exclude:
+    - 'spec/support/adapter/helpers.rb'
+
+RSpec/ExampleLength:
+  Enabled: false
+
+RSpec/MultipleExpectations:
+  Enabled: false
+
+RSpec/NestedGroups:
+  Enabled: false
+
+RSpec/SpecFilePathFormat:
+  Enabled: false
+
+Style/GlobalVars:
+  Exclude:
+    - 'spec/**/*'
+
+# NOTE: This cop is enabled by RuboCop Rails, because active support adds this
+# method to hash, but `except` is not available in specs
+Style/HashExcept:
+  Exclude:
+    - 'spec/**/*'

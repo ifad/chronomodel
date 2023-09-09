@@ -1,36 +1,40 @@
-module ChronoTest::Matchers
-  module Source
-    class HaveFunctionSource < ChronoTest::Matchers::Base
-      def initialize(function, source_regexp)
-        @function = function
-        @regexp   = source_regexp
-      end
+# frozen_string_literal: true
 
-      def description
-        "have function source matching #{@regexp}"
-      end
+module ChronoTest
+  module Matchers
+    module Source
+      class HaveFunctionSource < ChronoTest::Matchers::Base
+        def initialize(function, source_regexp)
+          @function = function
+          @regexp   = source_regexp
+        end
 
-      def matches?(table)
-        super(table)
+        def description
+          "have function source matching #{@regexp}"
+        end
 
-        source = select_value(<<-SQL, [@function], "Get #@function source")
+        def matches?(table)
+          super(table)
+
+          source = select_value(<<-SQL.squish, [@function], "Get #{@function} source")
           SELECT prosrc FROM pg_catalog.pg_proc WHERE proname = ?
-        SQL
+          SQL
 
-        !(source =~ @regexp).nil?
+          !(source =~ @regexp).nil?
+        end
+
+        def failure_message
+          "expected #{table} to have a #{@function} matching #{@regexp}"
+        end
+
+        def failure_message_when_negated
+          "expected #{table} to not have a #{@function} matching #{@regexp}"
+        end
       end
 
-      def failure_message
-        "expected #{table} to have a #{@function} matching #{@regexp}"
+      def have_function_source(*args)
+        HaveFunctionSource.new(*args)
       end
-
-      def failure_message_when_negated
-        "expected #{table} to not have a #{@function} matching #{@regexp}"
-      end
-    end
-
-    def have_function_source(*args)
-      HaveFunctionSource.new(*args)
     end
   end
 end

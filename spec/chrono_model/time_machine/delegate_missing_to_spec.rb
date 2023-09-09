@@ -1,7 +1,18 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 require 'support/time_machine/structure'
 
 if Rails.version >= '5.1'
+  class Attachment < ActiveRecord::Base
+    belongs_to :blob
+    delegate_missing_to :blob
+  end
+
+  class Blob < ActiveRecord::Base
+    has_many :attachments
+  end
+
   RSpec.describe 'delegate_missing_to' do
     include ChronoTest::TimeMachine::Helpers
 
@@ -13,21 +24,12 @@ if Rails.version >= '5.1'
       t.string :name
     end
 
-    class ::Attachment < ActiveRecord::Base
-      belongs_to :blob
-      delegate_missing_to :blob
-    end
-
-    class ::Blob < ActiveRecord::Base
-      has_many :attachments
-    end
-
     let(:attachment) { Attachment.create!(blob: Blob.create!(name: 'test')).reload }
 
     it 'does not raise errors' do
-      expect {
+      expect do
         attachment.blob
-      }.not_to raise_error
+      end.not_to raise_error
     end
 
     it 'allows delegation to associated models' do

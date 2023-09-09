@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'support/adapter/helpers'
 
 # This module contains the definition of a test structure that is used by the
@@ -8,34 +10,36 @@ require 'support/adapter/helpers'
 # defined, ans as a reference of what it is expected to have been created by
 # the +ChronoModel::Adapter+ methods.
 #
-module ChronoTest::Adapter
-  module Structure
-    extend ActiveSupport::Concern
+module ChronoTest
+  module Adapter
+    module Structure
+      extend ActiveSupport::Concern
 
-    included do
-      table 'test_table'
-      subject { table }
+      included do
+        table 'test_table'
+        subject { table }
 
-      columns do
-        native = [
-          ['test', 'character varying'],
-          %w[foo integer],
-          ['bar',  'double precision'],
-          %w[baz text]
-        ]
+        columns do
+          native = [
+            ['test', 'character varying'],
+            %w[foo integer],
+            ['bar', 'double precision'],
+            %w[baz text]
+          ]
 
-        def native.to_proc
-          proc { |t|
-            t.string  :test, null: false, default: 'default-value'
-            t.integer :foo
-            t.float   :bar
-            t.text    :baz
-            t.integer :ary, array: true, null: false, default: []
-            t.boolean :bool, null: false, default: false
-          }
+          def native.to_proc
+            proc { |t|
+              t.string  :test, null: false, default: 'default-value'
+              t.integer :foo
+              t.float   :bar
+              t.text    :baz
+              t.integer :ary, array: true, null: false, default: []
+              t.boolean :bool, null: false, default: false
+            }
+          end
+
+          native
         end
-
-        native
       end
     end
   end

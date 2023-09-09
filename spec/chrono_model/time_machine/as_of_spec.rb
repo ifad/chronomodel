@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 require 'support/time_machine/structure'
 
@@ -20,28 +22,27 @@ RSpec.describe ChronoModel::TimeMachine do
     it { expect(Foo.as_of($t.foos[0].ts[0]).first).to be_a(Foo) }
     it { expect(Bar.as_of($t.foos[0].ts[0]).first).to be_a(Bar) }
 
-    # Associations
-    context do
-      subject { $t.foos[0].id }
+    context 'with associations' do
+      let(:id) { $t.foos[0].id }
 
-      it { expect(Foo.as_of($t.foos[0].ts[0]).find(subject).bars).to eq [] }
-      it { expect(Foo.as_of($t.foos[1].ts[0]).find(subject).bars).to eq [] }
-      it { expect(Foo.as_of($t.bars[0].ts[0]).find(subject).bars).to eq [$t.bars[0]] }
-      it { expect(Foo.as_of($t.bars[1].ts[0]).find(subject).bars).to eq [$t.bars[0]] }
-      it { expect(Foo.as_of(Time.now).find(subject).bars).to eq [$t.bars[0]] }
+      it { expect(Foo.as_of($t.foos[0].ts[0]).find(id).bars).to eq [] }
+      it { expect(Foo.as_of($t.foos[1].ts[0]).find(id).bars).to eq [] }
+      it { expect(Foo.as_of($t.bars[0].ts[0]).find(id).bars).to eq [$t.bars[0]] }
+      it { expect(Foo.as_of($t.bars[1].ts[0]).find(id).bars).to eq [$t.bars[0]] }
+      it { expect(Foo.as_of(Time.now).find(id).bars).to eq [$t.bars[0]] }
 
-      it { expect(Foo.as_of($t.bars[0].ts[0]).find(subject).bars.first).to be_a(Bar) }
+      it { expect(Foo.as_of($t.bars[0].ts[0]).find(id).bars.first).to be_a(Bar) }
     end
 
-    context do
-      subject { $t.foos[1].id }
+    context 'with association at a different timestamp' do
+      let(:id) { $t.foos[1].id }
 
-      it { expect { Foo.as_of($t.foos[0].ts[0]).find(subject) }.to raise_error(ActiveRecord::RecordNotFound) }
-      it { expect { Foo.as_of($t.foos[1].ts[0]).find(subject) }.to_not raise_error }
+      it { expect { Foo.as_of($t.foos[0].ts[0]).find(id) }.to raise_error(ActiveRecord::RecordNotFound) }
+      it { expect { Foo.as_of($t.foos[1].ts[0]).find(id) }.not_to raise_error }
 
-      it { expect(Foo.as_of($t.bars[0].ts[0]).find(subject).bars).to eq [] }
-      it { expect(Foo.as_of($t.bars[1].ts[0]).find(subject).bars).to eq [$t.bars[1]] }
-      it { expect(Foo.as_of(Time.now).find(subject).bars).to eq [$t.bars[1]] }
+      it { expect(Foo.as_of($t.bars[0].ts[0]).find(id).bars).to eq [] }
+      it { expect(Foo.as_of($t.bars[1].ts[0]).find(id).bars).to eq [$t.bars[1]] }
+      it { expect(Foo.as_of(Time.now).find(id).bars).to eq [$t.bars[1]] }
     end
   end
 
@@ -140,10 +141,10 @@ RSpec.describe ChronoModel::TimeMachine do
       it { expect(Foo.as_of($t.foo.ts[1]).includes(:bars, :sub_bars).first.sub_bars.count).to eq 0 }
       it { expect(Foo.as_of($t.foo.ts[2]).includes(:bars, :sub_bars).first.sub_bars.count).to eq 1 }
 
-      it { expect(Foo.as_of($t.foo.ts[0]).includes(:bars, :sub_bars).first.sub_bars.first).to be nil }
-      it { expect(Foo.as_of($t.foo.ts[1]).includes(:bars, :sub_bars).first.sub_bars.first).to be nil }
+      it { expect(Foo.as_of($t.foo.ts[0]).includes(:bars, :sub_bars).first.sub_bars.first).to be_nil }
+      it { expect(Foo.as_of($t.foo.ts[1]).includes(:bars, :sub_bars).first.sub_bars.first).to be_nil }
 
-      it { expect(Foo.as_of($t.bar.ts[0]).includes(:sub_bars).first.bars.first.sub_bars.first).to be nil }
+      it { expect(Foo.as_of($t.bar.ts[0]).includes(:sub_bars).first.bars.first.sub_bars.first).to be_nil }
       it { expect(Foo.as_of($t.subbar.ts[0]).includes(:sub_bars).first.bars.first.sub_bars.first.name).to eq 'sub-bar' }
 
       it { expect(Foo.as_of($t.subbar.ts[0]).includes(:bars, :sub_bars).first.sub_bars.first.name).to eq 'sub-bar' }
@@ -155,9 +156,9 @@ RSpec.describe ChronoModel::TimeMachine do
     end
 
     it 'does not raise RecordNotFound when no history records are found' do
-      expect { $t.foo.as_of(5.minutes.ago) }.to_not raise_error
+      expect { $t.foo.as_of(5.minutes.ago) }.not_to raise_error
 
-      expect($t.foo.as_of(5.minutes.ago)).to be(nil)
+      expect($t.foo.as_of(5.minutes.ago)).to be_nil
     end
 
     it 'raises ActiveRecord::RecordNotFound in the bang variant' do
