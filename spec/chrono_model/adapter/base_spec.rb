@@ -38,12 +38,12 @@ RSpec.describe ChronoModel::Adapter do
   describe '.on_schema' do
     subject(:on_schema) { adapter }
 
-    before(:all) do
+    before do
       adapter.execute 'BEGIN'
       5.times { |i| adapter.execute "CREATE SCHEMA test_#{i}" }
     end
 
-    after(:all) do
+    after do
       adapter.execute 'ROLLBACK'
     end
 
@@ -121,14 +121,14 @@ RSpec.describe ChronoModel::Adapter do
     end
 
     context 'when schemas are not there yet' do
-      before(:all) do
+      before do
         adapter.execute 'BEGIN'
         adapter.execute 'DROP SCHEMA temporal CASCADE'
         adapter.execute 'DROP SCHEMA history CASCADE'
         adapter.execute 'CREATE TABLE test_table (id integer)'
       end
 
-      after(:all) do
+      after do
         adapter.execute 'ROLLBACK'
       end
 
