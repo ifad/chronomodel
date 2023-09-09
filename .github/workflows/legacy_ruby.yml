@@ -59,7 +59,7 @@ jobs:
       TEST_CONFIG: ./spec/config.github.yml
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Set up Database
       run: |
         psql -c "CREATE ROLE runner SUPERUSER LOGIN CREATEDB;" -U postgres -h localhost
