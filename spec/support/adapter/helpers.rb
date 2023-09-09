@@ -15,8 +15,8 @@ module ChronoTest
       module DSL
         def with_temporal_table(&block)
           context 'with temporal tables' do
-            before(:all) { adapter.create_table(table, temporal: true, &DSL.columns) }
-            after(:all)  { adapter.drop_table table }
+            before { adapter.create_table(table, temporal: true, &DSL.columns) }
+            after  { adapter.drop_table table }
 
             instance_eval(&block)
           end
@@ -24,8 +24,8 @@ module ChronoTest
 
         def with_plain_table(&block)
           context 'with plain tables' do
-            before(:all) { adapter.create_table(table, temporal: false, &DSL.columns) }
-            after(:all)  { adapter.drop_table table }
+            before { adapter.create_table(table, temporal: false, &DSL.columns) }
+            after  { adapter.drop_table table }
 
             instance_eval(&block)
           end

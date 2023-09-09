@@ -7,14 +7,14 @@ RSpec.describe ChronoModel::Adapter do
   include ChronoTest::Adapter::Helpers
   include ChronoTest::Adapter::Structure
 
-  before :all do
+  before do
     adapter.create_table :meetings do |t|
       t.string :name
       t.tsrange :interval
     end
   end
 
-  after :all do
+  after do
     adapter.drop_table :meetings
   end
 
@@ -37,11 +37,8 @@ RSpec.describe ChronoModel::Adapter do
   end
 
   describe '.remove_temporal_indexes' do
-    before :all do
-      adapter.add_temporal_indexes :meetings, :interval
-    end
-
     before do
+      adapter.add_temporal_indexes :meetings, :interval
       adapter.remove_temporal_indexes :meetings, :interval
     end
 
@@ -65,11 +62,8 @@ RSpec.describe ChronoModel::Adapter do
   end
 
   describe '.remove_timeline_consistency_constraint' do
-    before :all do
-      adapter.add_timeline_consistency_constraint :meetings, :interval
-    end
-
     before do
+      adapter.add_timeline_consistency_constraint :meetings, :interval
       adapter.remove_timeline_consistency_constraint(:meetings)
     end
 

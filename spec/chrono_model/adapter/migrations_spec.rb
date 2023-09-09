@@ -54,7 +54,7 @@ RSpec.describe ChronoModel::Adapter do
     subject { renamed }
 
     context 'with temporal tables' do
-      before :all do
+      before do
         adapter.create_table table, temporal: true, &columns
         adapter.add_index table, :test
         adapter.add_index table, %i[foo bar]
@@ -62,7 +62,7 @@ RSpec.describe ChronoModel::Adapter do
         adapter.rename_table table, renamed
       end
 
-      after(:all) { adapter.drop_table(renamed) }
+      after { adapter.drop_table(renamed) }
 
       it_behaves_like 'temporal table'
 
@@ -76,13 +76,13 @@ RSpec.describe ChronoModel::Adapter do
     end
 
     context 'with plain tables' do
-      before :all do
+      before do
         adapter.create_table table, temporal: false, &columns
 
         adapter.rename_table table, renamed
       end
 
-      after(:all) { adapter.drop_table(renamed) }
+      after { adapter.drop_table(renamed) }
 
       it_behaves_like 'plain table'
     end
@@ -90,7 +90,7 @@ RSpec.describe ChronoModel::Adapter do
 
   describe '.change_table' do
     with_temporal_table do
-      before :all do
+      before do
         adapter.change_table table, temporal: false
       end
 
@@ -98,7 +98,7 @@ RSpec.describe ChronoModel::Adapter do
     end
 
     with_plain_table do
-      before :all do
+      before do
         adapter.add_index table, :foo
         adapter.add_index table, :bar, unique: true
         adapter.add_index table, '(lower(baz))'
@@ -142,7 +142,7 @@ RSpec.describe ChronoModel::Adapter do
     end
 
     with_plain_table do
-      before :all do
+      before do
         adapter.change_table table do |_t|
           adapter.add_column table, :frupper, :string
         end
@@ -155,12 +155,12 @@ RSpec.describe ChronoModel::Adapter do
 
     # https://github.com/ifad/chronomodel/issues/91
     context 'with a table using a sequence not owned by a column' do
-      before :all do
+      before do
         adapter.execute 'create sequence temporal.foobar owned by none'
         adapter.execute "create table #{table} (id integer primary key default nextval('temporal.foobar'::regclass), label character varying)"
       end
 
-      after :all do
+      after do
         adapter.execute "drop table if exists #{table}"
         adapter.execute 'drop sequence temporal.foobar'
       end
@@ -168,11 +168,11 @@ RSpec.describe ChronoModel::Adapter do
       it { is_expected.to have_columns([%w[id integer], ['label', 'character varying']]) }
 
       context 'when moving to temporal' do
-        before :all do
+        before do
           adapter.change_table table, temporal: true
         end
 
-        after :all do
+        after do
           adapter.drop_table table
         end
 
@@ -187,7 +187,7 @@ RSpec.describe ChronoModel::Adapter do
 
   describe '.drop_table' do
     context 'with temporal tables' do
-      before :all do
+      before do
         adapter.create_table table, temporal: true, &columns
 
         adapter.drop_table table
@@ -201,7 +201,7 @@ RSpec.describe ChronoModel::Adapter do
     end
 
     context 'with plain tables' do
-      before :all do
+      before do
         adapter.create_table table, temporal: false, &columns
 
         adapter.drop_table table, temporal: false
@@ -214,7 +214,7 @@ RSpec.describe ChronoModel::Adapter do
 
   describe '.add_index' do
     with_temporal_table do
-      before :all do
+      before do
         adapter.add_index table, %i[foo bar], name: 'foobar_index'
         adapter.add_index table, [:test], name: 'test_index'
         adapter.add_index table, :baz
@@ -233,7 +233,7 @@ RSpec.describe ChronoModel::Adapter do
     end
 
     with_plain_table do
-      before :all do
+      before do
         adapter.add_index table, %i[foo bar], name: 'foobar_index'
         adapter.add_index table, [:test], name: 'test_index'
         adapter.add_index table, :baz
@@ -254,7 +254,7 @@ RSpec.describe ChronoModel::Adapter do
 
   describe '.remove_index' do
     with_temporal_table do
-      before :all do
+      before do
         adapter.add_index table, %i[foo bar], name: 'foobar_index'
         adapter.add_index table, [:test], name: 'test_index'
         adapter.add_index table, :baz
@@ -273,7 +273,7 @@ RSpec.describe ChronoModel::Adapter do
     end
 
     with_plain_table do
-      before :all do
+      before do
         adapter.add_index table, %i[foo bar], name: 'foobar_index'
         adapter.add_index table, [:test], name: 'test_index'
         adapter.add_index table, :baz
@@ -296,7 +296,7 @@ RSpec.describe ChronoModel::Adapter do
     let(:extra_columns) { [%w[foobarbaz integer]] }
 
     with_temporal_table do
-      before :all do
+      before do
         adapter.add_column table, :foobarbaz, :integer
       end
 
@@ -306,7 +306,7 @@ RSpec.describe ChronoModel::Adapter do
     end
 
     with_plain_table do
-      before :all do
+      before do
         adapter.add_column table, :foobarbaz, :integer
       end
 
@@ -314,7 +314,7 @@ RSpec.describe ChronoModel::Adapter do
     end
 
     with_temporal_table do
-      before :all do
+      before do
         adapter.add_column table, :foobarbaz, :integer, default: 0
       end
 
@@ -324,7 +324,7 @@ RSpec.describe ChronoModel::Adapter do
     end
 
     with_plain_table do
-      before :all do
+      before do
         adapter.add_column table, :foobarbaz, :integer, default: 0
       end
 
@@ -336,7 +336,7 @@ RSpec.describe ChronoModel::Adapter do
     let(:resulting_columns) { columns.reject { |c, _| c == 'foo' } }
 
     with_temporal_table do
-      before :all do
+      before do
         adapter.remove_column table, :foo, :integer, default: 0
       end
 
@@ -350,7 +350,7 @@ RSpec.describe ChronoModel::Adapter do
     end
 
     with_plain_table do
-      before :all do
+      before do
         adapter.remove_column table, :foo, :integer, default: 0
       end
 
@@ -359,7 +359,7 @@ RSpec.describe ChronoModel::Adapter do
     end
 
     with_temporal_table do
-      before :all do
+      before do
         adapter.remove_column table, :foo
       end
 
@@ -369,7 +369,7 @@ RSpec.describe ChronoModel::Adapter do
     end
 
     with_plain_table do
-      before :all do
+      before do
         adapter.remove_column table, :foo
       end
 
@@ -379,7 +379,7 @@ RSpec.describe ChronoModel::Adapter do
 
   describe '.rename_column' do
     with_temporal_table do
-      before :all do
+      before do
         adapter.rename_column table, :foo, :taratapiatapioca
       end
 
@@ -393,7 +393,7 @@ RSpec.describe ChronoModel::Adapter do
     end
 
     with_plain_table do
-      before :all do
+      before do
         adapter.rename_column table, :foo, :taratapiatapioca
       end
 
@@ -404,7 +404,7 @@ RSpec.describe ChronoModel::Adapter do
 
   describe '.change_column' do
     with_temporal_table do
-      before :all do
+      before do
         adapter.change_column table, :foo, :float
       end
 
@@ -417,7 +417,7 @@ RSpec.describe ChronoModel::Adapter do
       it { is_expected.to have_history_columns([['foo', 'double precision']]) }
 
       context 'with options' do
-        before :all do
+        before do
           adapter.change_column table, :foo, :float, default: 0
         end
 
@@ -426,7 +426,7 @@ RSpec.describe ChronoModel::Adapter do
     end
 
     with_plain_table do
-      before(:all) do
+      before do
         adapter.change_column table, :foo, :float
       end
 
