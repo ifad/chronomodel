@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'support/adapter/helpers'
 
 # This module contains the definition of a test structure that is used by the

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'support/time_machine/helpers'
 
 # This module contains the test DDL and models used by most of the

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'aruba/rspec'
 require 'arel'
 require 'rake'

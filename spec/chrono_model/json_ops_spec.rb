@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ##########################################################
 ### DEPRECATED: JSON operators are an hack and there is no
 ### reason not to use jsonb other than migrating your data

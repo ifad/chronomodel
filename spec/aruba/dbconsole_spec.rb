@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # The db consle does not work on Rails 5.0
 #
 unless Bundler.default_gemfile.to_s =~ /rails_5.0/

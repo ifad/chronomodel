@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ChronoTest
   module TimeMachine
     # This module contains helpers used throughout the
