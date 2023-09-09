@@ -3,6 +3,18 @@
 require 'spec_helper'
 require 'support/time_machine/structure'
 
+class Section < ActiveRecord::Base
+  include ChronoModel::TimeMachine
+
+  has_many :articles
+end
+
+class Article < ActiveRecord::Base
+  include ChronoModel::TimeMachine
+
+  belongs_to :section, counter_cache: true
+end
+
 RSpec.describe ChronoModel::TimeMachine do
   include ChronoTest::TimeMachine::Helpers
 
@@ -15,18 +27,6 @@ RSpec.describe ChronoModel::TimeMachine do
     adapter.create_table 'articles', temporal: true do |t|
       t.string :title
       t.references :section
-    end
-
-    class ::Section < ActiveRecord::Base
-      include ChronoModel::TimeMachine
-
-      has_many :articles
-    end
-
-    class ::Article < ActiveRecord::Base
-      include ChronoModel::TimeMachine
-
-      belongs_to :section, counter_cache: true
     end
 
     describe 'are not subject to race condition if no_journal is set on the counter cache column' do

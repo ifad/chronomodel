@@ -3,6 +3,12 @@
 require 'spec_helper'
 require 'support/time_machine/structure'
 
+class Defoo < ActiveRecord::Base
+  include ChronoModel::TimeMachine
+
+  default_scope proc { where(active: true) }
+end
+
 RSpec.describe ChronoModel::TimeMachine do
   include ChronoTest::TimeMachine::Helpers
 
@@ -11,12 +17,6 @@ RSpec.describe ChronoModel::TimeMachine do
   adapter.create_table 'defoos', temporal: true do |t|
     t.string  :name
     t.boolean :active
-  end
-
-  class ::Defoo < ActiveRecord::Base
-    include ChronoModel::TimeMachine
-
-    default_scope proc { where(active: true) }
   end
 
   active = ts_eval { Defoo.create! name: 'active 1', active: true }

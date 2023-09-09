@@ -3,14 +3,13 @@
 require 'spec_helper'
 require 'support/time_machine/structure'
 
+class Plain < ActiveRecord::Base; end
+
 RSpec.describe ChronoModel::TimeMachine do
   include ChronoTest::TimeMachine::Helpers
 
   adapter.create_table 'plains' do |t|
     t.string :foo
-  end
-
-  class ::Plain < ActiveRecord::Base
   end
 
   describe '.chrono?' do

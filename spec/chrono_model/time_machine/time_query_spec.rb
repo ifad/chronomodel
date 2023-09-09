@@ -3,16 +3,16 @@
 require 'spec_helper'
 require 'support/time_machine/structure'
 
+class Event < ActiveRecord::Base
+  extend ChronoModel::TimeMachine::TimeQuery
+end
+
 RSpec.describe ChronoModel::TimeMachine::TimeQuery do
   include ChronoTest::TimeMachine::Helpers
 
   adapter.create_table 'events' do |t|
     t.string :name
     t.daterange :interval
-  end
-
-  class ::Event < ActiveRecord::Base
-    extend ChronoModel::TimeMachine::TimeQuery
   end
 
   # Main timeline quick test

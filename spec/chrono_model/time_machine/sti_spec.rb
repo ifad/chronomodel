@@ -3,6 +3,22 @@
 require 'spec_helper'
 require 'support/time_machine/structure'
 
+class Animal < ActiveRecord::Base
+  include ChronoModel::TimeMachine
+end
+
+class Dog < Animal; end
+
+class Goat < Animal; end
+
+class Element < ActiveRecord::Base
+  include ChronoModel::TimeMachine
+end
+
+class Publication < Element; end
+
+class Magazine < Publication; end
+
 # STI cases
 #
 # - https://github.com/ifad/chronomodel/issues/5
@@ -15,16 +31,6 @@ RSpec.describe ChronoModel::TimeMachine do
     adapter.create_table 'elements', temporal: true do |t|
       t.string :title
       t.string :type
-    end
-
-    class ::Element < ActiveRecord::Base
-      include ChronoModel::TimeMachine
-    end
-
-    class ::Publication < Element
-    end
-
-    class ::Magazine < Publication
     end
 
     describe '.descendants' do
@@ -83,16 +89,6 @@ RSpec.describe ChronoModel::TimeMachine do
 
       adapter.create_table 'animals', temporal: true do |t|
         t.string :type
-      end
-
-      class ::Animal < ActiveRecord::Base
-        include ChronoModel::TimeMachine
-      end
-
-      class ::Dog < Animal
-      end
-
-      class ::Goat < Animal
       end
 
       before do
