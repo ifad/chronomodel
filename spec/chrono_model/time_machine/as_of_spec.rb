@@ -23,26 +23,26 @@ RSpec.describe ChronoModel::TimeMachine do
     it { expect(Bar.as_of($t.foos[0].ts[0]).first).to be_a(Bar) }
 
     context 'with associations' do
-      subject { $t.foos[0].id }
+      let(:id) { $t.foos[0].id }
 
-      it { expect(Foo.as_of($t.foos[0].ts[0]).find(subject).bars).to eq [] }
-      it { expect(Foo.as_of($t.foos[1].ts[0]).find(subject).bars).to eq [] }
-      it { expect(Foo.as_of($t.bars[0].ts[0]).find(subject).bars).to eq [$t.bars[0]] }
-      it { expect(Foo.as_of($t.bars[1].ts[0]).find(subject).bars).to eq [$t.bars[0]] }
-      it { expect(Foo.as_of(Time.now).find(subject).bars).to eq [$t.bars[0]] }
+      it { expect(Foo.as_of($t.foos[0].ts[0]).find(id).bars).to eq [] }
+      it { expect(Foo.as_of($t.foos[1].ts[0]).find(id).bars).to eq [] }
+      it { expect(Foo.as_of($t.bars[0].ts[0]).find(id).bars).to eq [$t.bars[0]] }
+      it { expect(Foo.as_of($t.bars[1].ts[0]).find(id).bars).to eq [$t.bars[0]] }
+      it { expect(Foo.as_of(Time.now).find(id).bars).to eq [$t.bars[0]] }
 
-      it { expect(Foo.as_of($t.bars[0].ts[0]).find(subject).bars.first).to be_a(Bar) }
+      it { expect(Foo.as_of($t.bars[0].ts[0]).find(id).bars.first).to be_a(Bar) }
     end
 
     context 'with association at a different timestamp' do
-      subject { $t.foos[1].id }
+      let(:id) { $t.foos[1].id }
 
-      it { expect { Foo.as_of($t.foos[0].ts[0]).find(subject) }.to raise_error(ActiveRecord::RecordNotFound) }
-      it { expect { Foo.as_of($t.foos[1].ts[0]).find(subject) }.not_to raise_error }
+      it { expect { Foo.as_of($t.foos[0].ts[0]).find(id) }.to raise_error(ActiveRecord::RecordNotFound) }
+      it { expect { Foo.as_of($t.foos[1].ts[0]).find(id) }.not_to raise_error }
 
-      it { expect(Foo.as_of($t.bars[0].ts[0]).find(subject).bars).to eq [] }
-      it { expect(Foo.as_of($t.bars[1].ts[0]).find(subject).bars).to eq [$t.bars[1]] }
-      it { expect(Foo.as_of(Time.now).find(subject).bars).to eq [$t.bars[1]] }
+      it { expect(Foo.as_of($t.bars[0].ts[0]).find(id).bars).to eq [] }
+      it { expect(Foo.as_of($t.bars[1].ts[0]).find(id).bars).to eq [$t.bars[1]] }
+      it { expect(Foo.as_of(Time.now).find(id).bars).to eq [$t.bars[1]] }
     end
   end
 

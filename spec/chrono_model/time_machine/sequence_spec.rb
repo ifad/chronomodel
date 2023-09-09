@@ -32,15 +32,15 @@ RSpec.describe ChronoModel::TimeMachine do
     end
 
     context 'on records having history' do
-      subject { $t.bar.pred }
+      subject(:pred) { $t.bar.pred }
 
-      it { expect(subject.name).to eq 'bar bar' }
+      it { expect(pred.name).to eq 'bar bar' }
     end
 
     context 'when there is enough history' do
-      subject { $t.bar.pred.pred.pred.pred }
+      subject(:pred) { $t.bar.pred.pred.pred.pred }
 
-      it { expect(subject.name).to eq 'bar' }
+      it { expect(pred.name).to eq 'bar' }
     end
 
     context 'when no history is recorded' do

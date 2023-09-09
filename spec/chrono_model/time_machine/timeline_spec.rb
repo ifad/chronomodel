@@ -18,22 +18,22 @@ RSpec.describe ChronoModel::TimeMachine do
 
     context 'with records having an :has_many relationship' do
       context 'with default settings' do
-        subject { split.call($t.foo.timeline) }
+        subject(:timeline) { split.call($t.foo.timeline) }
 
-        it { expect(subject.size).to eq $t.foo.ts.size }
+        it { expect(timeline.size).to eq $t.foo.ts.size }
         it { is_expected.to eq timestamps_from.call($t.foo) }
       end
 
       context 'when association is requested in options' do
-        subject { split.call($t.foo.timeline(with: :bars)) }
+        subject(:timeline) { split.call($t.foo.timeline(with: :bars)) }
 
-        it { expect(subject.size).to eq($t.foo.ts.size + $t.bar.ts.size) }
+        it { expect(timeline.size).to eq($t.foo.ts.size + $t.bar.ts.size) }
         it { is_expected.to eq(timestamps_from.call($t.foo, *$t.foo.bars)) }
       end
     end
 
     context 'with records using has_timeline :with' do
-      subject { split.call($t.bar.timeline) }
+      subject(:timeline) { split.call($t.bar.timeline) }
 
       let!(:expected) do
         creat = $t.bar.history.first.valid_from
@@ -45,14 +45,14 @@ RSpec.describe ChronoModel::TimeMachine do
         end
       end
 
-      it { expect(subject.size).to eq expected.size }
+      it { expect(timeline.size).to eq expected.size }
       it { is_expected.to eq expected }
     end
 
     context 'with non-temporal records using has_timeline :with' do
-      subject { split.call($t.baz.timeline) }
+      subject(:timeline) { split.call($t.baz.timeline) }
 
-      it { expect(subject.size).to eq $t.bar.ts.size }
+      it { expect(timeline.size).to eq $t.bar.ts.size }
       it { is_expected.to eq timestamps_from.call($t.bar) }
     end
   end

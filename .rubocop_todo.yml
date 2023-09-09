@@ -62,15 +62,6 @@ RSpec/LeakyConstantDeclaration:
     - 'spec/chrono_model/time_machine/sti_spec.rb'
     - 'spec/chrono_model/time_machine/time_query_spec.rb'
 
-# Configuration parameters: EnforcedStyle, IgnoreSharedExamples.
-# SupportedStyles: always, named_only
-RSpec/NamedSubject:
-  Exclude:
-    - 'spec/chrono_model/time_machine/as_of_spec.rb'
-    - 'spec/chrono_model/time_machine/manipulations_spec.rb'
-    - 'spec/chrono_model/time_machine/sequence_spec.rb'
-    - 'spec/chrono_model/time_machine/timeline_spec.rb'
-
 RSpec/RepeatedExample:
   Exclude:
     - 'spec/chrono_model/adapter/migrations_spec.rb'
