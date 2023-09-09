@@ -66,9 +66,9 @@ module ChronoModel
                  # If both edges of the range are the same the query fails using the '&&' operator.
                  # The correct solution is to use the <@ operator.
                  time.first == time.last ? time.first : time
-        else
-          time_for_time_query(time, range)
-        end
+               else
+                 time_for_time_query(time, range)
+               end
 
         build_time_query(time, range)
       end
