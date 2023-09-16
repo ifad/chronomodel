@@ -63,7 +63,8 @@ module ChronoModel
         return unless model
 
         join.left = ChronoModel::Patches::JoinNode.new(
-          join.left, model.history, @_as_of_time)
+          join.left, model.history, @_as_of_time
+        )
       end
 
       # Build a preloader at the +as_of_time+ of this relation.

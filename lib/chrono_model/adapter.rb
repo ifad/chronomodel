@@ -150,7 +150,8 @@ module ChronoModel
     def chrono_metadata_for(view_name)
       comment = select_value(
         "SELECT obj_description(#{quote(view_name)}::regclass)",
-        "ChronoModel metadata for #{view_name}") if data_source_exists?(view_name)
+        "ChronoModel metadata for #{view_name}"
+      ) if data_source_exists?(view_name)
 
       MultiJson.load(comment || '{}').with_indifferent_access
     end
