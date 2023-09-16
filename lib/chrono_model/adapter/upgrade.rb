@@ -62,7 +62,7 @@ module ChronoModel
             end
           end
         end
-      rescue => e
+      rescue StandardError => e
         message = "ChronoModel structure upgrade failed: #{e.message}. Please drop dependent objects first and then run ChronoModel.upgrade! again."
 
         # Quite important, output it also to stderr.
