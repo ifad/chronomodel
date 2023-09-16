@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'active_record/connection_adapters/postgresql_adapter'
 
 require 'chrono_model/adapter/migrations'
@@ -84,7 +86,7 @@ module ChronoModel
     define_method(:column_definitions) do |table_name|
       return super(table_name) unless is_chrono?(table_name)
 
-      on_schema(TEMPORAL_SCHEMA + ',' + self.schema_search_path, recurse: :ignore) { super(table_name) }
+      on_schema("#{TEMPORAL_SCHEMA},#{self.schema_search_path}", recurse: :ignore) { super(table_name) }
     end
 
     # Evaluates the given block in the temporal schema.

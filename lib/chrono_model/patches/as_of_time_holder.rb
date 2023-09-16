@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ChronoModel
   module Patches
     # Added to classes that need to carry the As-Of date around

@@ -62,6 +62,11 @@ Naming/VariableNumber:
   Exclude:
     - 'lib/chrono_model/adapter/upgrade.rb'
 
+# This cop supports unsafe autocorrection (--autocorrect-all).
+Performance/UnfreezeString:
+  Exclude:
+    - 'lib/chrono_model/time_machine/timeline.rb'
+
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: EnforceForPrefixed.
 Rails/Delegate:
@@ -145,9 +150,7 @@ Style/MultipleComparison:
 # SupportedStyles: literals, strict
 Style/MutableConstant:
   Exclude:
-    - 'lib/chrono_model/adapter.rb'
     - 'lib/chrono_model/conversions.rb'
-    - 'lib/chrono_model/version.rb'
 
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: AllowedMethods.
@@ -206,14 +209,6 @@ Style/StderrPuts:
   Exclude:
     - 'lib/chrono_model/adapter/upgrade.rb'
 
-# This cop supports unsafe autocorrection (--autocorrect-all).
-# Configuration parameters: Mode.
-Style/StringConcatenation:
-  Exclude:
-    - 'lib/chrono_model/adapter.rb'
-    - 'lib/chrono_model/json.rb'
-    - 'lib/chrono_model/time_machine/history_model.rb'
-
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: EnforcedStyle, ConsistentQuotesInMultiline.
 # SupportedStyles: single_quotes, double_quotes
@@ -224,7 +219,6 @@ Style/StringLiterals:
     - 'lib/chrono_model.rb'
     - 'lib/chrono_model/adapter/migrations.rb'
     - 'lib/chrono_model/adapter/upgrade.rb'
-    - 'lib/chrono_model/time_machine/history_model.rb'
     - 'lib/chrono_model/time_machine/time_query.rb'
     - 'lib/chrono_model/version.rb'
 

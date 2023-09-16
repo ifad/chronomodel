@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ChronoModel
   module Patches
     # This class supports the AR 5.0 code that expects to receive an

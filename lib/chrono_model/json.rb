@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ChronoModel
   module Json
     extend self
@@ -19,7 +21,7 @@ module ChronoModel
     private
 
     def sql(file)
-      File.dirname(__FILE__) + '/../../sql/' + file
+      "#{File.dirname(__FILE__)}/../../sql/#{file}"
     end
 
     def adapter
