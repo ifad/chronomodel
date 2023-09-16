@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ChronoModel
   module Patches
     module Relation

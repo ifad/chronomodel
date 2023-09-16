@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 module ChronoModel
   module Conversions
     extend self
 
-    ISO_DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(?:\.(\d+))?\z/
+    ISO_DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(?:\.(\d+))?\z/.freeze
 
     def string_to_utc_time(string)
       return string if string.is_a?(Time)

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ChronoModel
   # Provides the TimeMachine API to non-temporal models that associate
   # temporal ones.

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ChronoModel
   module Utilities
     # Amends the given history item setting a different period.

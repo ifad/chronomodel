@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ChronoModel
   module Patches
     # This class is a dummy relation whose scope is only to pass around the

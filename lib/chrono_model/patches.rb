@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'chrono_model/patches/as_of_time_holder'
 require 'chrono_model/patches/as_of_time_relation'
 

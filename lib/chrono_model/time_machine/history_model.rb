@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ChronoModel
   module TimeMachine
     module HistoryModel
@@ -126,7 +128,7 @@ module ChronoModel
         # current class or a descendant (or self).
         #
         def find_sti_class(type_name)
-          super(type_name + "::History")
+          super("#{type_name}::History")
         end
       end
 

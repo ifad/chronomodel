@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ChronoModel
   module TimeMachine
     module Timeline
@@ -35,12 +37,12 @@ module ChronoModel
         end
 
         relation = relation
-                   .order('ts ' << (options[:reverse] ? 'DESC' : 'ASC'))
+                   .order("ts #{options[:reverse] ? 'DESC' : 'ASC'}")
 
         relation = relation.from(%["public".#{quoted_table_name}]) unless self.chrono?
         relation = relation.where(id: rid) if rid
 
-        sql = "SELECT ts FROM ( #{relation.to_sql} ) AS foo WHERE ts IS NOT NULL"
+        sql = "SELECT ts FROM ( #{relation.to_sql} ) AS foo WHERE ts IS NOT NULL".dup
 
         if options.key?(:before)
           sql << " AND ts < '#{Conversions.time_to_utc_string(options[:before])}'"
