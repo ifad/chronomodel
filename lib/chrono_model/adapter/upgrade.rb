@@ -27,7 +27,7 @@ module ChronoModel
           end
         end
 
-        return tables
+        tables
       end
 
       # Emit a warning about tables needing an upgrade

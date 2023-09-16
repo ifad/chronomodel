@@ -29,7 +29,7 @@ module ChronoModel
 
         scope.as_of_time!(owner.as_of_time)
 
-        return scope
+        scope
       end
 
       private

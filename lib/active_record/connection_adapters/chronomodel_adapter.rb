@@ -34,7 +34,7 @@ module ActiveRecord
 
       adapter.chrono_setup!
 
-      return adapter
+      adapter
     rescue ::PG::Error => e
       if e.message.include?(conn_params[:dbname])
         raise ActiveRecord::NoDatabaseError
