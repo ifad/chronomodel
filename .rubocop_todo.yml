@@ -168,12 +168,6 @@ Style/ParallelAssignment:
     - 'lib/chrono_model/time_machine.rb'
 
 # This cop supports safe autocorrection (--autocorrect).
-# Configuration parameters: AllowSafeAssignment, AllowInMultilineConditions.
-Style/ParenthesesAroundCondition:
-  Exclude:
-    - 'lib/chrono_model/patches/relation.rb'
-
-# This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: PreferredDelimiters.
 Style/PercentLiteralDelimiters:
   Exclude:
@@ -189,11 +183,6 @@ Style/PercentLiteralDelimiters:
 Style/PerlBackrefs:
   Exclude:
     - 'lib/chrono_model/conversions.rb'
-
-# This cop supports safe autocorrection (--autocorrect).
-Style/RedundantParentheses:
-  Exclude:
-    - 'lib/chrono_model/patches/relation.rb'
 
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: AllowMultipleReturnValues.
