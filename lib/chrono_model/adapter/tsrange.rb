@@ -34,7 +34,7 @@ module ChronoModel
           from, to = value[1..-2].split(',')
           {
             from: value[1] == ',' || from == '-infinity' ? nil : from[1..-2],
-            to: value[-2] == ',' || to == 'infinity' ? nil : to[1..-2],
+            to: value[-2] == ',' || to == 'infinity' ? nil : to[1..-2]
           }
         end
       end
