@@ -18,8 +18,8 @@ module ChronoModel
 
         fields = models.inject([]) { |a, m| a.concat m.quoted_history_fields }
 
-        relation = self.except(:order).
-                   select("DISTINCT UNNEST(ARRAY[#{fields.join(',')}]) AS ts")
+        relation = self.except(:order)
+                       .select("DISTINCT UNNEST(ARRAY[#{fields.join(',')}]) AS ts")
 
         if assocs.present?
           assocs.each do |ass|
@@ -34,8 +34,8 @@ module ChronoModel
           end
         end
 
-        relation = relation.
-                   order('ts ' << (options[:reverse] ? 'DESC' : 'ASC'))
+        relation = relation
+                   .order('ts ' << (options[:reverse] ? 'DESC' : 'ASC'))
 
         relation = relation.from(%["public".#{quoted_table_name}]) unless self.chrono?
         relation = relation.where(id: rid) if rid
