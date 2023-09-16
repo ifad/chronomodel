@@ -7,11 +7,6 @@
 # versions of RuboCop, may require this file to be generated again.
 
 # This cop supports safe autocorrection (--autocorrect).
-Lint/AmbiguousOperator:
-  Exclude:
-    - 'lib/chrono_model/patches/preloader.rb'
-
-# This cop supports safe autocorrection (--autocorrect).
 Lint/TripleQuotes:
   Exclude:
     - 'lib/chrono_model/adapter/upgrade.rb'
