@@ -59,8 +59,7 @@ module ChronoModel
     #
     # NOTE: These methods are dynamically defined, see the source.
     #
-    def primary_key(table_name)
-    end
+    def primary_key(table_name); end
 
     [:primary_key, :indexes, :default_sequence_name].each do |method|
       define_method(method) do |*args|
@@ -80,8 +79,7 @@ module ChronoModel
     #
     # NOTE: This method is dynamically defined, see the source.
     #
-    def column_definitions
-    end
+    def column_definitions; end
 
     define_method(:column_definitions) do |table_name|
       return super(table_name) unless is_chrono?(table_name)
@@ -150,7 +148,8 @@ module ChronoModel
     def chrono_metadata_for(view_name)
       comment = select_value(
         "SELECT obj_description(#{quote(view_name)}::regclass)",
-        "ChronoModel metadata for #{view_name}") if data_source_exists?(view_name)
+        "ChronoModel metadata for #{view_name}"
+      ) if data_source_exists?(view_name)
 
       MultiJson.load(comment || '{}').with_indifferent_access
     end

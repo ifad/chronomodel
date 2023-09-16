@@ -27,7 +27,7 @@ module ChronoModel
           end
         end
 
-        return tables
+        tables
       end
 
       # Emit a warning about tables needing an upgrade
@@ -62,7 +62,7 @@ module ChronoModel
             end
           end
         end
-      rescue => e
+      rescue StandardError => e
         message = "ChronoModel structure upgrade failed: #{e.message}. Please drop dependent objects first and then run ChronoModel.upgrade! again."
 
         # Quite important, output it also to stderr.

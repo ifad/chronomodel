@@ -69,7 +69,7 @@ module ChronoModel
           block ||= proc {}
 
           if options[:temporal]
-            if !is_chrono?(table_name)
+            unless is_chrono?(table_name)
               chrono_make_temporal_table(table_name, options)
             end
 
@@ -187,7 +187,7 @@ module ChronoModel
       def chrono_make_temporal_table(table_name, options)
         # Add temporal features to this table
         #
-        if !primary_key(table_name)
+        unless primary_key(table_name)
           execute "ALTER TABLE #{table_name} ADD __chrono_id SERIAL PRIMARY KEY"
         end
 

@@ -60,7 +60,7 @@ module ChronoModel
       end
 
       def build_time_query_at(time, range)
-        time = if time.kind_of?(Array)
+        time = if time.is_a?(Array)
                  time.map! { |t| time_for_time_query(t, range) }
 
                  # If both edges of the range are the same the query fails using the '&&' operator.
@@ -74,7 +74,7 @@ module ChronoModel
       end
 
       def build_time_query(time, range, op = '&&')
-        if time.kind_of?(Array)
+        if time.is_a?(Array)
           Arel.sql %[ #{range.type}(#{time.first}, #{time.last}) #{op} #{table_name}.#{range.name} ]
         else
           Arel.sql %[ #{time} <@ #{table_name}.#{range.name} ]

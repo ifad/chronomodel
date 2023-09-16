@@ -54,7 +54,7 @@ module ChronoModel
         return if join.left.respond_to?(:as_of_time)
 
         model =
-          if (join.left.respond_to?(:table_name))
+          if join.left.respond_to?(:table_name)
             ChronoModel.history_models[join.left.table_name]
           else
             ChronoModel.history_models[join.left]
@@ -63,7 +63,8 @@ module ChronoModel
         return unless model
 
         join.left = ChronoModel::Patches::JoinNode.new(
-          join.left, model.history, @_as_of_time)
+          join.left, model.history, @_as_of_time
+        )
       end
 
       # Build a preloader at the +as_of_time+ of this relation.

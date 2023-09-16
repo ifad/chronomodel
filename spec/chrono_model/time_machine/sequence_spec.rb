@@ -74,6 +74,14 @@ RSpec.describe ChronoModel::TimeMachine do
     end
   end
 
+  describe '#next' do
+    let(:record) { $t.foo.history.first }
+
+    it 'is an alias of succ' do
+      expect(record.method(:next).original_name).to eq(:succ)
+    end
+  end
+
   describe '#first' do
     subject { $t.foo.history.sample.first }
 

@@ -17,7 +17,7 @@ module ChronoModel
         if options.empty?
           super()
         else
-          super **options
+          super(**options)
         end
       end
 
@@ -71,7 +71,7 @@ module ChronoModel
             scope = scope.as_of(preload_scope.as_of_time)
           end
 
-          return scope
+          scope
         end
       end
 
