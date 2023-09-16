@@ -59,8 +59,7 @@ module ChronoModel
     #
     # NOTE: These methods are dynamically defined, see the source.
     #
-    def primary_key(table_name)
-    end
+    def primary_key(table_name); end
 
     [:primary_key, :indexes, :default_sequence_name].each do |method|
       define_method(method) do |*args|
@@ -80,8 +79,7 @@ module ChronoModel
     #
     # NOTE: This method is dynamically defined, see the source.
     #
-    def column_definitions
-    end
+    def column_definitions; end
 
     define_method(:column_definitions) do |table_name|
       return super(table_name) unless is_chrono?(table_name)
