@@ -90,7 +90,8 @@ module ChronoModel
         on_history_schema do
           standard_index_names = %w(
             inherit_pkey instance_history pkey
-            recorded_at timeline_consistency )
+            recorded_at timeline_consistency
+          )
 
           old_names = temporal_index_names(name, :validity) +
                       standard_index_names.map { |i| [name, i].join('_') }

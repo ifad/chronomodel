@@ -86,10 +86,10 @@ module ChronoModel
 
       def quoted_history_fields
         @quoted_history_fields ||= begin
-          validity =
-            [connection.quote_table_name(table_name),
-             connection.quote_column_name('validity')
-            ].join('.')
+          validity = [
+            connection.quote_table_name(table_name),
+            connection.quote_column_name('validity')
+          ].join('.')
 
           [:lower, :upper].map! { |func| "#{func}(#{validity})" }
         end
