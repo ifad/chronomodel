@@ -2,6 +2,7 @@
 
 require 'simplecov'
 SimpleCov.start do
+  add_filter '/benchmarks'
   add_filter '/spec'
 end
 
