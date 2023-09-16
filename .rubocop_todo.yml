@@ -82,13 +82,6 @@ Style/AndOr:
   Exclude:
     - 'lib/chrono_model/adapter.rb'
 
-# This cop supports safe autocorrection (--autocorrect).
-# Configuration parameters: EnforcedStyle.
-# SupportedStyles: is_a?, kind_of?
-Style/ClassCheck:
-  Exclude:
-    - 'lib/chrono_model/time_machine/time_query.rb'
-
 # This cop supports unsafe autocorrection (--autocorrect-all).
 Style/CommentedKeyword:
   Exclude:
