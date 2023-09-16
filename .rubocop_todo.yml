@@ -75,13 +75,6 @@ Rails/SquishedSQLHeredocs:
     - 'lib/chrono_model/adapter/ddl.rb'
     - 'lib/chrono_model/adapter/indexes.rb'
 
-# This cop supports safe autocorrection (--autocorrect).
-# Configuration parameters: EnforcedStyle.
-# SupportedStyles: prefer_alias, prefer_alias_method
-Style/Alias:
-  Exclude:
-    - 'lib/chrono_model/time_machine/history_model.rb'
-
 # This cop supports unsafe autocorrection (--autocorrect-all).
 # Configuration parameters: EnforcedStyle.
 # SupportedStyles: always, conditionals

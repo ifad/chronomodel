@@ -183,7 +183,7 @@ module ChronoModel
           super(id: rid, after: valid_to, table: self.class.superclass.quoted_table_name)
         end
       end
-      alias :next :succ
+      alias next succ
 
       # Returns the first history entry
       #
