@@ -64,7 +64,7 @@ All timestamps are _forcibly_ stored in as UTC, bypassing the
 ## Requirements
 
 * Ruby >= 2.2.2
-* Active Record >= 5.0. See the [detailed supported versions matrix on Ruby GitHub Actions workflow](https://github.com/ifad/chronomodel/blob/master/.github/workflows/ruby.yml)
+* Active Record >= 5.0. See the [detailed supported versions matrix on Ruby GitHub Actions workflows](https://github.com/ifad/chronomodel/blob/master/.github/workflows)
 * PostgreSQL >= 9.4 (legacy support for 9.3)
 * The `btree_gist` PostgreSQL extension
 
@@ -388,8 +388,8 @@ This software is Made in Italy :it: :smile:.
 [build-status-badge]: https://github.com/ifad/chronomodel/actions/workflows/ruby.yml/badge.svg
 [code-analysis]: https://codeclimate.com/github/ifad/chronomodel
 [code-analysis-badge]: https://codeclimate.com/github/ifad/chronomodel.svg
-[docs-analysis]: http://inch-ci.org/github/ifad/chronomodel
-[docs-analysis-badge]: http://inch-ci.org/github/ifad/chronomodel.svg?branch=master
+[docs-analysis]: https://inch-ci.org/github/ifad/chronomodel
+[docs-analysis-badge]: https://inch-ci.org/github/ifad/chronomodel.svg?branch=master
 [gem-version]: https://rubygems.org/gems/chrono_model
 [gem-version-badge]: https://badge.fury.io/rb/chrono_model.svg
 [legacy-build-status-badge]: https://github.com/ifad/chronomodel/actions/workflows/legacy_ruby.yml/badge.svg
@@ -397,29 +397,28 @@ This software is Made in Italy :it: :smile:.
 [test-coverage-badge]: https://codeclimate.com/github/ifad/chronomodel/badges/coverage.svg
 
 [delorean-image]: https://i.imgur.com/DD77F4s.jpg
-[rebelle-society]: http://www.rebellesociety.com/2012/10/11/the-writers-way-week-two-facing-procrastination/chronos_oeuvre_grand1/
 
-[wp-scd-2]: http://en.wikipedia.org/wiki/Slowly_changing_dimension#Type_2
-[wp-scd-4]: http://en.wikipedia.org/wiki/Slowly_changing_dimension#Type_4
+[wp-scd-2]: https://en.wikipedia.org/wiki/Slowly_changing_dimension#Type_2
+[wp-scd-4]: https://en.wikipedia.org/wiki/Slowly_changing_dimension#Type_4
 
-[pg-updatable-views]: http://www.postgresql.org/docs/9.4/static/sql-createview.html#SQL-CREATEVIEW-UPDATABLE-VIEWS
-[pg-table-inheritance]: http://www.postgresql.org/docs/9.4/static/ddl-inherit.html
-[pg-instead-of-triggers]: http://www.postgresql.org/docs/9.4/static/sql-createtrigger.html
-[pg-triggers]: http://www.postgresql.org/docs/9.4/static/trigger-definition.html
-[pg-schema]: http://www.postgresql.org/docs/9.4/static/ddl-schemas.html
-[pg-current-timestamp]: http://www.postgresql.org/docs/9.4/interactive/functions-datetime.html#FUNCTIONS-DATETIME-TABLE
-[pg-partitioning]: http://www.postgresql.org/docs/9.4/static/ddl-partitioning.html
-[pg-partitioning-excl-constraints]: http://www.postgresql.org/docs/9.4/static/ddl-partitioning.html#DDL-PARTITIONING-CONSTRAINT-EXCLUSION
-[pg-gist-indexes]: http://www.postgresql.org/docs/9.4/static/gist.html
-[pg-exclusion-constraints]: http://www.postgresql.org/docs/9.4/static/sql-createtable.html#SQL-CREATETABLE-EXCLUDE
-[pg-btree-gist]: http://www.postgresql.org/docs/9.4/static/btree-gist.html
-[pg-comment]: http://www.postgresql.org/docs/9.4/static/sql-comment.html
+[pg-updatable-views]: https://www.postgresql.org/docs/9.4/sql-createview.html#SQL-CREATEVIEW-UPDATABLE-VIEWS
+[pg-table-inheritance]: https://www.postgresql.org/docs/9.4/ddl-inherit.html
+[pg-instead-of-triggers]: https://www.postgresql.org/docs/9.4/sql-createtrigger.html
+[pg-triggers]: https://www.postgresql.org/docs/9.4/trigger-definition.html
+[pg-schema]: https://www.postgresql.org/docs/9.4/ddl-schemas.html
+[pg-current-timestamp]: https://www.postgresql.org/docs/9.4/functions-datetime.html#FUNCTIONS-DATETIME-TABLE
+[pg-partitioning]: https://www.postgresql.org/docs/9.4/ddl-partitioning.html
+[pg-partitioning-excl-constraints]: https://www.postgresql.org/docs/9.4/ddl-partitioning.html#DDL-PARTITIONING-CONSTRAINT-EXCLUSION
+[pg-gist-indexes]: https://www.postgresql.org/docs/9.4/gist.html
+[pg-exclusion-constraints]: https://www.postgresql.org/docs/9.4/sql-createtable.html#SQL-CREATETABLE-EXCLUDE
+[pg-btree-gist]: https://www.postgresql.org/docs/9.4/btree-gist.html
+[pg-comment]: https://www.postgresql.org/docs/9.4/sql-comment.html
 [pg-tsrange-and-ruby]: https://bugs.ruby-lang.org/issues/6864
-[pg-ctes]: http://www.postgresql.org/docs/9.4/static/queries-with.html
-[pg-cte-optimization-fence]: http://archives.postgresql.org/pgsql-hackers/2012-09/msg00700.php
-[pg-cte-opt-out-fence]: http://archives.postgresql.org/pgsql-hackers/2012-10/msg00024.php
-[pg-json-type]: http://www.postgresql.org/docs/9.4/static/datatype-json.html
-[pg-json-func]: http://www.postgresql.org/docs/9.4/static/functions-json.html
+[pg-ctes]: https://www.postgresql.org/docs/9.4/queries-with.html
+[pg-cte-optimization-fence]: https://www.postgresql.org/message-id/201209191305.44674.db@kavod.com
+[pg-cte-opt-out-fence]: https://www.postgresql.org/message-id/CAHyXU0zpM5+Dsb_pKxDmm-ZoWUAt=SkHHaiK_DBqcmtxTas6Nw@mail.gmail.com
+[pg-json-type]: https://www.postgresql.org/docs/9.4/datatype-json.html
+[pg-json-func]: https://www.postgresql.org/docs/9.4/functions-json.html
 [pg-json-opclass]: https://github.com/ifad/chronomodel/blob/master/sql/json_ops.sql
 
 [r4-tsrange-broken]: https://github.com/rails/rails/pull/13793#issuecomment-34608093

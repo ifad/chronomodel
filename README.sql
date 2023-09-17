@@ -1,7 +1,7 @@
 ------------------------------------------------------
 -- Temporal schema for an example "countries" relation
 --
--- http://github.com/ifad/chronomodel
+-- https://github.com/ifad/chronomodel
 --
 create schema temporal; -- schema containing all temporal tables
 create schema history;  -- schema containing all history tables
@@ -18,7 +18,7 @@ create table temporal.countries (
 --
 -- Inheritance is used to avoid duplicating the schema from the main table.
 -- Please note that columns on the main table cannot be dropped, and other caveats
--- http://www.postgresql.org/docs/9.0/static/ddl-inherit.html#DDL-INHERIT-CAVEATS
+-- https://www.postgresql.org/docs/9.0/ddl-inherit.html#DDL-INHERIT-CAVEATS
 --
 create table history.countries (
   hid         serial primary key,
@@ -92,7 +92,7 @@ create function chronomodel_countries_update() returns trigger as $$
   declare _old record;
   declare _new record;
   begin
-  
+
     if old is not distinct from new then
       return null;
     end if;
