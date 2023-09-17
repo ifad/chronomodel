@@ -195,4 +195,3 @@ Style/StringLiterals:
 Style/SymbolArray:
   Exclude:
     - 'lib/chrono_model/adapter.rb'
-    - 'lib/chrono_model/time_machine/timeline.rb'

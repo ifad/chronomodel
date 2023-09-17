@@ -50,7 +50,7 @@ module ChronoModel
           now_for_column(column)
         else
           quoted_t = connection.quote(connection.quoted_date(t))
-          [quoted_t, primitive_type_for_column(column)].join('::')
+          "#{quoted_t}::#{primitive_type_for_column(column)}"
         end
       end
 

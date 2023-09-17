@@ -6,7 +6,7 @@ module ChronoModel
       extend ActiveSupport::Concern
 
       included do
-        self.table_name = [Adapter::HISTORY_SCHEMA, superclass.table_name].join('.')
+        self.table_name = "#{Adapter::HISTORY_SCHEMA}.#{superclass.table_name}"
 
         scope :chronological, -> { order(Arel.sql('lower(validity) ASC')) }
       end
