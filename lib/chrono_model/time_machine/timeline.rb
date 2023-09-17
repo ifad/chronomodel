@@ -24,15 +24,15 @@ module ChronoModel
           end
 
         models = []
-        models.push self if self.chrono?
+        models.push self if chrono?
         models.concat(assocs.map { |a| a.klass.history })
 
         return [] if models.empty?
 
         fields = models.inject([]) { |a, m| a.concat m.quoted_history_fields }
 
-        relation = self.except(:order)
-                       .select("DISTINCT UNNEST(ARRAY[#{fields.join(',')}]) AS ts")
+        relation = except(:order)
+                   .select("DISTINCT UNNEST(ARRAY[#{fields.join(',')}]) AS ts")
 
         if assocs.present?
           assocs.each do |ass|
@@ -56,7 +56,7 @@ module ChronoModel
 
         relation = relation.order("ts #{relation_order}")
 
-        relation = relation.from(%["public".#{quoted_table_name}]) unless self.chrono?
+        relation = relation.from(%["public".#{quoted_table_name}]) unless chrono?
         relation = relation.where(id: rid) if rid
 
         sql = "SELECT ts FROM ( #{relation.to_sql} ) AS foo WHERE ts IS NOT NULL".dup
@@ -71,7 +71,7 @@ module ChronoModel
 
         if rid && !options[:with]
           sql <<
-            if self.chrono?
+            if chrono?
               %{ AND ts <@ ( SELECT tsrange(min(lower(validity)), max(upper(validity)), '[]') FROM #{quoted_table_name} WHERE id = #{rid} ) }
             else
               %[ AND ts < NOW() ]
@@ -81,7 +81,7 @@ module ChronoModel
         sql << " LIMIT #{options[:limit].to_i}" if options.key?(:limit)
 
         connection.on_schema(Adapter::HISTORY_SCHEMA) do
-          connection.select_values(sql, "#{self.name} periods").map! do |ts|
+          connection.select_values(sql, "#{name} periods").map! do |ts|
             Conversions.string_to_utc_time ts
           end
         end

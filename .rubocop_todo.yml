@@ -154,16 +154,6 @@ Style/PercentLiteralDelimiters:
     - 'lib/chrono_model/time_machine/time_query.rb'
     - 'lib/chrono_model/time_machine/timeline.rb'
 
-# This cop supports safe autocorrection (--autocorrect).
-Style/RedundantSelf:
-  Exclude:
-    - 'lib/chrono_model/adapter.rb'
-    - 'lib/chrono_model/patches/relation.rb'
-    - 'lib/chrono_model/time_gate.rb'
-    - 'lib/chrono_model/time_machine.rb'
-    - 'lib/chrono_model/time_machine/history_model.rb'
-    - 'lib/chrono_model/time_machine/timeline.rb'
-
 # This cop supports unsafe autocorrection (--autocorrect-all).
 # Configuration parameters: RequireEnglish, EnforcedStyle.
 # SupportedStyles: use_perl_names, use_english_names, use_builtin_english_names

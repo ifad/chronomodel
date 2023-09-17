@@ -75,7 +75,7 @@ module ChronoModel
       #
       def build_preloader
         ActiveRecord::Associations::Preloader.new(
-          model: self.model, as_of_time: as_of_time
+          model: model, as_of_time: as_of_time
         )
       end
 

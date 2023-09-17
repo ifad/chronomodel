@@ -147,7 +147,7 @@ module ChronoModel
     # reasons, to avoid a `rescue` (@lleirborras).
     #
     def _as_of(time)
-      self.class.as_of(time).where(id: self.id)
+      self.class.as_of(time).where(id: id)
     end
     protected :_as_of
 
@@ -167,7 +167,7 @@ module ChronoModel
     # Returns a boolean indicating whether this record is an history entry.
     #
     def historical?
-      self.as_of_time.present?
+      as_of_time.present?
     end
 
     # Inhibit destroy of historical records
@@ -214,8 +214,8 @@ module ChronoModel
     # Returns the current history version
     #
     def current_version
-      if self.historical?
-        self.class.find(self.id)
+      if historical?
+        self.class.find(id)
       else
         self
       end
@@ -236,7 +236,7 @@ module ChronoModel
     #
     def changes_against(ref)
       self.class.attribute_names_for_history_changes.inject({}) do |changes, attr|
-        old, new = ref.public_send(attr), self.public_send(attr)
+        old, new = ref.public_send(attr), public_send(attr)
 
         changes.tap do |c|
           changed =

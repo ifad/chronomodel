@@ -86,7 +86,7 @@ module ChronoModel
     define_method(:column_definitions) do |table_name|
       return super(table_name) unless is_chrono?(table_name)
 
-      on_schema("#{TEMPORAL_SCHEMA},#{self.schema_search_path}", recurse: :ignore) { super(table_name) }
+      on_schema("#{TEMPORAL_SCHEMA},#{schema_search_path}", recurse: :ignore) { super(table_name) }
     end
 
     # Evaluates the given block in the temporal schema.
@@ -109,7 +109,7 @@ module ChronoModel
     # See specs for examples and behaviour.
     #
     def on_schema(schema, recurse: :follow)
-      old_path = self.schema_search_path
+      old_path = schema_search_path
 
       count_recursions do
         if recurse == :follow or Thread.current['recursions'] == 1
