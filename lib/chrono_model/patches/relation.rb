@@ -9,7 +9,8 @@ module ChronoModel
         def preload_associations(records) # :nodoc:
           preload = preload_values
           preload += includes_values unless eager_loading?
-          scope = strict_loading_value ? StrictLoadingScope : nil
+          scope = StrictLoadingScope if strict_loading_value
+
           preload.each do |associations|
             ActiveRecord::Associations::Preloader.new(
               records: records, associations: associations, scope: scope, model: model, as_of_time: as_of_time

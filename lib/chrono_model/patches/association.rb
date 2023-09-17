@@ -41,9 +41,12 @@ module ChronoModel
       end
 
       def _chrono_target?
-        @_target_klass ||= reflection.options[:polymorphic] ?
-          owner.public_send(reflection.foreign_type).constantize :
-          reflection.klass
+        @_target_klass ||=
+          if reflection.options[:polymorphic]
+            owner.public_send(reflection.foreign_type).constantize
+          else
+            reflection.klass
+          end
 
         @_target_klass.chrono?
       end

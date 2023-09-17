@@ -7,10 +7,21 @@ module ChronoModel
       # history record exists. Takes temporal associations into account.
       #
       def timeline(record = nil, options = {})
-        rid = record.respond_to?(:rid) ? record.rid : record.id if record
+        rid =
+          if record
+            if record.respond_to?(:rid)
+              record.rid
+            else
+              record.id
+            end
+          end
 
-        assocs = options.key?(:with) ?
-          timeline_associations_from(options[:with]) : timeline_associations
+        assocs =
+          if options.key?(:with)
+            timeline_associations_from(options[:with])
+          else
+            timeline_associations
+          end
 
         models = []
         models.push self if self.chrono?
@@ -36,8 +47,14 @@ module ChronoModel
           end
         end
 
-        relation = relation
-                   .order("ts #{options[:reverse] ? 'DESC' : 'ASC'}")
+        relation_order =
+          if options[:reverse]
+            'DESC'
+          else
+            'ASC'
+          end
+
+        relation = relation.order("ts #{relation_order}")
 
         relation = relation.from(%["public".#{quoted_table_name}]) unless self.chrono?
         relation = relation.where(id: rid) if rid
@@ -53,9 +70,12 @@ module ChronoModel
         end
 
         if rid && !options[:with]
-          sql << (self.chrono? ? %{
-            AND ts <@ ( SELECT tsrange(min(lower(validity)), max(upper(validity)), '[]') FROM #{quoted_table_name} WHERE id = #{rid} )
-          } : %[ AND ts < NOW() ])
+          sql <<
+            if self.chrono?
+              %{ AND ts <@ ( SELECT tsrange(min(lower(validity)), max(upper(validity)), '[]') FROM #{quoted_table_name} WHERE id = #{rid} ) }
+            else
+              %[ AND ts < NOW() ]
+            end
         end
 
         sql << " LIMIT #{options[:limit].to_i}" if options.key?(:limit)

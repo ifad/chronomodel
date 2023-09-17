@@ -34,9 +34,24 @@ module ChronoModel
 
         def extract_bounds(value)
           from, to = value[1..-2].split(',')
+
+          from_bound =
+            if value[1] == ',' || from == '-infinity'
+              nil
+            else
+              from[1..-2]
+            end
+
+          to_bound =
+            if value[-2] == ',' || to == 'infinity'
+              nil
+            else
+              to[1..-2]
+            end
+
           {
-            from: value[1] == ',' || from == '-infinity' ? nil : from[1..-2],
-            to: value[-2] == ',' || to == 'infinity' ? nil : to[1..-2]
+            from: from_bound,
+            to: to_bound
           }
         end
       end

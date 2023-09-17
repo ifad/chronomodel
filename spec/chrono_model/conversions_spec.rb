@@ -26,6 +26,13 @@ RSpec.describe ChronoModel::Conversions do
       it { expect(string_to_utc_time.usec).to eq 129_000 } # Ref Issue #32
     end
 
+    context 'with a valid UTC string without usec' do
+      let(:string) { '2017-02-06 09:46:31' }
+
+      it { is_expected.to be_a(Time) }
+      it { expect(string_to_utc_time.usec).to eq 0 }
+    end
+
     context 'with an invalid UTC time string' do
       let(:string) { 'foobar' }
 
