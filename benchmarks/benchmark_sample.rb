@@ -17,10 +17,19 @@ ActiveRecord::Schema.define do
     t.string :name
     t.timestamps
   end
+
+  create_table :bars, force: true do |t|
+    t.string :name
+    t.timestamps
+  end
 end
 
 class Foo < ActiveRecord::Base
   include ChronoModel::TimeMachine
+end
+
+class Bar < ActiveRecord::Base
+  include ChronoModel::TimeGate
 end
 
 def run_benchmark_sample(iterations: 100)

@@ -14,7 +14,8 @@ require 'benchmark'
 
 ITERATIONS = 5_000
 
-Foo.create! name: 'Ciao'
+Foo.create! name: 'My Foo'
+Bar.create! name: 'My Bar'
 
 first_foo = Foo.first
 
@@ -57,5 +58,17 @@ Benchmark.bmbm(30) do |x|
 
   x.report('#as_of') do
     ITERATIONS.times { first_foo.as_of(Time.now) }
+  end
+
+  x.report('TimeGate .merge') do
+    ITERATIONS.times { Bar.merge(Bar.all) }
+  end
+
+  x.report('TimeGate .first') do
+    ITERATIONS.times { Bar.first }
+  end
+
+  x.report('TimeGate .last') do
+    ITERATIONS.times { Bar.last }
   end
 end
