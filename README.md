@@ -149,7 +149,7 @@ validity from midnight, January 1st, 1 CE. You can set a specific validity with
 the `:validity` option:
 
 ```ruby
-change_table :your_table, :temporal => true, :copy_data => true, :validity => '1977-01-01'
+change_table :your_table, temporal: true, copy_data: true, validity: '1977-01-01'
 ```
 
 Please note that `change_table` requires you to use *old_style* `up` and
@@ -164,9 +164,9 @@ history.
 You can also choose which fields are to be journaled, passing the following
 options to `create_table`:
 
-  * `:journal => %w( fld1 fld2 .. .. )` - record changes in the history only when changing specified fields
-  * `:no_journal => %w( fld1 fld2 .. )` - do not record changes to the specified fields
-  * `:full_journal => true`             - record changes to *all* fields, including `updated_at`.
+  * `journal: %w( fld1 fld2 .. .. )` - record changes in the history only when changing specified fields
+  * `no_journal: %w( fld1 fld2 .. )` - do not record changes to the specified fields
+  * `full_journal: true`             - record changes to *all* fields, including `updated_at`.
 
 These options are stored as JSON in the [COMMENT][pg-comment] area of the
 public view, alongside with the ChronoModel version that created them.
