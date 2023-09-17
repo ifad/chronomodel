@@ -108,7 +108,7 @@ module ChronoModel
 
       def attribute_names_for_history_changes
         @attribute_names_for_history_changes ||= attribute_names -
-                                                 %w(id hid validity recorded_at)
+                                                 %w[id hid validity recorded_at]
       end
 
       def has_timeline(options)

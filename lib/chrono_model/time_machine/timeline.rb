@@ -56,7 +56,7 @@ module ChronoModel
 
         relation = relation.order("ts #{relation_order}")
 
-        relation = relation.from(%["public".#{quoted_table_name}]) unless chrono?
+        relation = relation.from("public.#{quoted_table_name}") unless chrono?
         relation = relation.where(id: rid) if rid
 
         sql = "SELECT ts FROM ( #{relation.to_sql} ) AS foo WHERE ts IS NOT NULL".dup
@@ -110,7 +110,7 @@ module ChronoModel
         @quoted_history_fields ||= begin
           validity = "#{connection.quote_table_name(table_name)}.#{connection.quote_column_name('validity')}"
 
-          %w(lower upper).map! { |func| "#{func}(#{validity})" }
+          %w[lower upper].map! { |func| "#{func}(#{validity})" }
         end
       end
     end
