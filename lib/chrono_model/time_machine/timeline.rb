@@ -110,7 +110,7 @@ module ChronoModel
         @quoted_history_fields ||= begin
           validity = "#{connection.quote_table_name(table_name)}.#{connection.quote_column_name('validity')}"
 
-          [:lower, :upper].map! { |func| "#{func}(#{validity})" }
+          %w(lower upper).map! { |func| "#{func}(#{validity})" }
         end
       end
     end
