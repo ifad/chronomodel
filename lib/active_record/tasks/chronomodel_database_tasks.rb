@@ -34,7 +34,7 @@ module ActiveRecord
         args = ['-c', '-f', target.to_s]
         args << chronomodel_configuration[:database]
 
-        run_cmd "pg_dump", args, 'dumping data'
+        run_cmd 'pg_dump', args, 'dumping data'
       end
 
       def data_load(source)
@@ -43,7 +43,7 @@ module ActiveRecord
         args = ['-f', source]
         args << chronomodel_configuration[:database]
 
-        run_cmd "psql", args, 'loading data'
+        run_cmd 'psql', args, 'loading data'
       end
 
       private
@@ -100,7 +100,7 @@ module ActiveRecord
         def remove_sql_header_comments(filename)
           sql_comment_begin = '--'
           removing_comments = true
-          tempfile = Tempfile.open("uncommented_structure.sql")
+          tempfile = Tempfile.open('uncommented_structure.sql')
           begin
             File.foreach(filename) do |line|
               unless removing_comments && (line.start_with?(sql_comment_begin) || line.blank?)

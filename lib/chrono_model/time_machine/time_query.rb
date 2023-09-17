@@ -57,7 +57,7 @@ module ChronoModel
       def now_for_column(column)
         case column.type
         when :tsrange, :tstzrange then "timezone('UTC', current_timestamp)"
-        when :daterange           then "current_date"
+        when :daterange           then 'current_date'
         else raise "Cannot generate 'now()' for #{column.type} column #{column.name}"
         end
       end

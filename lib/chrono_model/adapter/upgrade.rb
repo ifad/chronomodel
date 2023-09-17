@@ -41,10 +41,10 @@ module ChronoModel
 
         return if upgrade.empty?
 
-        logger.warn "ChronoModel: There are tables needing a structure upgrade, and ChronoModel structures need to be recreated."
-        logger.warn "ChronoModel: Please run ChronoModel.upgrade! to attempt the upgrade. If you have dependant database objects"
-        logger.warn "ChronoModel: the upgrade will fail and you have to drop the dependent objects, run .upgrade! and create them"
-        logger.warn "ChronoModel: again. Sorry. Some features or the whole library may not work correctly until upgrade is complete."
+        logger.warn 'ChronoModel: There are tables needing a structure upgrade, and ChronoModel structures need to be recreated.'
+        logger.warn 'ChronoModel: Please run ChronoModel.upgrade! to attempt the upgrade. If you have dependant database objects'
+        logger.warn 'ChronoModel: the upgrade will fail and you have to drop the dependent objects, run .upgrade! and create them'
+        logger.warn 'ChronoModel: again. Sorry. Some features or the whole library may not work correctly until upgrade is complete.'
         logger.warn "ChronoModel: Tables pending upgrade: #{upgrade}"
       end
 
@@ -81,13 +81,13 @@ module ChronoModel
         p_pkey = primary_key(table_name)
 
         execute "ALTER TABLE #{history_table} ADD COLUMN validity tsrange;"
-        execute """
-              UPDATE #{history_table} SET validity = tsrange(valid_from,
+        execute <<-SQL
+            UPDATE #{history_table} SET validity = tsrange(valid_from,
                 CASE WHEN extract(year from valid_to) = 9999 THEN NULL
                      ELSE valid_to
                 END
-              );
-          """
+            );
+        SQL
 
         execute "DROP INDEX #{history_table}_temporal_on_valid_from;"
         execute "DROP INDEX #{history_table}_temporal_on_valid_from_and_valid_to;"
@@ -106,7 +106,7 @@ module ChronoModel
         execute "ALTER TABLE #{history_table} DROP COLUMN valid_from;"
         execute "ALTER TABLE #{history_table} DROP COLUMN valid_to;"
 
-        execute "CREATE EXTENSION IF NOT EXISTS btree_gist;"
+        execute 'CREATE EXTENSION IF NOT EXISTS btree_gist;'
 
         chrono_public_view_ddl(table_name)
         on_history_schema { add_history_validity_constraint(table_name, p_pkey) }
