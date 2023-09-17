@@ -20,7 +20,7 @@ first_foo = Foo.first
 
 Benchmark.bmbm(30) do |x|
   x.report('.merge') do
-    ITERATIONS.times { Foo.all.merge(Foo.all) }
+    ITERATIONS.times { Foo.merge(Foo.all) }
   end
 
   x.report('.first') do
@@ -36,7 +36,7 @@ Benchmark.bmbm(30) do |x|
   end
 
   x.report('History.merge') do
-    ITERATIONS.times { Foo::History.all.merge(Foo::History.all) }
+    ITERATIONS.times { Foo::History.merge(Foo::History.all) }
   end
 
   x.report('History.first') do
