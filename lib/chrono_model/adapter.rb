@@ -63,7 +63,7 @@ module ChronoModel
     #
     def primary_key(table_name); end
 
-    [:primary_key, :indexes, :default_sequence_name].each do |method|
+    %i[primary_key indexes default_sequence_name].each do |method|
       define_method(method) do |*args|
         table_name = args.first
         return super(*args) unless is_chrono?(table_name)
@@ -161,11 +161,11 @@ module ChronoModel
     def chrono_metadata_set(view_name, metadata)
       comment = MultiJson.dump(metadata)
 
-      execute %[ COMMENT ON VIEW #{view_name} IS #{quote(comment)} ]
+      execute %( COMMENT ON VIEW #{view_name} IS #{quote(comment)} )
     end
 
     def valid_table_definition_options
-      super + [:temporal, :journal, :no_journal, :full_journal]
+      super + %i[temporal journal no_journal full_journal]
     end
 
     private

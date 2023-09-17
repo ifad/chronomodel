@@ -93,7 +93,7 @@ module ChronoModel
         if time.is_a?(Array)
           Arel.sql %[ #{range.type}(#{time.first}, #{time.last}) #{op} #{table_name}.#{range.name} ]
         else
-          Arel.sql %[ #{time} <@ #{table_name}.#{range.name} ]
+          Arel.sql %( #{time} <@ #{table_name}.#{range.name} )
         end
       end
     end

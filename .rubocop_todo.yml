@@ -142,18 +142,6 @@ Style/ParallelAssignment:
     - 'lib/chrono_model/adapter/ddl.rb'
     - 'lib/chrono_model/time_machine.rb'
 
-# This cop supports safe autocorrection (--autocorrect).
-# Configuration parameters: PreferredDelimiters.
-Style/PercentLiteralDelimiters:
-  Exclude:
-    - 'lib/chrono_model/adapter.rb'
-    - 'lib/chrono_model/adapter/ddl.rb'
-    - 'lib/chrono_model/adapter/indexes.rb'
-    - 'lib/chrono_model/time_machine.rb'
-    - 'lib/chrono_model/time_machine/history_model.rb'
-    - 'lib/chrono_model/time_machine/time_query.rb'
-    - 'lib/chrono_model/time_machine/timeline.rb'
-
 # This cop supports unsafe autocorrection (--autocorrect-all).
 # Configuration parameters: RequireEnglish, EnforcedStyle.
 # SupportedStyles: use_perl_names, use_english_names, use_builtin_english_names
@@ -178,10 +166,3 @@ Style/StringLiterals:
     - 'lib/chrono_model/adapter/upgrade.rb'
     - 'lib/chrono_model/time_machine/time_query.rb'
     - 'lib/chrono_model/version.rb'
-
-# This cop supports safe autocorrection (--autocorrect).
-# Configuration parameters: EnforcedStyle, MinSize.
-# SupportedStyles: percent, brackets
-Style/SymbolArray:
-  Exclude:
-    - 'lib/chrono_model/adapter.rb'

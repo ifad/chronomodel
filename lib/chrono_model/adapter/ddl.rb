@@ -214,7 +214,7 @@ module ChronoModel
       end
 
       def chrono_drop_trigger_functions_for(table_name)
-        %w(insert update delete).each do |func|
+        %w[insert update delete].each do |func|
           execute "DROP FUNCTION IF EXISTS chronomodel_#{table_name}_#{func}()"
         end
       end
