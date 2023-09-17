@@ -32,7 +32,7 @@ module ChronoModel
         # execution completes. FIXME
         #
         def with_hid_pkey
-          old = self.primary_key
+          old = primary_key
           self.primary_key = :hid
 
           yield
@@ -167,7 +167,7 @@ module ChronoModel
       # is the first one.
       #
       def pred
-        return if self.valid_from.nil?
+        return if valid_from.nil?
 
         if self.class.timeline_associations.empty?
           self.class.where('id = ? AND upper(validity) = ?', rid, valid_from).first
@@ -180,7 +180,7 @@ module ChronoModel
       # last one.
       #
       def succ
-        return if self.valid_to.nil?
+        return if valid_to.nil?
 
         if self.class.timeline_associations.empty?
           self.class.where('id = ? AND lower(validity) = ?', rid, valid_to).first
@@ -210,7 +210,7 @@ module ChronoModel
 
       def record # :nodoc:
         ActiveSupport::Deprecation.warn '.record is deprecated in favour of .current_version'
-        self.current_version
+        current_version
       end
 
       def valid_from

@@ -18,7 +18,7 @@ module ChronoModel
     end
 
     def as_of(time)
-      self.class.as_of(time).where(id: self.id).first!
+      self.class.as_of(time).where(id: id).first!
     end
 
     def timeline
