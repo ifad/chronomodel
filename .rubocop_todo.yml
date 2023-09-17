@@ -13,7 +13,7 @@ Lint/TripleQuotes:
 
 # Configuration parameters: AllowedMethods, AllowedPatterns, CountRepeatedAttributes.
 Metrics/AbcSize:
-  Max: 72
+  Max: 73
 
 # Configuration parameters: CountComments, CountAsOne, AllowedMethods, AllowedPatterns, inherit_mode.
 # AllowedMethods: refine
@@ -26,7 +26,7 @@ Metrics/CyclomaticComplexity:
 
 # Configuration parameters: CountComments, CountAsOne, AllowedMethods, AllowedPatterns.
 Metrics/MethodLength:
-  Max: 44
+  Max: 62
 
 # Configuration parameters: CountComments, CountAsOne.
 Metrics/ModuleLength:
@@ -38,7 +38,7 @@ Metrics/ParameterLists:
 
 # Configuration parameters: AllowedMethods, AllowedPatterns.
 Metrics/PerceivedComplexity:
-  Max: 22
+  Max: 26
 
 # This cop supports unsafe autocorrection (--autocorrect-all).
 # Configuration parameters: EnforcedStyleForLeadingUnderscores.
@@ -61,11 +61,6 @@ Naming/MethodParameterName:
 Naming/VariableNumber:
   Exclude:
     - 'lib/chrono_model/adapter/upgrade.rb'
-
-# This cop supports unsafe autocorrection (--autocorrect-all).
-Performance/UnfreezeString:
-  Exclude:
-    - 'lib/chrono_model/time_machine/timeline.rb'
 
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: EnforceForPrefixed.
@@ -130,14 +125,6 @@ Style/ModuleFunction:
 Style/MultilineIfModifier:
   Exclude:
     - 'lib/chrono_model/adapter.rb'
-
-# This cop supports safe autocorrection (--autocorrect).
-Style/MultilineTernaryOperator:
-  Exclude:
-    - 'lib/chrono_model/patches/association.rb'
-    - 'lib/chrono_model/time_machine.rb'
-    - 'lib/chrono_model/time_machine/history_model.rb'
-    - 'lib/chrono_model/time_machine/timeline.rb'
 
 # This cop supports safe autocorrection (--autocorrect).
 # Configuration parameters: AllowMethodComparison, ComparisonsThreshold.

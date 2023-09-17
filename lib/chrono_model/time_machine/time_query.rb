@@ -23,11 +23,21 @@ module ChronoModel
           "NOT (#{build_time_query_at(time, range)})"
 
         when :before
-          op = options.fetch(:inclusive, true) ? '&&' : '@>'
+          op =
+            if options.fetch(:inclusive, true)
+              '&&'
+            else
+              '@>'
+            end
           build_time_query(['NULL', time_for_time_query(time, range)], range, op)
 
         when :after
-          op = options.fetch(:inclusive, true) ? '&&' : '@>'
+          op =
+            if options.fetch(:inclusive, true)
+              '&&'
+            else
+              '@>'
+            end
           build_time_query([time_for_time_query(time, range), 'NULL'], range, op)
 
         else
@@ -67,7 +77,11 @@ module ChronoModel
 
                  # If both edges of the range are the same the query fails using the '&&' operator.
                  # The correct solution is to use the <@ operator.
-                 time.first == time.last ? time.first : time
+                 if time.first == time.last
+                   time.first
+                 else
+                   time
+                 end
                else
                  time_for_time_query(time, range)
                end

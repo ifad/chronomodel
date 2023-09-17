@@ -109,7 +109,7 @@ RSpec.describe ChronoModel::TimeMachine do
     end
 
     describe 'from #as_of' do
-      subject { $t.foo.as_of(Time.now) }
+      subject { $t.foo.as_of(Time.now).current_version }
 
       it { is_expected.to eq $t.foo }
     end

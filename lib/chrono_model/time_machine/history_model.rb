@@ -71,9 +71,12 @@ module ChronoModel
         end
 
         def virtual_table_at(time, table_name: nil)
-          virtual_name = table_name ?
-            connection.quote_table_name(table_name) :
-            superclass.quoted_table_name
+          virtual_name =
+            if table_name
+              connection.quote_table_name(table_name)
+            else
+              superclass.quoted_table_name
+            end
 
           "(#{at(time).to_sql}) #{virtual_name}"
         end

@@ -115,8 +115,12 @@ module ChronoModel
         changes = options.delete(:changes)
         assocs  = history.has_timeline(options)
 
-        attributes = changes.present? ?
-          Array.wrap(changes) : assocs.map(&:name)
+        attributes =
+          if changes.present?
+            Array.wrap(changes)
+          else
+            assocs.map(&:name)
+          end
 
         attribute_names_for_history_changes.concat(attributes.map(&:to_s))
       end
@@ -210,7 +214,11 @@ module ChronoModel
     # Returns the current history version
     #
     def current_version
-      self.historical? ? self.class.find(self.id) : self
+      if self.historical?
+        self.class.find(self.id)
+      else
+        self
+      end
     end
 
     # Returns the differences between this entry and the previous history one.
@@ -231,8 +239,12 @@ module ChronoModel
         old, new = ref.public_send(attr), self.public_send(attr)
 
         changes.tap do |c|
-          changed = old.respond_to?(:history_eql?) ?
-            !old.history_eql?(new) : old != new
+          changed =
+            if old.respond_to?(:history_eql?)
+              !old.history_eql?(new)
+            else
+              old != new
+            end
 
           c[attr] = [old, new] if changed
         end
