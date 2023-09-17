@@ -96,10 +96,10 @@ module ChronoModel
           )
 
           old_names = temporal_index_names(name, :validity) +
-                      standard_index_names.map { |i| [name, i].join('_') }
+                      standard_index_names.map { |i| "#{name}_#{i}" }
 
           new_names = temporal_index_names(new_name, :validity) +
-                      standard_index_names.map { |i| [new_name, i].join('_') }
+                      standard_index_names.map { |i| "#{new_name}_#{i}" }
 
           old_names.zip(new_names).each do |old, new|
             execute "ALTER INDEX #{old} RENAME TO #{new}"
@@ -166,7 +166,7 @@ module ChronoModel
         range = range.to_s.sub(/\W.*/, '')
 
         [range, "lower_#{range}", "upper_#{range}"].map do |suffix|
-          [prefix, 'on', suffix].join('_')
+          "#{prefix}_on_#{suffix}"
         end
       end
 

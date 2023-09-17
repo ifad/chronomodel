@@ -12,8 +12,8 @@ module ChronoModel
       #
       def chrono_public_view_ddl(table, options = nil)
         pk      = primary_key(table)
-        current = [TEMPORAL_SCHEMA, table].join('.')
-        history = [HISTORY_SCHEMA,  table].join('.')
+        current = "#{TEMPORAL_SCHEMA}.#{table}"
+        history = "#{HISTORY_SCHEMA}.#{table}"
 
         options ||= chrono_metadata_for(table)
 
