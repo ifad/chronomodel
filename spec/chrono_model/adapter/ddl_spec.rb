@@ -7,8 +7,8 @@ RSpec.describe ChronoModel::Adapter do
   include ChronoTest::Adapter::Helpers
   include ChronoTest::Adapter::Structure
 
-  let(:current) { [ChronoModel::Adapter::TEMPORAL_SCHEMA, table].join('.') }
-  let(:history) { [ChronoModel::Adapter::HISTORY_SCHEMA,  table].join('.') }
+  let(:current) { "#{ChronoModel::Adapter::TEMPORAL_SCHEMA}.#{table}" }
+  let(:history) { "#{ChronoModel::Adapter::HISTORY_SCHEMA}.#{table}" }
 
   def count(table)
     adapter.select_value("SELECT COUNT(*) FROM ONLY #{table}").to_i
