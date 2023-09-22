@@ -63,10 +63,6 @@ Rails/SkipsModelValidations:
 Rails/TimeZone:
   Enabled: false
 
-RSpec/BeforeAfterAll:
-  Exclude:
-    - 'spec/support/adapter/helpers.rb'
-
 RSpec/ExampleLength:
   Enabled: false
 
@@ -83,11 +79,11 @@ Style/GlobalVars:
   Exclude:
     - 'spec/**/*'
 
-Style/IfUnlessModifier:
-  Enabled: false
-
 # NOTE: This cop is enabled by RuboCop Rails, because active support adds this
 # method to hash, but `except` is not available in specs
 Style/HashExcept:
   Exclude:
     - 'spec/**/*'
+
+Style/IfUnlessModifier:
+  Enabled: false
