@@ -60,6 +60,10 @@ Benchmark.bmbm(30) do |x|
     ITERATIONS.times { first_foo.as_of(Time.now) }
   end
 
+  x.report('#timeline') do
+    ITERATIONS.times { first_foo.timeline }
+  end
+
   x.report('TimeGate .merge') do
     ITERATIONS.times { Bar.merge(Bar.all) }
   end
