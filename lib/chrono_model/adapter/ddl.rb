@@ -27,11 +27,12 @@ module ChronoModel
         # Set default values on the view (closes #12)
         #
         columns(table).each do |column|
-          default = if column.default.nil?
-                      column.default_function
-                    else
-                      quote(column.default)
-                    end
+          default =
+            if column.default.nil?
+              column.default_function
+            else
+              quote(column.default)
+            end
 
           next if column.name == pk || default.nil?
 
@@ -117,18 +118,19 @@ module ChronoModel
       def chrono_create_UPDATE_trigger(table, pk, current, history, fields, values, options, columns)
         # Columns to be journaled. By default everything except updated_at (GH #7)
         #
-        journal = if options[:journal]
-                    options[:journal].map { |col| quote_column_name(col) }
+        journal =
+          if options[:journal]
+            options[:journal].map { |col| quote_column_name(col) }
 
-                  elsif options[:no_journal]
-                    columns - options[:no_journal].map { |col| quote_column_name(col) }
+          elsif options[:no_journal]
+            columns - options[:no_journal].map { |col| quote_column_name(col) }
 
-                  elsif options[:full_journal]
-                    columns
+          elsif options[:full_journal]
+            columns
 
-                  else
-                    columns - [quote_column_name('updated_at')]
-                  end
+          else
+            columns - [quote_column_name('updated_at')]
+          end
 
         journal &= columns
 
