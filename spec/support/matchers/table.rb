@@ -148,7 +148,7 @@ module ChronoTest
                AND tablename  = ?
           SQL
 
-          fqtn = [history_schema, table].join('.')
+          fqtn = "#{history_schema}.#{table}"
 
           expected = [
             "CREATE INDEX index_#{table}_temporal_on_lower_validity ON #{fqtn} USING btree (lower(validity))",
@@ -169,7 +169,7 @@ module ChronoTest
           binds = {
             conname: connection.timeline_consistency_constraint_name(table),
             connamespace: history_schema,
-            conrelid: [history_schema, table].join('.'),
+            conrelid: "#{history_schema}.#{table}",
             attname: connection.primary_key(table)
           }
 

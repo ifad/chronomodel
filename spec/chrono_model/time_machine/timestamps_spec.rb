@@ -13,7 +13,7 @@ RSpec.describe ChronoModel::TimeMachine do
     let(:record) { $t.foo.history.first }
 
     (history_methods + current_methods).each do |attr|
-      describe ['#', attr].join do
+      describe "##{attr}" do
         subject { record.public_send(attr) }
 
         it { is_expected.to be_present }
@@ -27,7 +27,7 @@ RSpec.describe ChronoModel::TimeMachine do
     let(:record) { $t.foo }
 
     history_methods.each do |attr|
-      describe ['#', attr].join do
+      describe "##{attr}" do
         subject(:attribute) { record.public_send(attr) }
 
         it { expect { attribute }.to raise_error(NoMethodError) }
@@ -35,7 +35,7 @@ RSpec.describe ChronoModel::TimeMachine do
     end
 
     current_methods.each do |attr|
-      describe ['#', attr].join do
+      describe "##{attr}" do
         subject { record.public_send(attr) }
 
         it { is_expected.to be_nil }
