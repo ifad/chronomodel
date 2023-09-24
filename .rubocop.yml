@@ -54,6 +54,9 @@ Rails/ApplicationRecord:
 Rails/Date:
   Enabled: false
 
+RSpec/FilePath:
+  Enabled: false
+
 Rails/RakeEnvironment:
   Enabled: false
 
