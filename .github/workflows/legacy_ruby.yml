@@ -71,7 +71,7 @@ jobs:
         ruby-version: ${{ matrix.ruby-version }}
         bundler-cache: true
     - name: Run specs and publish code coverage
-      uses: paambaati/codeclimate-action@v3.2.0
+      uses: paambaati/codeclimate-action@v5.0.0
       env:
         CC_TEST_REPORTER_ID: dedfb7472ee410eec459bff3681d9a8fd8dd237e9bd7e8675a7c8eb7e253bba9
       with:
