@@ -29,6 +29,9 @@ module ActiveRecord
 
       adapter = ChronoModel::Adapter.new(conn, logger, conn_params, config)
 
+      # Rails 7.2.0, see ifad/chronomodel#236
+      adapter.connect! if adapter.respond_to?(:connect!)
+
       unless adapter.chrono_supported?
         raise ChronoModel::Error, 'Your database server is not supported by ChronoModel. ' \
                                   'Currently, only PostgreSQL >= 9.3 is supported.'
