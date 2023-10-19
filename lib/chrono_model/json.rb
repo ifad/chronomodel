@@ -10,11 +10,11 @@ module ChronoModel
       MSG
 
       adapter.execute 'CREATE OR REPLACE LANGUAGE plpythonu'
-      adapter.execute File.read(sql 'json_ops.sql')
+      adapter.execute File.read(sql('json_ops.sql'))
     end
 
     def drop
-      adapter.execute File.read(sql 'uninstall-json_ops.sql')
+      adapter.execute File.read(sql('uninstall-json_ops.sql'))
       adapter.execute 'DROP LANGUAGE IF EXISTS plpythonu'
     end
 
