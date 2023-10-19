@@ -109,9 +109,7 @@ module ChronoModel
         #
         # As such it is overriden here to return the same contents that
         # the parent would have returned.
-        def sti_name
-          superclass.sti_name
-        end
+        delegate :sti_name, to: :superclass
 
         # For STI to work, the history model needs to have the exact same
         # semantics as the model it inherits from. However given it is
@@ -120,9 +118,7 @@ module ChronoModel
         # same exact hierarchy location as its parent, thus this is defined in
         # this override.
         #
-        def descends_from_active_record?
-          superclass.descends_from_active_record?
-        end
+        delegate :descends_from_active_record?, to: :superclass
 
         private
 

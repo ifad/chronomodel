@@ -102,9 +102,7 @@ module ChronoModel
 
       # Returns an ActiveRecord::Relation on the history of this model as
       # it was +time+ ago.
-      def as_of(time)
-        history.as_of(time)
-      end
+      delegate :as_of, to: :history
 
       def attribute_names_for_history_changes
         @attribute_names_for_history_changes ||= attribute_names -
