@@ -131,8 +131,3 @@ Style/NumericLiterals:
 Style/SpecialGlobalVars:
   Exclude:
     - 'lib/chrono_model/adapter/indexes.rb'
-
-# This cop supports safe autocorrection (--autocorrect).
-Style/StderrPuts:
-  Exclude:
-    - 'lib/chrono_model/adapter/upgrade.rb'
