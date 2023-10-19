@@ -35,10 +35,11 @@ module ChronoModel
 
     # Returns true whether the connection adapter supports our
     # implementation of temporal tables. Currently, Chronomodel
-    # is supported starting with PostgreSQL 9.3.
+    # is supported starting with PostgreSQL 9.3 (90300 in PostgreSQL's
+    # `PG_VERSION_NUM` numeric format).
     #
     def chrono_supported?
-      postgresql_version >= 90300
+      postgresql_version >= 90300 # rubocop:disable Style/NumericLiterals
     end
 
     def chrono_setup!
