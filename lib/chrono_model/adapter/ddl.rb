@@ -42,7 +42,8 @@ module ChronoModel
         columns = self.columns(table).map { |c| quote_column_name(c.name) }
         columns.delete(quote_column_name(pk))
 
-        fields, values = columns.join(', '), columns.map { |c| "NEW.#{c}" }.join(', ')
+        fields = columns.join(', ')
+        values = columns.map { |c| "NEW.#{c}" }.join(', ')
 
         chrono_create_INSERT_trigger(table, pk, current, history, fields, values)
         chrono_create_UPDATE_trigger(table, pk, current, history, fields, values, options, columns)
