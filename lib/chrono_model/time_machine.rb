@@ -74,9 +74,9 @@ module ChronoModel
           # Sadly, we can't avoid it by calling +.history?+, because in the
           # subclass the HistoryModel hasn't been included yet.
           #
-          unless subclass.name.nil?
-            ChronoModel::TimeMachine.define_history_model_for(subclass)
-          end
+          return if subclass.name.nil?
+
+          ChronoModel::TimeMachine.define_history_model_for(subclass)
         end
       end
     end

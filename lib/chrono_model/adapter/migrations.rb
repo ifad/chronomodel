@@ -201,9 +201,9 @@ module ChronoModel
         # Optionally copy the plain table data, setting up history
         # retroactively.
         #
-        if options[:copy_data]
-          chrono_copy_temporal_to_history(table_name, options)
-        end
+        return unless options[:copy_data]
+
+        chrono_copy_temporal_to_history(table_name, options)
       end
 
       def chrono_copy_temporal_to_history(table_name, options)

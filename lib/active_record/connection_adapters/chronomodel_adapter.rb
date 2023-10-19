@@ -41,11 +41,9 @@ module ActiveRecord
 
       adapter
     rescue ::PG::Error => e
-      if e.message.include?(conn_params[:dbname])
-        raise ActiveRecord::NoDatabaseError
-      else
-        raise
-      end
+      raise ActiveRecord::NoDatabaseError if e.message.include?(conn_params[:dbname])
+
+      raise
     end
   end
 end
