@@ -70,7 +70,7 @@ module ChronoModel
         # Quite important, output it also to stderr.
         #
         logger.error message
-        $stderr.puts message
+        warn message
       end
 
       def chrono_upgrade_from_postgres_9_0(table_name)
