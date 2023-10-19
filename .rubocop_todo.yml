@@ -113,11 +113,6 @@ Style/MultipleComparison:
   Exclude:
     - 'lib/chrono_model/time_machine/time_query.rb'
 
-# This cop supports safe autocorrection (--autocorrect).
-# Configuration parameters: Strict, AllowedNumbers, AllowedPatterns.
-Style/NumericLiterals:
-  MinDigits: 6
-
 # This cop supports unsafe autocorrection (--autocorrect-all).
 # Configuration parameters: RequireEnglish, EnforcedStyle.
 # SupportedStyles: use_perl_names, use_english_names, use_builtin_english_names
