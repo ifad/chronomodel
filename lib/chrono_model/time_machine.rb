@@ -236,7 +236,8 @@ module ChronoModel
     #
     def changes_against(ref)
       self.class.attribute_names_for_history_changes.inject({}) do |changes, attr|
-        old, new = ref.public_send(attr), public_send(attr)
+        old = ref.public_send(attr)
+        new = public_send(attr)
 
         changes.tap do |c|
           changed =
