@@ -173,13 +173,13 @@ module ChronoModel
       # types, the view must be dropped and recreated, while the change has
       # to be applied to the table in the temporal schema.
       #
-      def drop_and_recreate_public_view(table_name, opts = {})
+      def drop_and_recreate_public_view(table_name, opts = {}, &block)
         transaction do
           options = chrono_metadata_for(table_name).merge(opts)
 
           execute "DROP VIEW #{table_name}"
 
-          on_temporal_schema { yield }
+          on_temporal_schema(&block)
 
           # Recreate the triggers
           chrono_public_view_ddl(table_name, options)

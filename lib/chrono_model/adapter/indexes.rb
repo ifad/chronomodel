@@ -178,18 +178,18 @@ module ChronoModel
       # only on the history table, and the creation methods already
       # run scoped into the correct schema.
       #
-      def chrono_alter_index(table_name, options)
+      def chrono_alter_index(table_name, options, &block)
         if is_chrono?(table_name) && !options[:on_current_schema]
-          on_temporal_schema { yield }
-          on_history_schema { yield }
+          on_temporal_schema(&block)
+          on_history_schema(&block)
         else
           yield
         end
       end
 
-      def chrono_alter_constraint(table_name, options)
+      def chrono_alter_constraint(table_name, options, &block)
         if is_chrono?(table_name) && !options[:on_current_schema]
-          on_temporal_schema { yield }
+          on_temporal_schema(&block)
         else
           yield
         end

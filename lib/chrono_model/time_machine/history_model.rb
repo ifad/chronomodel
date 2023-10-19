@@ -242,11 +242,11 @@ module ChronoModel
 
       private
 
-      def with_hid_pkey
+      def with_hid_pkey(&block)
         old_primary_key = @primary_key
         @primary_key = :hid
 
-        self.class.with_hid_pkey { yield }
+        self.class.with_hid_pkey(&block)
       ensure
         @primary_key = old_primary_key
       end
