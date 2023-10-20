@@ -55,7 +55,7 @@ module ChronoModel
           chrono_tables_needing_upgrade.each do |table_name, desc|
             if desc[:version].blank?
               logger.info "ChronoModel: Upgrading legacy PG 9.0 table #{table_name} to #{VERSION}"
-              chrono_upgrade_from_postgres_9_0(table_name)
+              chrono_upgrade_from_postgres_v90(table_name)
               logger.info "ChronoModel: legacy #{table_name} upgrade complete"
             else
               logger.info "ChronoModel: upgrading #{table_name} from #{desc[:version]} to #{VERSION}"
@@ -73,7 +73,7 @@ module ChronoModel
         warn message
       end
 
-      def chrono_upgrade_from_postgres_9_0(table_name)
+      def chrono_upgrade_from_postgres_v90(table_name)
         # roses are red
         # violets are blue
         # and this is the most boring piece of code ever
