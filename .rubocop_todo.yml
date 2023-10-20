@@ -73,13 +73,6 @@ Style/CommentedKeyword:
 Style/Documentation:
   Enabled: false
 
-# This cop supports unsafe autocorrection (--autocorrect-all).
-# Configuration parameters: EnforcedStyle, Autocorrect.
-# SupportedStyles: module_function, extend_self, forbidden
-Style/ModuleFunction:
-  Exclude:
-    - 'lib/chrono_model/conversions.rb'
-
 # This cop supports safe autocorrection (--autocorrect).
 Style/MultilineIfModifier:
   Exclude:
