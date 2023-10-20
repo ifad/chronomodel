@@ -2,7 +2,7 @@
 
 module ChronoModel
   module Conversions
-    extend self
+    module_function
 
     ISO_DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(?:\.(\d+))?\z/.freeze
 
