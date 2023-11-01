@@ -55,7 +55,7 @@ module ChronoModel
         parent = "#{TEMPORAL_SCHEMA}.#{table}"
         p_pkey = primary_key(parent)
 
-        execute <<-SQL
+        execute <<-SQL.squish
             CREATE TABLE #{table} (
               hid         BIGSERIAL PRIMARY KEY,
               validity    tsrange NOT NULL,
@@ -82,7 +82,7 @@ module ChronoModel
       # allow setting the PK to a specific value (think migration scenario).
       #
       def chrono_create_INSERT_trigger(table, pk, current, history, fields, values)
-        execute <<-SQL.strip_heredoc
+        execute <<-SQL.strip_heredoc # rubocop:disable Rails/SquishedSQLHeredocs
             CREATE OR REPLACE FUNCTION chronomodel_#{table}_insert() RETURNS TRIGGER AS $$
                 BEGIN
                     #{insert_sequence_sql(pk, current)} INTO #{current} ( #{pk}, #{fields} )
@@ -135,7 +135,7 @@ module ChronoModel
 
         journal &= columns
 
-        execute <<-SQL.strip_heredoc
+        execute <<-SQL.strip_heredoc # rubocop:disable Rails/SquishedSQLHeredocs
             CREATE OR REPLACE FUNCTION chronomodel_#{table}_update() RETURNS TRIGGER AS $$
                 DECLARE _now timestamp;
                 DECLARE _hid integer;
@@ -189,7 +189,7 @@ module ChronoModel
       # DELETEd in the same transaction.
       #
       def chrono_create_DELETE_trigger(table, pk, current, history)
-        execute <<-SQL.strip_heredoc
+        execute <<-SQL.strip_heredoc # rubocop:disable Rails/SquishedSQLHeredocs
             CREATE OR REPLACE FUNCTION chronomodel_#{table}_delete() RETURNS TRIGGER AS $$
                 DECLARE _now timestamp;
                 BEGIN
@@ -226,7 +226,7 @@ module ChronoModel
         seq = pk_and_sequence_for(current)
         return 'INSERT' if seq.blank?
 
-        <<-SQL.strip
+        <<-SQL.strip # rubocop:disable Rails/SquishedSQLHeredocs
                     IF NEW.#{pk} IS NULL THEN
                         NEW.#{pk} := nextval('#{seq.last}');
                     END IF;
