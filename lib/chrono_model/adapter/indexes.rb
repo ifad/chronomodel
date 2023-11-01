@@ -24,7 +24,7 @@ module ChronoModel
           temporal_index_names(table, range, options)
 
         chrono_alter_index(table, options) do
-          execute <<-SQL
+          execute <<-SQL.squish
             CREATE INDEX #{range_idx} ON #{table} USING gist ( #{range} )
           SQL
 
@@ -53,7 +53,7 @@ module ChronoModel
         id   = options[:id] || primary_key(table)
 
         chrono_alter_constraint(table, options) do
-          execute <<-SQL
+          execute <<-SQL.squish
             ALTER TABLE #{table} ADD CONSTRAINT #{name}
               EXCLUDE USING gist ( #{id} WITH =, #{range} WITH && )
           SQL
@@ -64,7 +64,7 @@ module ChronoModel
         name = timeline_consistency_constraint_name(table)
 
         chrono_alter_constraint(table, options) do
-          execute <<-SQL
+          execute <<-SQL.squish
             ALTER TABLE #{table} DROP CONSTRAINT #{name}
           SQL
         end

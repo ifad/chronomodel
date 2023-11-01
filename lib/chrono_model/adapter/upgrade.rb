@@ -81,7 +81,7 @@ module ChronoModel
         p_pkey = primary_key(table_name)
 
         execute "ALTER TABLE #{history_table} ADD COLUMN validity tsrange;"
-        execute <<-SQL
+        execute <<-SQL.squish
             UPDATE #{history_table} SET validity = tsrange(valid_from,
                 CASE WHEN extract(year from valid_to) = 9999 THEN NULL
                      ELSE valid_to
