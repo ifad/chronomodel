@@ -54,8 +54,6 @@ Naming/MethodParameterName:
 Rails/SquishedSQLHeredocs:
   Exclude:
     - 'lib/chrono_model/adapter/ddl.rb'
-    - 'lib/chrono_model/adapter/indexes.rb'
-    - 'lib/chrono_model/adapter/upgrade.rb'
 
 # This cop supports unsafe autocorrection (--autocorrect-all).
 Style/CommentedKeyword:
