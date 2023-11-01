@@ -113,7 +113,7 @@ module ChronoModel
       old_path = schema_search_path
 
       count_recursions do
-        if recurse == :follow or Thread.current['recursions'] == 1
+        if (recurse == :follow) || (Thread.current['recursions'] == 1)
           self.schema_search_path = schema
         end
 
