@@ -2,12 +2,16 @@
 
 require 'active_record'
 
+require 'chrono_model/chrono'
 require 'chrono_model/conversions'
 require 'chrono_model/patches'
 require 'chrono_model/adapter'
 require 'chrono_model/time_machine'
 require 'chrono_model/time_gate'
 require 'chrono_model/version'
+
+require 'chrono_model/railtie' if defined?(Rails::Railtie)
+require 'chrono_model/db_console' if defined?(Rails::DBConsole) && Rails.version < '7.1'
 
 module ChronoModel
   class Error < ActiveRecord::ActiveRecordError # :nodoc:
@@ -33,59 +37,30 @@ module ChronoModel
   end
 end
 
-if defined?(Rails::Railtie)
-  require 'chrono_model/railtie'
+ActiveSupport.on_load :active_record do
+  extend ChronoModel::Chrono
+
+  # Hooks into Association#scope to pass the As-Of time automatically
+  # to methods that load associated ChronoModel records.
+  ActiveRecord::Associations::Association.prepend ChronoModel::Patches::Association
+
+  # Hooks into Relation#build_arel to use `:joins` on your ChronoModels
+  # and join data from associated records As-Of time.
+  ActiveRecord::Relation.prepend ChronoModel::Patches::Relation
+
+  # Hooks in two points of the AR Preloader to preload As-Of time records of
+  # associated ChronoModels. is used by `.includes`, `.preload`, and `.eager_load`.
+  ActiveRecord::Associations::Preloader.prepend ChronoModel::Patches::Preloader
+
+  ActiveRecord::Associations::Preloader::Association.prepend ChronoModel::Patches::Preloader::Association
+
+  ActiveRecord::Associations::Preloader::ThroughAssociation.prepend ChronoModel::Patches::Preloader::ThroughAssociation
+
+  ActiveRecord::Batches::BatchEnumerator.prepend ChronoModel::Patches::Batches::BatchEnumerator
 end
 
-ActiveRecord::Base.instance_eval do
-  # Checks whether this Active Recoed model is backed by a temporal table
-  #
-  def chrono?
-    return false unless connection.respond_to? :is_chrono?
+ActiveSupport.on_load :after_initialize do
+  next if Rails.application.config.active_record.schema_format == :sql
 
-    connection.is_chrono?(table_name)
-  end
-end
-
-# Hooks into Association#scope to pass the As-Of time automatically
-# to methods that load associated ChronoModel records.
-#
-ActiveRecord::Associations::Association.instance_eval do
-  prepend ChronoModel::Patches::Association
-end
-
-# Hooks into Relation#build_arel to use :joins on your ChronoModels
-# and join data from associated records As-Of time.
-#
-ActiveRecord::Relation.instance_eval do
-  prepend ChronoModel::Patches::Relation
-end
-
-# Hooks in two points of the AR Preloader to preload As-Of time records of
-# associated ChronoModels. is used by .includes, .preload and .eager_load.
-#
-ActiveRecord::Associations::Preloader.instance_eval do
-  prepend ChronoModel::Patches::Preloader
-end
-
-ActiveRecord::Associations::Preloader::Association.instance_eval do
-  prepend ChronoModel::Patches::Preloader::Association
-end
-
-ActiveRecord::Associations::Preloader::ThroughAssociation.instance_eval do
-  prepend ChronoModel::Patches::Preloader::ThroughAssociation
-end
-
-ActiveRecord::Batches::BatchEnumerator.instance_eval do
-  prepend ChronoModel::Patches::Batches::BatchEnumerator
-end
-
-if defined?(Rails::DBConsole) && Rails.version < '7.1'
-  Rails::DBConsole.instance_eval do
-    if Rails.version < '6.1'
-      prepend ChronoModel::Patches::DBConsole::Config
-    else
-      prepend ChronoModel::Patches::DBConsole::DbConfig
-    end
-  end
+  raise 'In order to use ChronoModel, set `config.active_record.schema_format` to `:sql`'
 end

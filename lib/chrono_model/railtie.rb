@@ -6,14 +6,6 @@ module ChronoModel
   class Railtie < ::Rails::Railtie
     TASKS_CLASS = ActiveRecord::Tasks::ChronomodelDatabaseTasks
 
-    def task_config
-      if Rails.version < '6.1'
-        ActiveRecord::Tasks::DatabaseTasks.current_config.with_indifferent_access
-      else
-        ActiveRecord::Base.connection_db_config
-      end
-    end
-
     # Register our database tasks under our adapter name
     if Rails.version < '5.2'
       ActiveRecord::Tasks::DatabaseTasks.register_task(/chronomodel/, TASKS_CLASS)
@@ -22,8 +14,12 @@ module ChronoModel
     end
 
     rake_tasks do
-      if Rails.application.config.active_record.schema_format != :sql
-        raise 'In order to use ChronoModel, config.active_record.schema_format must be :sql!'
+      def task_config
+        if Rails.version < '6.1'
+          ActiveRecord::Tasks::DatabaseTasks.current_config.with_indifferent_access
+        else
+          ActiveRecord::Base.connection_db_config
+        end
       end
 
       if Rails.version < '6.1'
