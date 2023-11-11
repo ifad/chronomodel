@@ -27,8 +27,12 @@ module ChronoModel
 
       # If renaming a temporal table, rename the history and view as well.
       #
-      def rename_table(name, new_name)
-        return super unless is_chrono?(name)
+      def rename_table(name, new_name, **options)
+        unless is_chrono?(name)
+          return super(name, new_name) if method(:rename_table).super_method.arity == 2
+
+          return super
+        end
 
         clear_cache!
 
