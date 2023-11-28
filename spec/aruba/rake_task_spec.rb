@@ -13,7 +13,10 @@ RSpec.describe 'rake tasks', type: :aruba do
   describe 'bundle exec rake -T' do
     subject { last_command_started }
 
-    before { run_command_and_stop('bundle exec rake -T') }
+    before do
+      copy_db_config
+      run_command_and_stop('bundle exec rake -T')
+    end
 
     it { is_expected.to have_output(load_schema_task(as_regexp: true)) }
   end
