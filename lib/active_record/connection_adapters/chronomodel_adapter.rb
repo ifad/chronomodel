@@ -3,9 +3,10 @@
 require 'chrono_model'
 
 module ActiveRecord
+  # TODO: Remove when dropping Rails < 7.2 compatibility
   module ConnectionHandling
     def chronomodel_adapter_class
-      ConnectionAdapters::PostgreSQLAdapter
+      ChronoModel::Adapter
     end
 
     # Install the new adapter in ActiveRecord. This approach is required because
@@ -13,6 +14,8 @@ module ActiveRecord
     # super() in overridden Module methods.
     #
     def chronomodel_connection(config) # :nodoc:
+      return chronomodel_adapter_class.new(config) if ActiveRecord::VERSION::STRING >= '7.1'
+
       conn_params = config.symbolize_keys
 
       conn_params.delete_if { |_, v| v.nil? }
@@ -28,9 +31,6 @@ module ActiveRecord
       conn = PG.connect(conn_params) if ActiveRecord::VERSION::MAJOR >= 6
 
       adapter = ChronoModel::Adapter.new(conn, logger, conn_params, config)
-
-      # Rails 7.2.0, see ifad/chronomodel#236
-      adapter.connect! if adapter.respond_to?(:connect!)
 
       unless adapter.chrono_supported?
         raise ChronoModel::Error, 'Your database server is not supported by ChronoModel. ' \
