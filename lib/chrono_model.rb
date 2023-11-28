@@ -64,3 +64,7 @@ ActiveSupport.on_load :after_initialize do
 
   raise 'In order to use ChronoModel, set `config.active_record.schema_format` to `:sql`'
 end
+
+if ActiveRecord::ConnectionAdapters.respond_to?(:register)
+  ActiveRecord::ConnectionAdapters.register 'chronomodel', 'ChronoModel::Adapter', 'chrono_model/adapter'
+end

@@ -33,6 +33,21 @@ module ChronoModel
     # The schema holding historical data
     HISTORY_SCHEMA  = 'history'
 
+    if ActiveRecord::VERSION::STRING >= '7.1'
+      def initialize(*)
+        super
+
+        connect!
+
+        unless chrono_supported?
+          raise ChronoModel::Error, 'Your database server is not supported by ChronoModel. ' \
+                                    'Currently, only PostgreSQL >= 9.3 is supported.'
+        end
+
+        chrono_setup!
+      end
+    end
+
     # Returns true whether the connection adapter supports our
     # implementation of temporal tables. Currently, Chronomodel
     # is supported starting with PostgreSQL 9.3 (90300 in PostgreSQL's
