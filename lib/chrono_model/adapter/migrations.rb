@@ -80,7 +80,7 @@ module ChronoModel
             end
 
             drop_and_recreate_public_view(table_name, options) do
-              super table_name, **options, &block
+              super(table_name, **options, &block)
             end
 
           else
@@ -88,7 +88,7 @@ module ChronoModel
               chrono_undo_temporal_table(table_name)
             end
 
-            super table_name, **options, &block
+            super(table_name, **options, &block)
           end
         end
       end

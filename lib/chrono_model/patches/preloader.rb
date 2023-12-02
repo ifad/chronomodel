@@ -45,7 +45,7 @@ module ChronoModel
       # so we use it directly.
       #
       def preload(records, associations, given_preload_scope = nil)
-        super records, associations, chronomodel_scope(given_preload_scope)
+        super(records, associations, chronomodel_scope(given_preload_scope))
       end
 
       private
