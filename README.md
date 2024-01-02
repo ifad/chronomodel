@@ -342,7 +342,7 @@ ChronoModel::Json.create
 ## Caveats
 
  * Rails 4+ support requires disabling tsrange parsing support, as it
-   [is broken][r4-tsrange-broken] and  [incomplete][r4-tsrange-incomplete]
+   [is broken][r4-tsrange-broken] and [incomplete][r4-tsrange-incomplete]
    as of now, mainly due to a [design clash with ruby][pg-tsrange-and-ruby].
 
  * The triggers and temporal indexes cannot be saved in schema.rb. The AR
@@ -353,13 +353,23 @@ ChronoModel::Json.create
    `db:structure:load`.
    Two helper tasks are also added, `db:data:dump` and `db:data:load`.
 
- * The choice of using subqueries instead of [Common Table Expressions]
-   [pg-ctes] was dictated by the fact that CTEs [currently act as an
-   optimization fence][pg-cte-optimization-fence].
+ * The choice of using subqueries instead of [Common Table Expressions][pg-ctes]
+   was dictated by the fact that CTEs [currently act as an optimization
+   fence][pg-cte-optimization-fence].
    If it will be possible [to opt-out of the fence][pg-cte-opt-out-fence]
    in the future, they will be probably be used again as they were [in the
    past][cm-cte-impl], because the resulting queries were more readable,
    and do not inhibit using `.from()` on the `AR::Relation`.
+
+ * Foreign keys are not supported. [See issue #174][gh-issue-174]
+
+ * There may be unexpected results when combining eager loading and joins.
+  [See issue #186][gh-issue-186]
+
+ * Global ID ignores historical objects. [See issue #192][gh-issue-192]
+
+ * Different historical objects are considered the identical. [See issue
+   #206][gh-issue-206]
 
 
 ## Contributing
@@ -386,8 +396,8 @@ This software is Made in Italy :it: :smile:.
 
 [build-status]: https://github.com/ifad/chronomodel/actions
 [build-status-badge]: https://github.com/ifad/chronomodel/actions/workflows/ruby.yml/badge.svg
-[code-analysis]: https://codeclimate.com/github/ifad/chronomodel
-[code-analysis-badge]: https://codeclimate.com/github/ifad/chronomodel.svg
+[code-analysis]: https://codeclimate.com/github/ifad/chronomodel/maintainability
+[code-analysis-badge]: https://api.codeclimate.com/v1/badges/cdee7327938dc2eaff99/maintainability
 [docs-analysis]: https://inch-ci.org/github/ifad/chronomodel
 [docs-analysis-badge]: https://inch-ci.org/github/ifad/chronomodel.svg?branch=master
 [gem-version]: https://rubygems.org/gems/chrono_model
@@ -429,3 +439,7 @@ This software is Made in Italy :it: :smile:.
 [cm-cte-impl]: https://github.com/ifad/chronomodel/commit/18f4c4b
 
 [gh-pzac]: https://github.com/pzac
+[gh-issue-174]: https://github.com/ifad/chronomodel/issues/174
+[gh-issue-186]: https://github.com/ifad/chronomodel/issues/186
+[gh-issue-192]: https://github.com/ifad/chronomodel/issues/192
+[gh-issue-206]: https://github.com/ifad/chronomodel/issues/206
