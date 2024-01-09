@@ -33,7 +33,7 @@ module ChronoModel
   # Computed upon inclusion of the +TimeMachine+ module.
   #
   def self.history_models
-    @_history_models ||= {}
+    @history_models ||= {}
   end
 end
 

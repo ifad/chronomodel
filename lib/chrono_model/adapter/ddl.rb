@@ -82,7 +82,7 @@ module ChronoModel
       # allow setting the PK to a specific value (think migration scenario).
       #
       def chrono_create_INSERT_trigger(table, pk, current, history, fields, values)
-        execute <<-SQL.strip_heredoc # rubocop:disable Rails/SquishedSQLHeredocs
+        execute <<-SQL.strip_heredoc # rubocop:disable Rails/SquishedSQLHeredocs,Rails/StripHeredoc
             CREATE OR REPLACE FUNCTION chronomodel_#{table}_insert() RETURNS TRIGGER AS $$
                 BEGIN
                     #{insert_sequence_sql(pk, current)} INTO #{current} ( #{pk}, #{fields} )
@@ -135,7 +135,7 @@ module ChronoModel
 
         journal &= columns
 
-        execute <<-SQL.strip_heredoc # rubocop:disable Rails/SquishedSQLHeredocs
+        execute <<-SQL.strip_heredoc # rubocop:disable Rails/SquishedSQLHeredocs,Rails/StripHeredoc
             CREATE OR REPLACE FUNCTION chronomodel_#{table}_update() RETURNS TRIGGER AS $$
                 DECLARE _now timestamp;
                 DECLARE _hid integer;
@@ -189,7 +189,7 @@ module ChronoModel
       # DELETEd in the same transaction.
       #
       def chrono_create_DELETE_trigger(table, pk, current, history)
-        execute <<-SQL.strip_heredoc # rubocop:disable Rails/SquishedSQLHeredocs
+        execute <<-SQL.strip_heredoc # rubocop:disable Rails/SquishedSQLHeredocs,Rails/StripHeredoc
             CREATE OR REPLACE FUNCTION chronomodel_#{table}_delete() RETURNS TRIGGER AS $$
                 DECLARE _now timestamp;
                 BEGIN

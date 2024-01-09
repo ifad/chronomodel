@@ -52,9 +52,9 @@ module ChronoTest
 
         def message_matches(message)
           (message << ' ').tap do |m|
-            m << @matches.map do |(name, type), match|
+            m << @matches.filter_map do |(name, type), match|
               "a #{name}(#{type}) column" unless match
-            end.compact.to_sentence
+            end.to_sentence
           end
         end
       end

@@ -22,37 +22,28 @@ module ChronoModel
       ChronoModel.history_models[table_name] = history
 
       class << self
-        if Rails.version >= '7.0'
-          def subclasses(with_history: false)
-            subclasses = super()
-            subclasses.reject!(&:history?) unless with_history
-            subclasses
-          end
+        def subclasses(with_history: false)
+          subclasses = super()
+          subclasses.reject!(&:history?) unless with_history
+          subclasses
+        end
 
-          def subclasses_with_history
-            subclasses(with_history: true)
-          end
+        def subclasses_with_history
+          subclasses(with_history: true)
+        end
 
-          # `direct_descendants` is deprecated method in 7.0 and has been
-          # removed in 7.1
-          if method_defined?(:direct_descendants)
-            alias_method :direct_descendants_with_history, :subclasses_with_history
-            alias_method :direct_descendants, :subclasses
-          end
+        # `direct_descendants` is deprecated method in 7.0 and has been
+        # removed in 7.1
+        if method_defined?(:direct_descendants)
+          alias_method :direct_descendants_with_history, :subclasses_with_history
+          alias_method :direct_descendants, :subclasses
+        end
 
-          # Ruby 3.1 has a native subclasses method and descendants is
-          # implemented with recursion of subclasses
-          if Class.method_defined?(:subclasses)
-            def descendants_with_history
-              subclasses_with_history.concat(subclasses.flat_map(&:descendants_with_history))
-            end
-          end
-        else
-          alias_method :descendants_with_history, :descendants
-
-          alias_method :direct_descendants_with_history, :direct_descendants
-          def direct_descendants
-            direct_descendants_with_history.reject(&:history?)
+        # Ruby 3.1 has a native subclasses method and descendants is
+        # implemented with recursion of subclasses
+        if Class.method_defined?(:subclasses)
+          def descendants_with_history
+            subclasses_with_history.concat(subclasses.flat_map(&:descendants_with_history))
           end
         end
 

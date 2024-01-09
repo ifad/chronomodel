@@ -4,7 +4,7 @@ module ChronoModel
   module Conversions
     module_function
 
-    ISO_DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(?:\.(\d+))?\z/.freeze
+    ISO_DATETIME = /\A(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)(?:\.(\d+))?\z/
 
     # rubocop:disable Style/PerlBackrefs
     def string_to_utc_time(string)
@@ -20,7 +20,7 @@ module ChronoModel
     # rubocop:enable Style/PerlBackrefs
 
     def time_to_utc_string(time)
-      time.to_formatted_s(:db) << '.' << format('%06d', time.usec)
+      time.to_fs(:db) << '.' << format('%06d', time.usec)
     end
   end
 end

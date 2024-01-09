@@ -8,12 +8,7 @@ require 'rails'
 module ChronoTest
   module Aruba
     def load_schema_task(as_regexp: false)
-      str =
-        if Rails.version < '7.0'
-          'db:structure:load'
-        else
-          'db:schema:load'
-        end
+      str = 'db:schema:load'
       as_regexp ? Regexp.new(str) : str
     end
 
@@ -22,12 +17,7 @@ module ChronoTest
     end
 
     def dump_schema_task(as_regexp: false)
-      str =
-        if Rails.version < '7.0'
-          'db:structure:dump'
-        else
-          'db:schema:dump'
-        end
+      str = 'db:schema:dump'
       as_regexp ? Regexp.new(str) : str
     end
 

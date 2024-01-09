@@ -42,12 +42,7 @@ module ChronoTest
         end
 
         def self.pk_type
-          @pk_type ||=
-            if ActiveRecord::VERSION::STRING.to_f >= 5.1
-              'bigint'
-            else
-              'integer'
-            end
+          @pk_type ||= 'bigint'
         end
         delegate :columns, :table, :pk_type, to: self
       end
