@@ -1,7 +1,6 @@
 # Temporal database system on PostgreSQL using [updatable views][pg-updatable-views], [table inheritance][pg-table-inheritance] and [INSTEAD OF triggers][pg-instead-of-triggers].
 
 [![Build Status][build-status-badge]][build-status]
-[![Legacy Build Status][legacy-build-status-badge]][build-status]
 [![Code Climate][code-analysis-badge]][code-analysis]
 [![Test Coverage][test-coverage-badge]][test-coverage]
 [![Gem Version][gem-version-badge]][gem-version]
@@ -63,9 +62,9 @@ All timestamps are _forcibly_ stored in as UTC, bypassing the
 
 ## Requirements
 
-* Ruby >= 2.2.2
-* Active Record >= 5.0. See the [detailed supported versions matrix on Ruby GitHub Actions workflows](https://github.com/ifad/chronomodel/blob/master/.github/workflows)
-* PostgreSQL >= 9.4 (legacy support for 9.3)
+* Ruby >= 3.0
+* Active Record >= 7.0. See the [detailed supported versions matrix on Ruby GitHub Actions workflows](https://github.com/ifad/chronomodel/blob/master/.github/workflows)
+* PostgreSQL >= 9.4
 * The `btree_gist` PostgreSQL extension
 
 With Homebrew:
@@ -318,28 +317,16 @@ only against ActiveRecord by using
 
 Ensure to run the full test suite before pushing.
 
-## Usage with JSON (*not* JSONB) columns
-
-**DEPRECATED**: Please migrate to JSONB. It has an equality operator built-in,
-it's faster and stricter, and offers many more indexing abilities and better
-performance than JSON. It is going to be desupported soon because PostgreSQL 10
-does not support these anymore.
-
-The [JSON][pg-json-type] does not provide an [equality operator][pg-json-func].
-As both unnecessary update suppression and selective journaling require
-comparing the OLD and NEW rows fields, this fails by default.
-
-ChronoModel provides a naive and heavyweight JSON equality operator using
-[pl/python][pg-json-opclass] and associated Postgres objects.
-
-To set up you can use
-
-```ruby
-require 'chrono_model/json'
-ChronoModel::Json.create
-```
-
 ## Caveats
+
+ * Considering the nature of modern applications, it's crucial to understand
+   that the database time does not necessarily align with the application time
+   due to the delay introduced by communication between the application and
+   the database server. Consequently, there is no assurance that the application 
+   time will always be less than the database time. Therefore, relying solely
+   on `created_at` and `updated_at` fields as timestamps to determine the state
+   of an object at a specific point in time within the application could
+   lead to inaccuracies.
 
  * Rails 4+ support requires disabling tsrange parsing support, as it
    [is broken][r4-tsrange-broken] and [incomplete][r4-tsrange-incomplete]
@@ -402,7 +389,6 @@ This software is Made in Italy :it: :smile:.
 [docs-analysis-badge]: https://inch-ci.org/github/ifad/chronomodel.svg?branch=master
 [gem-version]: https://rubygems.org/gems/chrono_model
 [gem-version-badge]: https://badge.fury.io/rb/chrono_model.svg
-[legacy-build-status-badge]: https://github.com/ifad/chronomodel/actions/workflows/legacy_ruby.yml/badge.svg
 [test-coverage]: https://codeclimate.com/github/ifad/chronomodel
 [test-coverage-badge]: https://codeclimate.com/github/ifad/chronomodel/badges/coverage.svg
 

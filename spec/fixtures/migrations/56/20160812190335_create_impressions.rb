@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class CreateImpressions < ActiveRecord::Migration[5.0]
+class CreateImpressions < ActiveRecord::Migration[7.0]
   def change
     create_table :impressions do |t|
       t.integer :response

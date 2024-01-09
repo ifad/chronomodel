@@ -49,9 +49,9 @@ module ChronoTest
 
         def message_matches(message)
           (message << ' ').tap do |m|
-            m << @matches.map do |name, _match|
+            m << @matches.filter_map do |name, _match|
               "a #{name} function"
-            end.compact.to_sentence
+            end.to_sentence
           end
         end
       end

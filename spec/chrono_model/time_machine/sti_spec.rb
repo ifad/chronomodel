@@ -59,18 +59,16 @@ RSpec.describe ChronoModel::TimeMachine do
       end
     end
 
-    if Rails.version >= '7.0'
-      describe '.subclasses' do
-        subject { Element.subclasses.map(&:name) }
+    describe '.subclasses' do
+      subject { Element.subclasses.map(&:name) }
 
-        it { is_expected.to match_array %w[Publication] }
-      end
+      it { is_expected.to match_array %w[Publication] }
+    end
 
-      describe '.subclasses_with_history' do
-        subject { Element.subclasses_with_history.map(&:name) }
+    describe '.subclasses_with_history' do
+      subject { Element.subclasses_with_history.map(&:name) }
 
-        it { is_expected.to match_array %w[Element::History Publication] }
-      end
+      it { is_expected.to match_array %w[Element::History Publication] }
     end
 
     describe 'timeline' do

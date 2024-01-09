@@ -16,9 +16,7 @@ module ActiveRecord
     def chronomodel_connection(config) # :nodoc:
       return chronomodel_adapter_class.new(config) if ActiveRecord::VERSION::STRING >= '7.1'
 
-      conn_params = config.symbolize_keys
-
-      conn_params.delete_if { |_, v| v.nil? }
+      conn_params = config.symbolize_keys.compact
 
       # Map ActiveRecords param names to PGs.
       conn_params[:user] = conn_params.delete(:username) if conn_params[:username]
@@ -28,7 +26,7 @@ module ActiveRecord
       valid_conn_param_keys = PG::Connection.conndefaults_hash.keys + [:requiressl]
       conn_params.slice!(*valid_conn_param_keys)
 
-      conn = PG.connect(conn_params) if ActiveRecord::VERSION::MAJOR >= 6
+      conn = PG.connect(conn_params)
 
       adapter = ChronoModel::Adapter.new(conn, logger, conn_params, config)
 
@@ -40,10 +38,6 @@ module ActiveRecord
       adapter.chrono_setup!
 
       adapter
-    rescue ::PG::Error => e
-      raise ActiveRecord::NoDatabaseError if e.message.include?(conn_params[:dbname])
-
-      raise
     end
   end
 end

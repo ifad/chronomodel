@@ -3,12 +3,7 @@
 require 'active_record/connection_adapters/postgresql_adapter'
 
 require 'chrono_model/adapter/migrations'
-
-if ActiveRecord::VERSION::STRING >= '6.1'
-  require 'chrono_model/adapter/migrations_modules/stable'
-else
-  require 'chrono_model/adapter/migrations_modules/legacy'
-end
+require 'chrono_model/adapter/migrations_modules/stable'
 
 require 'chrono_model/adapter/ddl'
 require 'chrono_model/adapter/indexes'
