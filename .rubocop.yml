@@ -75,6 +75,9 @@ RSpec/NestedGroups:
 RSpec/SpecFilePathFormat:
   Enabled: false
 
+Style/ArgumentsForwarding:
+  Enabled: false
+
 Style/GlobalVars:
   Exclude:
     - 'spec/**/*'
