@@ -322,7 +322,7 @@ Ensure to run the full test suite before pushing.
  * Considering the nature of modern applications, it's crucial to understand
    that the database time does not necessarily align with the application time
    due to the delay introduced by communication between the application and
-   the database server. Consequently, there is no assurance that the application 
+   the database server. Consequently, there is no assurance that the application
    time will always be less than the database time. Therefore, relying solely
    on `created_at` and `updated_at` fields as timestamps to determine the state
    of an object at a specific point in time within the application could
@@ -358,6 +358,9 @@ Ensure to run the full test suite before pushing.
  * Different historical objects are considered the identical. [See issue
    #206][gh-issue-206]
 
+ * Use with caution when implementing inline editing features, as Chronomodel
+   creates a new record for each modification. This will lead to increased
+   storage requirements and bloated history
 
 ## Contributing
 
