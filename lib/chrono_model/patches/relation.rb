@@ -5,17 +5,15 @@ module ChronoModel
     module Relation
       include ChronoModel::Patches::AsOfTimeHolder
 
-      if ActiveRecord::Associations::Preloader.instance_methods.include?(:call)
-        def preload_associations(records) # :nodoc:
-          preload = preload_values
-          preload += includes_values unless eager_loading?
-          scope = StrictLoadingScope if strict_loading_value
+      def preload_associations(records) # :nodoc:
+        preload = preload_values
+        preload += includes_values unless eager_loading?
+        scope = StrictLoadingScope if strict_loading_value
 
-          preload.each do |associations|
-            ActiveRecord::Associations::Preloader.new(
-              records: records, associations: associations, scope: scope, model: model, as_of_time: as_of_time
-            ).call
-          end
+        preload.each do |associations|
+          ActiveRecord::Associations::Preloader.new(
+            records: records, associations: associations, scope: scope, model: model, as_of_time: as_of_time
+          ).call
         end
       end
 
