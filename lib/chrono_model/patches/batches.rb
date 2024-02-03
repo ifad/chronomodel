@@ -3,14 +3,10 @@
 module ChronoModel
   module Patches
     module Batches
-      module BatchEnumerator
-        def each(&block)
-          if @relation.try(:history?)
-            @relation.with_hid_pkey { super }
-          else
-            super
-          end
-        end
+      def in_batches(**)
+        return super unless try(:history?)
+
+        with_hid_pkey { super }
       end
     end
   end

@@ -6,6 +6,10 @@ require 'support/time_machine/structure'
 RSpec.describe ChronoModel::TimeMachine do
   include ChronoTest::TimeMachine::Helpers
 
+  describe '.find_each' do
+    it { expect(Foo.history.find_each(batch_size: 2).count).to eq Foo.history.count }
+  end
+
   describe '.in_batches' do
     let(:foo_in_batches_of_two) do
       [
