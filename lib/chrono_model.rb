@@ -56,7 +56,7 @@ ActiveSupport.on_load :active_record do
 
   ActiveRecord::Associations::Preloader::ThroughAssociation.prepend ChronoModel::Patches::Preloader::ThroughAssociation
 
-  ActiveRecord::Batches::BatchEnumerator.prepend ChronoModel::Patches::Batches::BatchEnumerator
+  ActiveRecord::Batches.prepend ChronoModel::Patches::Batches
 end
 
 ActiveSupport.on_load :after_initialize do
