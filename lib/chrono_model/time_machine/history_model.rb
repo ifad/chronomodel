@@ -209,12 +209,21 @@ module ChronoModel
         current_version
       end
 
+      # Return `nil` instead of -Infinity/Infinity to preserve current
+      # Chronomodel behaviour and avoid failures with Rails 7.0 and
+      # unbounded time ranges
+      #
+      # Check if `begin` and `end` are `Time` because validity is a `tsrange`
+      # column, so it is either `Time`, `nil`, and in some cases Infinity.
+      #
+      # Ref: rails/rails#45099
+      # TODO: consider removing when Rails 7.0 support will be dropped
       def valid_from
-        validity.first
+        validity.begin if validity.begin.is_a?(Time)
       end
 
       def valid_to
-        validity.last
+        validity.end if validity.end.is_a?(Time)
       end
       alias as_of_time valid_to
 

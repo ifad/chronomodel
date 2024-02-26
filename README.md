@@ -328,10 +328,6 @@ Ensure to run the full test suite before pushing.
    of an object at a specific point in time within the application could
    lead to inaccuracies.
 
- * Rails 4+ support requires disabling tsrange parsing support, as it
-   [is broken][r4-tsrange-broken] and [incomplete][r4-tsrange-incomplete]
-   as of now, mainly due to a [design clash with ruby][pg-tsrange-and-ruby].
-
  * The triggers and temporal indexes cannot be saved in schema.rb. The AR
    schema dumper is quite basic, and it isn't (currently) extensible.
    As we're using many database-specific features, Chronomodel forces the
@@ -412,16 +408,12 @@ This software is Made in Italy :it: :smile:.
 [pg-exclusion-constraints]: https://www.postgresql.org/docs/9.4/sql-createtable.html#SQL-CREATETABLE-EXCLUDE
 [pg-btree-gist]: https://www.postgresql.org/docs/9.4/btree-gist.html
 [pg-comment]: https://www.postgresql.org/docs/9.4/sql-comment.html
-[pg-tsrange-and-ruby]: https://bugs.ruby-lang.org/issues/6864
 [pg-ctes]: https://www.postgresql.org/docs/9.4/queries-with.html
 [pg-cte-optimization-fence]: https://www.postgresql.org/message-id/201209191305.44674.db@kavod.com
 [pg-cte-opt-out-fence]: https://www.postgresql.org/message-id/CAHyXU0zpM5+Dsb_pKxDmm-ZoWUAt=SkHHaiK_DBqcmtxTas6Nw@mail.gmail.com
 [pg-json-type]: https://www.postgresql.org/docs/9.4/datatype-json.html
 [pg-json-func]: https://www.postgresql.org/docs/9.4/functions-json.html
 [pg-json-opclass]: https://github.com/ifad/chronomodel/blob/master/sql/json_ops.sql
-
-[r4-tsrange-broken]: https://github.com/rails/rails/pull/13793#issuecomment-34608093
-[r4-tsrange-incomplete]: https://github.com/rails/rails/issues/14010
 
 [cm-readme-sql]: https://github.com/ifad/chronomodel/blob/master/README.sql
 [cm-timemachine]: https://github.com/ifad/chronomodel/blob/master/lib/chrono_model/time_machine.rb
