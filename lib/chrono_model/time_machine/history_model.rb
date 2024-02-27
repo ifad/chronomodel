@@ -222,10 +222,6 @@ module ChronoModel
       end
       alias as_of_time valid_to
 
-      def recorded_at
-        ChronoModel::Conversions.string_to_utc_time attributes_before_type_cast['recorded_at']
-      end
-
       # Starting from Rails 6.0, `.read_attribute` will use the memoized
       # `primary_key` if it detects that the attribute name is `id`.
       #
