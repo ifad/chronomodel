@@ -8,7 +8,7 @@
 
 # Configuration parameters: AllowedMethods, AllowedPatterns, CountRepeatedAttributes.
 Metrics/AbcSize:
-  Max: 73
+  Max: 71
 
 # Configuration parameters: CountComments, CountAsOne, AllowedMethods, AllowedPatterns, inherit_mode.
 # AllowedMethods: refine
@@ -17,11 +17,11 @@ Metrics/BlockLength:
 
 # Configuration parameters: AllowedMethods, AllowedPatterns.
 Metrics/CyclomaticComplexity:
-  Max: 21
+  Max: 20
 
 # Configuration parameters: CountComments, CountAsOne, AllowedMethods, AllowedPatterns.
 Metrics/MethodLength:
-  Max: 62
+  Max: 60
 
 # Configuration parameters: CountComments, CountAsOne.
 Metrics/ModuleLength:
@@ -33,7 +33,7 @@ Metrics/ParameterLists:
 
 # Configuration parameters: AllowedMethods, AllowedPatterns.
 Metrics/PerceivedComplexity:
-  Max: 26
+  Max: 25
 
 # Configuration parameters: MinNameLength, AllowNamesEndingInNumbers, AllowedNames, ForbiddenNames.
 # AllowedNames: as, at, by, cc, db, id, if, in, io, ip, of, on, os, pp, to
