@@ -67,24 +67,19 @@ All timestamps are _forcibly_ stored in as UTC, bypassing the
 * PostgreSQL >= 9.4
 * The `btree_gist` PostgreSQL extension
 
-With Homebrew:
-
-    brew install postgres
-
-With apt:
-
-    apt-get install postgresql-11
-
 ## Installation
 
 Add this line to your application's Gemfile:
 
-    gem 'chrono_model'
+```ruby
+gem 'chrono_model'
+```
 
 And then execute:
 
-    $ bundle
-
+```sh
+$ bundle
+```
 
 ## Configuration
 
@@ -99,7 +94,7 @@ development:
 Configure Active Record in your `config/application.rb` to use the `:sql` schema
 format:
 
-```rb
+```ruby
 config.active_record.schema_format = :sql
 ```
 
@@ -192,10 +187,12 @@ occur (see https://github.com/ifad/chronomodel/issues/71).
 In such cases, ensure to add `no_journal: %w( your_counter_cache_column_name )`
 to your `create_table`. Example:
 
-    create_table 'sections', temporal: true, no_journal: %w( articles_count ) do |t|
-      t.string :name
-      t.integer :articles_count, default: 0
-    end
+```ruby
+create_table 'sections', temporal: true, no_journal: %w[articles_count] do |t|
+  t.string :name
+  t.integer :articles_count, default: 0
+end
+```
 
 ## Data querying
 
@@ -304,7 +301,9 @@ You need to connect as  a database superuser, because specs need to create the
 
 To run the full test suite, use
 
-    rake
+```sh
+$ rake
+```
 
 SQL queries are logged to `spec/debug.log`. If you want to see them in your
 output, set the `VERBOSE=true` environment variable.
@@ -313,7 +312,9 @@ Some tests check the nominal execution of rake tasks within a test Rails app,
 and those are quite time consuming. You can run the full ChronoModel tests
 only against ActiveRecord by using
 
-    rspec spec/chrono_model
+```sh
+$ rspec spec/chrono_model
+```
 
 Ensure to run the full test suite before pushing.
 
@@ -347,7 +348,7 @@ Ensure to run the full test suite before pushing.
  * Foreign keys are not supported. [See issue #174][gh-issue-174]
 
  * There may be unexpected results when combining eager loading and joins.
-  [See issue #186][gh-issue-186]
+   [See issue #186][gh-issue-186]
 
  * Global ID ignores historical objects. [See issue #192][gh-issue-192]
 
