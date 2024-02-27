@@ -7,7 +7,6 @@ require 'chrono_model/adapter/migrations_modules/stable'
 
 require 'chrono_model/adapter/ddl'
 require 'chrono_model/adapter/indexes'
-require 'chrono_model/adapter/tsrange'
 require 'chrono_model/adapter/upgrade'
 
 module ChronoModel
@@ -19,7 +18,6 @@ module ChronoModel
     include ChronoModel::Adapter::Migrations
     include ChronoModel::Adapter::DDL
     include ChronoModel::Adapter::Indexes
-    include ChronoModel::Adapter::TSRange
     include ChronoModel::Adapter::Upgrade
 
     # The schema holding current data
