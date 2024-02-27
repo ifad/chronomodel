@@ -204,11 +204,6 @@ module ChronoModel
         self.class.superclass.find(rid)
       end
 
-      def record # :nodoc:
-        ActiveSupport::Deprecation.warn '.record is deprecated in favour of .current_version'
-        current_version
-      end
-
       # Return `nil` instead of -Infinity/Infinity to preserve current
       # Chronomodel behaviour and avoid failures with Rails 7.0 and
       # unbounded time ranges
