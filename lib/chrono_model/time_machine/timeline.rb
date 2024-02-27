@@ -81,9 +81,7 @@ module ChronoModel
         sql << " LIMIT #{options[:limit].to_i}" if options.key?(:limit)
 
         connection.on_schema(Adapter::HISTORY_SCHEMA) do
-          connection.select_values(sql, "#{name} periods").map! do |ts|
-            Conversions.string_to_utc_time ts
-          end
+          connection.select_values(sql, "#{name} periods")
         end
       end
 
