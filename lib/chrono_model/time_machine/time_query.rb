@@ -46,7 +46,8 @@ module ChronoModel
       end
 
       def time_for_time_query(t, column)
-        if t == :now || t == :today
+        case t
+        when :now, :today
           now_for_column(column)
         else
           quoted_t = connection.quote(connection.quoted_date(t))
