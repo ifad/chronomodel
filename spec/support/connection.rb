@@ -5,6 +5,7 @@ require 'active_record'
 
 module ChronoTest
   AR = ActiveRecord::Base
+  AR.automatically_invert_plural_associations = true if AR.respond_to?(:automatically_invert_plural_associations)
   log = ENV['VERBOSE'].present? ? $stderr : 'spec/debug.log'.tap { |f| File.open(f, 'ab') { |ft| ft.truncate(0) } }
   AR.logger = ::Logger.new(log).tap do |l|
     l.level = 0
