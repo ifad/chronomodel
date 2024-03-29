@@ -5,7 +5,7 @@ require 'bundler/gem_tasks'
 # RSpec
 require 'rspec/core/rake_task'
 RSpec::Core::RakeTask.new do |spec|
-  spec.rspec_opts = '-f doc'
+  spec.rspec_opts = '-f progress' if ENV['CI']
 end
 task default: ['testapp:create', :spec]
 
@@ -16,6 +16,7 @@ namespace :testapp do
   desc 'Create a dummy rails application for testing in /tmp'
   task :create do
     options = %w[
+      -q
       --skip-action-cable
       --skip-action-mailer
       --skip-action-text
