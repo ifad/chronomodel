@@ -5,7 +5,7 @@ require 'chrono_model'
 require 'rails'
 
 ActiveRecord::Base.establish_connection(adapter: 'chronomodel', database: 'chronomodel_bench')
-ActiveRecord::Base.logger = nil
+ActiveRecord::Base.logger = Logger.new(nil)
 ActiveRecord::Migration.verbose = false
 
 ActiveRecord::Schema.define do
