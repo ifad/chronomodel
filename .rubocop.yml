@@ -12,9 +12,13 @@ AllCops:
   TargetRailsVersion: 7.0
   TargetRubyVersion: 3.0
   Exclude:
-    - 'gemfiles/**/*'
-    - 'vendor/bundle/**/*'
-    - 'tmp/**/*'
+    - .git/**/*
+    - .github/**/*
+    - bin/**/*
+    - gemfiles/**/*
+    - node_modules/**/*
+    - tmp/**/*
+    - vendor/**/*
 
 Layout/LineLength:
   Enabled: false
