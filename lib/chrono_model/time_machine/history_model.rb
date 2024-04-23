@@ -107,7 +107,7 @@ module ChronoModel
         # name has the "::History" suffix but that is never going to be
         # present in the data.
         #
-        # As such it is overriden here to return the same contents that
+        # As such it is overridden here to return the same contents that
         # the parent would have returned.
         delegate :sti_name, to: :superclass
 
@@ -132,7 +132,7 @@ module ChronoModel
       end
 
       # The history id is `hid`, but this cannot set as primary key
-      # or temporal assocations will break. Solutions are welcome.
+      # or temporal associations will break. Solutions are welcome.
       def id
         hid
       end

@@ -102,7 +102,7 @@ module ChronoTest
         def failure_message
           "expected #{table} ".tap do |message|
             message << [
-              ("to exist in the #{history_schema} schema"    unless @existance),
+              ("to exist in the #{history_schema} schema"    unless @existence),
               ("to inherit from #{temporal_schema}.#{table}" unless @inheritance),
               ('to have a timeline consistency constraint'   unless @constraint),
               ('to have history indexes'                     unless @indexes)
@@ -113,7 +113,7 @@ module ChronoTest
         def failure_message_when_negated
           "expected #{table} ".tap do |message|
             message << [
-              ("to not exist in the #{history_schema} schema"    if @existance),
+              ("to not exist in the #{history_schema} schema"    if @existence),
               ("to not inherit from #{temporal_schema}.#{table}" if @inheritance),
               ('to not have a timeline consistency constraint'   if @constraint),
               ('to not have history indexes'                     if @indexes)
@@ -124,7 +124,7 @@ module ChronoTest
         private
 
         def table_exists?
-          @existance = relation_exists? in: history_schema
+          @existence = relation_exists? in: history_schema
         end
 
         def inherits_from_temporal?
@@ -214,7 +214,7 @@ module ChronoTest
         def failure_message
           "expected #{table} ".tap do |message|
             message << [
-              ("to exist in the #{public_schema} schema" unless @existance),
+              ("to exist in the #{public_schema} schema" unless @existence),
               ('to be an updatable view'                 unless @updatable),
               ('to have an INSERT trigger'               unless @insert_trigger),
               ('to have an UPDATE trigger'               unless @update_trigger),
@@ -226,7 +226,7 @@ module ChronoTest
         def failure_message_when_negated
           "expected #{table} ".tap do |message|
             message << [
-              ("to not exist in the #{public_schema} schema" if @existance),
+              ("to not exist in the #{public_schema} schema" if @existence),
               ('to not be an updatable view'                 if @updatable),
               ('to not have an INSERT trigger'               if @insert_trigger),
               ('to not have an UPDATE trigger'               if @update_trigger),
@@ -238,7 +238,7 @@ module ChronoTest
         private
 
         def view_exists?
-          @existance = relation_exists? in: public_schema, kind: :view
+          @existence = relation_exists? in: public_schema, kind: :view
         end
 
         def is_updatable?

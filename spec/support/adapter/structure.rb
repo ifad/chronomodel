@@ -6,8 +6,8 @@ require 'support/adapter/helpers'
 # adapter methods tests, that look up in the database directly whether the
 # expected objects have been created.
 #
-# The structure defintiion below serves as a blueprint of what it can be
-# defined, ans as a reference of what it is expected to have been created by
+# The structure definition below serves as a blueprint of what it can be
+# defined, and as a reference of what it is expected to have been created by
 # the +ChronoModel::Adapter+ methods.
 #
 module ChronoTest
