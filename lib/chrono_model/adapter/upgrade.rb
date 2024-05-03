@@ -42,7 +42,7 @@ module ChronoModel
         return if upgrade.empty?
 
         logger.warn 'ChronoModel: There are tables needing a structure upgrade, and ChronoModel structures need to be recreated.'
-        logger.warn 'ChronoModel: Please run ChronoModel.upgrade! to attempt the upgrade. If you have dependant database objects'
+        logger.warn 'ChronoModel: Please run ChronoModel.upgrade! to attempt the upgrade. If you have dependent database objects'
         logger.warn 'ChronoModel: the upgrade will fail and you have to drop the dependent objects, run .upgrade! and create them'
         logger.warn 'ChronoModel: again. Sorry. Some features or the whole library may not work correctly until upgrade is complete.'
         logger.warn "ChronoModel: Tables pending upgrade: #{upgrade}"

@@ -116,7 +116,7 @@ view and all the trigger machinery. Every other housekeeping of the temporal
 structure is handled behind the scenes by the other schema statements. E.g.:
 
  * `rename_table`  - renames tables, views, sequences, indexes and triggers
- * `drop_table`    - drops the temporal table and all dependant objects
+ * `drop_table`    - drops the temporal table and all dependent objects
  * `add_column`    - adds the column to the current table and updates triggers
  * `rename_column` - renames the current table column and updates the triggers
  * `remove_column` - removes the current table column and updates the triggers
@@ -279,12 +279,12 @@ cannot be deleted.
 
 ChronoModel currently performs upgrades by dropping and re-creating the views
 that give access to current data. If you have built other database objects on
-these views, the upgrade cannot be performed automatically as the dependant
+these views, the upgrade cannot be performed automatically as the dependent
 objects must be dropped first.
 
 When booting, ChronoModel will issue a warning in your logs about the need of
 a structure upgrade. Structure usually changes across versions. In this case,
-you need to set up a rake task that drops your dependant objects, runs
+you need to set up a rake task that drops your dependent objects, runs
 ChronoModel.upgrade! and then re-creates them.
 
 A migration system should be introduced, but it is seen as overkill for now,
