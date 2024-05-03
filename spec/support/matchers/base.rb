@@ -19,10 +19,13 @@ module ChronoTest
 
       protected
 
-      def lease_connection
+      def connection
         ChronoTest.connection
       end
-      alias connection lease_connection
+
+      def with_connection(&block)
+        ChronoTest.with_connection(&block)
+      end
 
       def temporal_schema
         ChronoModel::Adapter::TEMPORAL_SCHEMA

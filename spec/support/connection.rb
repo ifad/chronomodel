@@ -26,6 +26,10 @@ module ChronoTest
     AR.connection
   end
 
+  def with_connection(&block)
+    AR.with_connection(&block)
+  end
+
   def adapter
     @adapter ||= connection
   end
