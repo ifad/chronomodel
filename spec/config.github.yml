@@ -1,5 +1,5 @@
 host: localhost
-username: postgres
+username: runner
 password: ""
 database: chronomodel
 pool: 11

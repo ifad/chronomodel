@@ -14,43 +14,43 @@ jobs:
     name: Ruby specs
     runs-on: ubuntu-latest
 
-    services:
-      db:
-        image: postgres:12
-        ports: ['5432:5432']
-        env:
-          POSTGRES_HOST_AUTH_METHOD: trust
-
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     strategy:
       matrix:
         ruby-version: ['3.0', '3.1', '3.2', '3.3']
         gemfile: [rails_7.0, rails_7.1]
+        postgres-version: ['16']
         channel: ['stable']
 
         include:
+          # Test minimum required Ruby and Rails against PostgreSQL 12
+          - ruby-version: '3.0'
+            gemfile: rails_7.0
+            postgres-version: '12'
+            channel: 'stable'
+
           - ruby-version: '3.1'
             gemfile: rails_edge
+            postgres-version: '16'
             channel: 'experimental'
           - ruby-version: '3.2'
             gemfile: rails_edge
+            postgres-version: '16'
             channel: 'experimental'
           - ruby-version: '3.3'
             gemfile: rails_edge
+            postgres-version: '16'
             channel: 'experimental'
           - ruby-version: 'head'
             gemfile: rails_7.0
+            postgres-version: '16'
             channel: 'experimental'
           - ruby-version: 'head'
             gemfile: rails_7.1
+            postgres-version: '16'
             channel: 'experimental'
           - ruby-version: 'head'
             gemfile: rails_edge
+            postgres-version: '16'
             channel: 'experimental'
 
     env:
@@ -61,11 +61,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Set up Database
+    - uses: ankane/setup-postgres@v1
+      with:
+        postgres-version: ${{ matrix.postgres-version }}
+        database: chronomodel
+    - name: Create Rails app database # FIXME: refactor when ankane/setup-postgres#9 will be merged
       run: |
-        psql -c "CREATE ROLE runner SUPERUSER LOGIN CREATEDB;" -U postgres -h localhost
-        psql -c "CREATE DATABASE chronomodel;" -U postgres -h localhost
-        psql -c "CREATE DATABASE chronomodel_railsapp;" -U postgres -h localhost
+        createdb chronomodel_railsapp
     - name: Set up Ruby
       uses: ruby/setup-ruby@v1
       with:
