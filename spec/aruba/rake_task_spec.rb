@@ -77,6 +77,13 @@ RSpec.describe 'rake tasks', type: :aruba do
               contents.sub('username: postgres', "username: #{Etc.getlogin}")
             end
           end
+
+          # Hande GitHub Actions
+          if ENV['CI']
+            file_mangle!('config/database.yml') do |contents|
+              contents.sub('username: postgres', 'username: runner')
+            end
+          end
         end
 
         it { expect(last_command).to be_successfully_executed }
