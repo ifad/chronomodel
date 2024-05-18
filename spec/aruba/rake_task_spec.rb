@@ -78,7 +78,7 @@ RSpec.describe 'rake tasks', type: :aruba do
             end
           end
 
-          # Hande GitHub Actions
+          # Handle GitHub Actions
           if ENV['CI']
             file_mangle!('config/database.yml') do |contents|
               contents.sub('username: postgres', 'username: runner')
