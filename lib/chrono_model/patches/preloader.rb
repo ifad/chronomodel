@@ -84,7 +84,6 @@ module ChronoModel
         #
         def through_scope
           scope = super
-          return unless scope # Rails 5.2 may not return a scope
 
           if preload_scope.try(:as_of_time)
             scope = scope.as_of(preload_scope.as_of_time)
