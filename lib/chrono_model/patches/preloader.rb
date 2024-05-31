@@ -19,7 +19,7 @@ module ChronoModel
         if options.empty?
           super()
         else
-          super(**options)
+          super
         end
       end
 

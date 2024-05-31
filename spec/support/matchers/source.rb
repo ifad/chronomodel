@@ -14,7 +14,7 @@ module ChronoTest
         end
 
         def matches?(table)
-          super(table)
+          super
 
           source = select_value(<<-SQL.squish, [@function], "Get #{@function} source")
           SELECT prosrc FROM pg_catalog.pg_proc WHERE proname = ?
