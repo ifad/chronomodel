@@ -14,7 +14,7 @@ module ChronoTest
         end
 
         def matches?(table)
-          super(table)
+          super
 
           @matches = @columns.inject({}) do |h, (name, type)|
             h.update([name, type] => has_column?(name, type))

@@ -14,7 +14,7 @@ module ChronoTest
         end
 
         def matches?(table)
-          super(table)
+          super
 
           @matches = @functions.inject({}) do |h, name|
             h.update(name => has_function?(name))
@@ -73,7 +73,7 @@ module ChronoTest
         def matches?(table)
           @functions = @function_templates.map { |t| format(t, table) }
 
-          super(table)
+          super
         end
       end
 

@@ -32,7 +32,7 @@ module ChronoTest
       #
       class HavePublicBacking < Base
         def matches?(table)
-          super(table)
+          super
 
           relation_exists? in: public_schema
         end
@@ -59,7 +59,7 @@ module ChronoTest
       #
       class HaveTemporalBacking < Base
         def matches?(table)
-          super(table)
+          super
 
           relation_exists? in: temporal_schema
         end
@@ -87,7 +87,7 @@ module ChronoTest
       #
       class HaveHistoryBacking < Base
         def matches?(table)
-          super(table)
+          super
 
           table_exists? &&
             inherits_from_temporal? &&
@@ -202,7 +202,7 @@ module ChronoTest
       #
       class HavePublicInterface < Base
         def matches?(table)
-          super(table)
+          super
 
           view_exists? && [is_updatable?, has_triggers?].all?
         end

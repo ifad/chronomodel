@@ -17,7 +17,7 @@ module ChronoTest
         end
 
         def matches?(table)
-          super(table)
+          super
 
           select_values(<<-SQL.squish, [table, name, schema], 'Check index') == columns
           SELECT a.attname
