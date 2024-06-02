@@ -181,5 +181,11 @@ RSpec.describe ChronoModel::TimeMachine do
       it { expect($t.baz.as_of($t.bar.ts[2]).bar.foo.name).to eq 'new foo' }
       it { expect($t.baz.as_of($t.bar.ts[3]).bar.foo.name).to eq 'new foo' }
     end
+
+    describe '#load' do
+      it 'returns a relation' do
+        expect(Foo.as_of(Time.now).load).to be_an(ActiveRecord::Relation)
+      end
+    end
   end
 end

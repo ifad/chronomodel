@@ -23,10 +23,12 @@ module ChronoModel
         @values == klass.unscoped.as_of(as_of_time).values
       end
 
-      def load
-        return super unless @_as_of_time && !loaded?
+      def load(&block)
+        return super unless @_as_of_time && (!loaded? || scheduled?)
 
         super.each { |record| record.as_of_time!(@_as_of_time) }
+
+        self
       end
 
       def merge(*)
