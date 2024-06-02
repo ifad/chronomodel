@@ -23,31 +23,6 @@ module ChronoModel
         end
       end
 
-      # Patches the AR Preloader (lib/active_record/associations/preloader.rb)
-      # in order to carry around the +as_of_time+ of the original invocation.
-      #
-      # * The +records+ are the parent records where the association is defined
-      # * The +associations+ are the association names involved in preloading
-      # * The +given_preload_scope+ is the preloading scope, that is used only
-      #   in the :through association and it holds the intermediate records
-      #   _through_ which the final associated records are eventually fetched.
-      #
-      # As the +preload_scope+ is passed around to all the different
-      # incarnations of the preloader strategies, we are using it to pass
-      # around the +as_of_time+ of the original query invocation, so that
-      # preloaded records are preloaded honoring the +as_of_time+.
-      #
-      # The +preload_scope+ is present only in through associations, but the
-      # preloader interfaces expect it to be always defined, for consistency.
-      #
-      # For `:through` associations, the +given_preload_scope+ is already a
-      # +Relation+, that already has the +as_of_time+ getters and setters,
-      # so we use it directly.
-      #
-      def preload(records, associations, given_preload_scope = nil)
-        super(records, associations, chronomodel_scope(given_preload_scope))
-      end
-
       private
 
       def chronomodel_scope(given_preload_scope)
