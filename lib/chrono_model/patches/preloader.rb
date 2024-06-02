@@ -9,8 +9,8 @@ module ChronoModel
     module Preloader
       attr_reader :chronomodel_options
 
-      # We overwrite the initializer in order to pass the +as_of_time+
-      # parameter above in the build_preloader
+      # Overwrite the initializer to set Chronomodel +as_of_time+ and +model+
+      # options.
       #
       def initialize(**options)
         @chronomodel_options = options.extract!(:as_of_time, :model)
