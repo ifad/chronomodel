@@ -16,11 +16,7 @@ module ChronoModel
         @chronomodel_options = options.extract!(:as_of_time, :model)
         options[:scope] = chronomodel_scope(options[:scope]) if options.key?(:scope)
 
-        if options.empty?
-          super()
-        else
-          super
-        end
+        super
       end
 
       private
