@@ -2,7 +2,7 @@
 
 module ChronoModel
   module Patches
-    # This class supports the AR 5.0 code that expects to receive an
+    # This class supports the AR < 7.1 code that expects to receive an
     # Arel::Table as the left join node. We need to replace the node
     # with a virtual table that fetches from the history at a given
     # point in time, we replace the join node with a SqlLiteral node
@@ -12,6 +12,7 @@ module ChronoModel
     # it expects, yet producing SQL that fetches from history tables
     # as-of-time.
     #
+    # TODO: Remove when dropping Rails < 7.1 compatibility
     class JoinNode < Arel::Nodes::SqlLiteral
       attr_reader :name, :table_name, :table_alias, :as_of_time
 
