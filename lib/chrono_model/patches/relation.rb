@@ -70,15 +70,6 @@ module ChronoModel
         )
       end
 
-      # Build a preloader at the +as_of_time+ of this relation.
-      # Pass the current model to define Relation
-      #
-      def build_preloader
-        ActiveRecord::Associations::Preloader.new(
-          model: model, as_of_time: as_of_time
-        )
-      end
-
       def find_nth(*)
         return super unless try(:history?)
 
