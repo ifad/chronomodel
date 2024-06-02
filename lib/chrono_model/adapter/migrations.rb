@@ -252,8 +252,6 @@ module ChronoModel
         execute "ALTER SEQUENCE #{seq}  RENAME TO #{new_seq}"
         execute "ALTER TABLE    #{name} RENAME TO #{new_name}"
       end
-
-      # private
     end
   end
 end

@@ -112,7 +112,6 @@ module ChronoModel
         on_history_schema { add_history_validity_constraint(table_name, p_pkey) }
         on_history_schema { chrono_create_history_indexes_for(table_name, p_pkey) }
       end
-      # private
     end
   end
 end

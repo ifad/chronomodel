@@ -234,7 +234,6 @@ module ChronoModel
                     INSERT
         SQL
       end
-      # private
     end
   end
 end
