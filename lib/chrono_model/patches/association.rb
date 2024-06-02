@@ -11,10 +11,6 @@ module ChronoModel
     # on the join model's (:through association) one.
     #
     module Association
-      def skip_statement_cache?(*)
-        super || _chrono_target?
-      end
-
       # If the association class or the through association are ChronoModels,
       # then fetches the records from a virtual table using a subquery scope
       # to a specific timestamp.
@@ -35,6 +31,10 @@ module ChronoModel
       end
 
       private
+
+      def skip_statement_cache?(*)
+        super || _chrono_target?
+      end
 
       def _chrono_record?
         owner.class.include?(ChronoModel::Patches::AsOfTimeHolder) && owner.as_of_time.present?
