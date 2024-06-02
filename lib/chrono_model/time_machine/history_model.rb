@@ -11,7 +11,6 @@ module ChronoModel
         scope :chronological, -> { order(Arel.sql('lower(validity) ASC')) }
       end
 
-      # ACTIVE RECORD 7 does not call `class.find` but a new internal method called `_find_record`
       def _find_record(options)
         if options && options[:lock]
           self.class.preload(strict_loaded_associations).lock(options[:lock]).find_by!(hid: hid)
@@ -222,8 +221,8 @@ module ChronoModel
       end
       alias as_of_time valid_to
 
-      # Starting from Rails 6.0, `.read_attribute` will use the memoized
-      # `primary_key` if it detects that the attribute name is `id`.
+      # `.read_attribute` uses the memoized `primary_key` if it detects
+      # that the attribute name is `id`.
       #
       # Since the `primary key` may have been changed to `hid` because of
       # `.find` overload, the new behavior may break relations where `id` is
