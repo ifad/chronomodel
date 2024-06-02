@@ -33,6 +33,8 @@ module ChronoModel
       end
 
       module Association
+        private
+
         # Builds the preloader scope taking into account a potential
         # +as_of_time+ passed down the call chain starting at the
         # end user invocation.
@@ -49,6 +51,8 @@ module ChronoModel
       end
 
       module ThroughAssociation
+        private
+
         # Builds the preloader scope taking into account a potential
         # +as_of_time+ passed down the call chain starting at the
         # end user invocation.

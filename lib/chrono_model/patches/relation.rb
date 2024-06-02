@@ -37,6 +37,20 @@ module ChronoModel
         super.as_of_time!(@_as_of_time)
       end
 
+      def find_nth(*)
+        return super unless try(:history?)
+
+        with_hid_pkey { super }
+      end
+
+      def last(*)
+        return super unless try(:history?)
+
+        with_hid_pkey { super }
+      end
+
+      private
+
       def build_arel(*)
         return super unless @_as_of_time
 
@@ -69,20 +83,6 @@ module ChronoModel
           join.left, model.history, @_as_of_time
         )
       end
-
-      def find_nth(*)
-        return super unless try(:history?)
-
-        with_hid_pkey { super }
-      end
-
-      def last(*)
-        return super unless try(:history?)
-
-        with_hid_pkey { super }
-      end
-
-      private
 
       def ordered_relation
         return super unless try(:history?)
