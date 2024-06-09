@@ -359,6 +359,8 @@ Ensure to run the full test suite before pushing.
    creates a new record for each modification. This will lead to increased
    storage requirements and bloated history
 
+ * `*_by_sql` query methods are not supported. [See issue #313][gh-issue-313]
+
 ## Contributing
 
  1. Fork it
@@ -425,3 +427,4 @@ This software is Made in Italy :it: :smile:.
 [gh-issue-186]: https://github.com/ifad/chronomodel/issues/186
 [gh-issue-192]: https://github.com/ifad/chronomodel/issues/192
 [gh-issue-206]: https://github.com/ifad/chronomodel/issues/206
+[gh-issue-313]: https://github.com/ifad/chronomodel/issues/313
