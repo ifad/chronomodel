@@ -17,7 +17,7 @@ jobs:
     strategy:
       matrix:
         ruby-version: ['3.0', '3.1', '3.2', '3.3']
-        gemfile: [rails_7.0, rails_7.1]
+        gemfile: [rails_7.0, rails_7.1, rails_7.2]
         postgres-version: ['16']
         channel: ['stable']
 
@@ -49,10 +49,17 @@ jobs:
             postgres-version: '16'
             channel: 'experimental'
           - ruby-version: 'head'
+            gemfile: rails_7.2
+            postgres-version: '16'
+            channel: 'experimental'
+          - ruby-version: 'head'
             gemfile: rails_edge
             postgres-version: '16'
             channel: 'experimental'
 
+        exclude:
+          - ruby-version: '3.0'
+            gemfile: rails_7.2
     env:
       BUNDLE_GEMFILE: gemfiles/${{ matrix.gemfile }}.gemfile
       TEST_CONFIG: ./spec/config.github.yml
