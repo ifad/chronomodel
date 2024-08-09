@@ -32,7 +32,7 @@ module ChronoModel
         #
         def with_hid_pkey
           old = primary_key
-          self.primary_key = :hid
+          self.primary_key = 'hid'
 
           yield
         ensure
@@ -239,7 +239,7 @@ module ChronoModel
 
       def with_hid_pkey(&block)
         old_primary_key = @primary_key
-        @primary_key = :hid
+        @primary_key = 'hid'
 
         self.class.with_hid_pkey(&block)
       ensure
