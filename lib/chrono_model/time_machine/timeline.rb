@@ -59,7 +59,7 @@ module ChronoModel
         relation = relation.from("public.#{quoted_table_name}") unless chrono?
         relation = relation.where(id: rid) if rid
 
-        sql = +"SELECT ts FROM ( #{relation.to_sql} ) AS foo WHERE ts IS NOT NULL"
+        sql = "SELECT ts FROM ( #{relation.to_sql} ) AS foo WHERE ts IS NOT NULL"
 
         if options.key?(:before)
           sql << " AND ts < '#{Conversions.time_to_utc_string(options[:before])}'"
