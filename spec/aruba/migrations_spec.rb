@@ -8,34 +8,37 @@ RSpec.describe 'database migrations', type: :aruba do
   context 'when a migration is generated' do
     before { run_command_and_stop('bundle exec rails g migration CreateModels name:string') }
 
-    describe 'bundle exec rake db:migrate' do
-      let(:action) { run_command('bundle exec rake db:migrate') }
-      let(:last_command) { action && last_command_started }
+    describe 'bundle exec rails db:migrate' do
+      subject { action && last_command_started }
 
-      it { expect(last_command).to be_successfully_executed }
-      it { expect(last_command).to have_output(/CreateModels: migrated/) }
+      let(:action) { run_command('bundle exec rails db:migrate') }
+
+      it { is_expected.to be_successfully_executed }
+      it { is_expected.to have_output(/CreateModels: migrated/) }
     end
   end
 
-  describe 'rerun bundle exec rake db:drop db:create db:migrate', issue: 56 do
-    let(:command) { 'bundle exec rake db:drop db:create db:migrate' }
+  describe 'rerun bundle exec rails db:drop db:create db:migrate', issue: 56 do
+    subject { action && last_command_started }
+
+    let(:command) { 'bundle exec rails db:drop db:create db:migrate' }
     let(:action) { run_command(command) }
     let(:regex) { /-- change_table\(:impressions, {:temporal=>true, :copy_data=>true}\)/ }
 
     before { copy('%/migrations/56/', 'db/migrate') }
 
     describe 'once' do
-      let(:last_command) { action && last_command_started }
-
-      it { expect(last_command).to be_successfully_executed }
-      it { expect(last_command).to have_output(regex) }
+      it { is_expected.to be_successfully_executed }
+      it { is_expected.to have_output(regex) }
     end
 
     describe 'twice' do
-      let(:last_command) { run_command_and_stop(command) && action && last_command_started }
+      before do
+        action
+      end
 
-      it { expect(last_command).to be_successfully_executed }
-      it { expect(last_command).to have_output(regex) }
+      it { is_expected.to be_successfully_executed }
+      it { is_expected.to have_output(regex) }
     end
   end
 end
