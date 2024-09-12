@@ -3,8 +3,9 @@
 require 'spec_helper'
 
 RSpec.describe 'subclasses spec', type: :aruba do
+  subject(:last_command) { action && last_command_started }
+
   let(:action) { run_command('bundle exec rails runner "Foo.subclasses"') }
-  let(:last_command) { action && last_command_started }
 
   before do
     set_environment_variable 'CM_TEST_EAGER_LOAD', true
