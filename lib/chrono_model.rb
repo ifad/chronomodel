@@ -2,16 +2,16 @@
 
 require 'active_record'
 
-require 'chrono_model/chrono'
-require 'chrono_model/conversions'
-require 'chrono_model/patches'
-require 'chrono_model/adapter'
-require 'chrono_model/time_machine'
-require 'chrono_model/time_gate'
-require 'chrono_model/version'
+require_relative 'chrono_model/chrono'
+require_relative 'chrono_model/conversions'
+require_relative 'chrono_model/patches'
+require_relative 'chrono_model/adapter'
+require_relative 'chrono_model/time_machine'
+require_relative 'chrono_model/time_gate'
+require_relative 'chrono_model/version'
 
-require 'chrono_model/railtie' if defined?(Rails::Railtie)
-require 'chrono_model/db_console' if defined?(Rails::DBConsole) && Rails.version < '7.1'
+require_relative 'chrono_model/railtie' if defined?(Rails::Railtie)
+require_relative 'chrono_model/db_console' if defined?(Rails::DBConsole) && Rails.version < '7.1'
 
 module ChronoModel
   class Error < ActiveRecord::ActiveRecordError # :nodoc:

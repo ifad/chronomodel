@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'chrono_model/time_machine/time_query'
-require 'chrono_model/time_machine/timeline'
-require 'chrono_model/time_machine/history_model'
+require_relative 'time_machine/time_query'
+require_relative 'time_machine/timeline'
+require_relative 'time_machine/history_model'
 
 module ChronoModel
   module TimeMachine

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'chrono_model'
+require_relative '../../chrono_model'
 
 module ActiveRecord
   # TODO: Remove when dropping Rails < 7.2 compatibility
