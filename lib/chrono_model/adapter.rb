@@ -2,12 +2,12 @@
 
 require 'active_record/connection_adapters/postgresql_adapter'
 
-require 'chrono_model/adapter/migrations'
-require 'chrono_model/adapter/migrations_modules/stable'
+require_relative 'adapter/migrations'
+require_relative 'adapter/migrations_modules/stable'
 
-require 'chrono_model/adapter/ddl'
-require 'chrono_model/adapter/indexes'
-require 'chrono_model/adapter/upgrade'
+require_relative 'adapter/ddl'
+require_relative 'adapter/indexes'
+require_relative 'adapter/upgrade'
 
 module ChronoModel
   # This class implements all ActiveRecord::ConnectionAdapters::SchemaStatements

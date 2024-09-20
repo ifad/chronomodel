@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'active_record/tasks/chronomodel_database_tasks'
+require_relative '../active_record/tasks/chronomodel_database_tasks'
 
 module ChronoModel
   class Railtie < ::Rails::Railtie
