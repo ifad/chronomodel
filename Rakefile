@@ -18,15 +18,29 @@ namespace :testapp do
     options = %w[
       -q
       --skip-action-cable
+      --skip-action-mailbox
       --skip-action-mailer
       --skip-action-text
       --skip-active-storage
       --skip-asset-pipeline
-      --skip-bundle
+      --skip-bootsnap
+      --skip-brakeman
+      --skip-ci
+      --skip-decrypted-diffs
+      --skip-dev-gems
+      --skip-docker
       --skip-git
+      --skip-hotwire
       --skip-javascript
-      --skip-sprockets
-      --skip-webpack-install
+      --skip-jbuilder
+      --skip-kamal
+      --skip-listen
+      --skip-rubocop
+      --skip-solid
+      --skip-spring
+      --skip-system-test
+      --skip-test
+      --skip-thruster
     ]
     FileUtils.mkdir_p('tmp/aruba')
     Dir.chdir('tmp') do

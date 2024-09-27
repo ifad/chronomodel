@@ -28,10 +28,6 @@ jobs:
             postgres-version: '12'
             channel: 'stable'
 
-          - ruby-version: '3.1'
-            gemfile: rails_edge
-            postgres-version: '16'
-            channel: 'experimental'
           - ruby-version: '3.2'
             gemfile: rails_edge
             postgres-version: '16'
