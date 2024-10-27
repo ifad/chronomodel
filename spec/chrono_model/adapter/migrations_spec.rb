@@ -215,6 +215,38 @@ RSpec.describe ChronoModel::Adapter do
     end
   end
 
+  describe '.add_reference' do
+    with_temporal_table do
+      before do
+        adapter.add_reference table, :foo
+      end
+
+      it { is_expected.to have_columns([%w[foo_id bigint]]) }
+      it { is_expected.to have_temporal_columns([%w[foo_id bigint]]) }
+      it { is_expected.to have_history_columns([%w[foo_id bigint]]) }
+
+      it { is_expected.to have_temporal_index 'index_test_table_on_foo_id', %w[foo_id] }
+      it { is_expected.to have_history_index  'index_test_table_on_foo_id', %w[foo_id] }
+    end
+  end
+
+  describe '.references' do
+    with_temporal_table do
+      before do
+        adapter.create_table table, force: true, temporal: true do |t|
+          t.references :foo
+        end
+      end
+
+      it { is_expected.to have_columns([%w[foo_id bigint]]) }
+      it { is_expected.to have_temporal_columns([%w[foo_id bigint]]) }
+      it { is_expected.to have_history_columns([%w[foo_id bigint]]) }
+
+      it { is_expected.to have_temporal_index 'index_test_table_on_foo_id', %w[foo_id] }
+      it { is_expected.to have_history_index  'index_test_table_on_foo_id', %w[foo_id] }
+    end
+  end
+
   describe '.add_index' do
     with_temporal_table do
       before do
