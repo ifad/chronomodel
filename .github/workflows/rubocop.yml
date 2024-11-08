@@ -23,4 +23,4 @@ jobs:
         rubygems: latest
         bundler-cache: true
     - name: RuboCop
-      run: bundle exec rubocop
+      run: bundle exec rubocop -f github
