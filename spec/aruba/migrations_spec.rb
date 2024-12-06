@@ -23,7 +23,7 @@ RSpec.describe 'database migrations', type: :aruba do
 
     let(:command) { 'bundle exec rails db:drop db:create db:migrate' }
     let(:action) { run_command(command) }
-    let(:regex) { /-- change_table\(:impressions, {:temporal=>true, :copy_data=>true}\)/ }
+    let(:regex) { /-- change_table\(:impressions, #{{ temporal: true, copy_data: true }.inspect}\)/ }
 
     before { copy('%/migrations/56/', 'db/migrate') }
 
