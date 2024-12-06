@@ -146,8 +146,7 @@ the `:validity` option:
 change_table :your_table, temporal: true, copy_data: true, validity: '1977-01-01'
 ```
 
-Please note that `change_table` requires you to use *old_style* `up` and
-`down` migrations. It cannot work with Rails 3-style `change` migrations.
+Please note that `change_table` requires you to use `up` and `down` migrations.
 
 
 ## Selective Journaling
@@ -361,6 +360,10 @@ Ensure to run the full test suite before pushing.
 
  * `*_by_sql` query methods are not supported. [See issue #313][gh-issue-313]
 
+ * `self.table_name` must be set before `include ChronoModel::TimeMachine`.
+   [See issue #336][gh-issue-336]
+
+
 ## Contributing
 
  1. Fork it
@@ -428,3 +431,4 @@ This software is Made in Italy :it: :smile:.
 [gh-issue-192]: https://github.com/ifad/chronomodel/issues/192
 [gh-issue-206]: https://github.com/ifad/chronomodel/issues/206
 [gh-issue-313]: https://github.com/ifad/chronomodel/issues/313
+[gh-issue-336]: https://github.com/ifad/chronomodel/issues/336
