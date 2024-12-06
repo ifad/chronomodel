@@ -146,8 +146,8 @@ RSpec.describe ChronoModel::Adapter do
 
     with_plain_table do
       before do
-        adapter.change_table table do |_t|
-          adapter.add_column table, :frupper, :string
+        adapter.change_table table do |t|
+          t.string :frupper
         end
       end
 
