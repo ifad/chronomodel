@@ -19,19 +19,19 @@ module ChronoTest
         def matches?(table)
           super
 
-          select_values(<<-SQL.squish, [table, name, schema], 'Check index') == columns
-          SELECT a.attname
-            FROM pg_class t
-            JOIN pg_index d ON t.oid = d.indrelid
-            JOIN pg_class i ON i.oid = d.indexrelid
-            JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = ANY(d.indkey)
-           WHERE i.relkind = 'i'
-             AND t.relname = ?
-             AND i.relname = ?
-             AND i.relnamespace = (
-              SELECT oid FROM pg_namespace WHERE nspname = ?
-            )
-           ORDER BY a.attname
+          select_values(<<~SQL.squish, [table, name, schema], 'Check index') == columns
+            SELECT a.attname
+              FROM pg_class t
+              JOIN pg_index d ON t.oid = d.indrelid
+              JOIN pg_class i ON i.oid = d.indexrelid
+              JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = ANY(d.indkey)
+             WHERE i.relkind = 'i'
+               AND t.relname = ?
+               AND i.relname = ?
+               AND i.relnamespace = (
+                SELECT oid FROM pg_namespace WHERE nspname = ?
+              )
+             ORDER BY a.attname
           SQL
         end
 

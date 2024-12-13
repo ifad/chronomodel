@@ -13,8 +13,7 @@ module ChronoTest
         def relation_exists?(options)
           schema = options[:in]
           kind   = options[:kind] == :view ? 'v' : 'r'
-
-          select_value(<<-SQL.squish, [table, schema], 'Check table exists') == true
+          select_value(<<~SQL.squish, [table, schema], 'Check table exists') == true
             SELECT EXISTS (
               SELECT 1
                 FROM pg_class c
@@ -130,7 +129,7 @@ module ChronoTest
         def inherits_from_temporal?
           binds = ["#{history_schema}.#{table}", "#{temporal_schema}.#{table}"]
 
-          @inheritance = select_value(<<-SQL.squish, binds, 'Check inheritance') == true
+          @inheritance = select_value(<<~SQL.squish, binds, 'Check inheritance') == true
             SELECT EXISTS (
               SELECT 1 FROM pg_catalog.pg_inherits
                WHERE inhrelid  = ?::regclass::oid
@@ -142,7 +141,7 @@ module ChronoTest
         def has_history_indexes?
           binds = [history_schema, table]
 
-          indexes = select_values(<<-SQL.squish, binds, 'Check history indexes')
+          indexes = select_values(<<~SQL.squish, binds, 'Check history indexes')
             SELECT indexdef FROM pg_indexes
              WHERE schemaname = ?
                AND tablename  = ?
@@ -173,7 +172,7 @@ module ChronoTest
             attname: connection.primary_key(table)
           }
 
-          @constraint = select_value(<<-SQL.squish, binds, 'Check Consistency Constraint') == true
+          @constraint = select_value(<<~SQL.squish, binds, 'Check Consistency Constraint') == true
             SELECT EXISTS (
               SELECT 1 FROM pg_catalog.pg_constraint
               WHERE conname = :conname
@@ -244,14 +243,14 @@ module ChronoTest
         def is_updatable?
           binds = [public_schema, table]
 
-          @updatable = select_value(<<-SQL.squish, binds, 'Check updatable') == 'YES'
+          @updatable = select_value(<<~SQL.squish, binds, 'Check updatable') == 'YES'
             SELECT is_updatable FROM information_schema.views
              WHERE table_schema = ? AND table_name = ?
           SQL
         end
 
         def has_triggers?
-          triggers = select_values(<<-SQL.squish, [public_schema, table], 'Check triggers')
+          triggers = select_values(<<~SQL.squish, [public_schema, table], 'Check triggers')
             SELECT t.tgname
               FROM pg_catalog.pg_trigger t, pg_catalog.pg_class c, pg_catalog.pg_namespace n
              WHERE n.oid = c.relnamespace
