@@ -20,7 +20,7 @@ module ChronoTest
             SELECT prosrc FROM pg_catalog.pg_proc WHERE proname = ?
           SQL
 
-          !(source =~ @regexp).nil?
+          @regexp.match?(source)
         end
 
         def failure_message
