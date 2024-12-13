@@ -24,8 +24,8 @@ module ChronoTest
         end
 
         def matches?(*)
-          @current = select_value(<<-SQL.squish, [], 'Current schema')
-          SHOW search_path
+          @current = select_value(<<~SQL.squish, [], 'Current schema')
+            SHOW search_path
           SQL
 
           @current == @expected

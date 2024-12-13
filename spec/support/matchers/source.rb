@@ -16,11 +16,11 @@ module ChronoTest
         def matches?(table)
           super
 
-          source = select_value(<<-SQL.squish, [@function], "Get #{@function} source")
-          SELECT prosrc FROM pg_catalog.pg_proc WHERE proname = ?
+          source = select_value(<<~SQL.squish, [@function], "Get #{@function} source")
+            SELECT prosrc FROM pg_catalog.pg_proc WHERE proname = ?
           SQL
 
-          !(source =~ @regexp).nil?
+          @regexp.match?(source)
         end
 
         def failure_message

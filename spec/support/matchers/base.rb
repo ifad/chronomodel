@@ -5,14 +5,6 @@ module ChronoTest
     class Base
       include ActiveRecord::Sanitization::ClassMethods
 
-      attr_reader :table
-
-      def matches?(table)
-        table = table.table_name if table.respond_to?(:table_name)
-        @table = table
-      end
-      private :matches? # This is an abstract class
-
       def failure_message_for_should_not
         failure_message_for_should.gsub('to ', 'to not ')
       end
@@ -54,6 +46,13 @@ module ChronoTest
       end
 
       private
+
+      attr_reader :table
+
+      def matches?(table)
+        table = table.table_name if table.respond_to?(:table_name)
+        @table = table
+      end
 
       def exec_query(sql, binds, name)
         sql = sanitize_sql_array([sql, *Array.wrap(binds)])
