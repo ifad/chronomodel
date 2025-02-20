@@ -45,7 +45,7 @@ namespace :testapp do
     FileUtils.mkdir_p('tmp/aruba')
     Dir.chdir('tmp') do
       FileUtils.rm_rf('railsapp')
-      sh "rails new railsapp #{options.join(' ')}"
+      sh "bundle exec rails new railsapp #{options.join(' ')}"
     end
     FileUtils.cp_r('spec/fixtures/railsapp/.', 'tmp/railsapp/')
     FileUtils.rm('tmp/railsapp/Gemfile')

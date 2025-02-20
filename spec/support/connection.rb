@@ -22,9 +22,7 @@ module ChronoTest
     @logger ||= AR.logger
   end
 
-  def connection
-    AR.connection
-  end
+  delegate :connection, to: :AR
 
   def with_connection(&block)
     AR.with_connection(&block)
