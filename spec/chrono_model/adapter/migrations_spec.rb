@@ -459,7 +459,7 @@ RSpec.describe ChronoModel::Adapter do
     with_temporal_table do
       before do
         adapter.add_reference table, :baz
-        adapter.add_foreign_key table, :baz
+        adapter.add_foreign_key table, :bazs
       end
 
       it { is_expected.to have_columns([%w[baz_id bigint]]) }
