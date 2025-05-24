@@ -4,7 +4,6 @@ require 'spec_helper'
 require 'support/adapter/structure'
 
 RSpec.describe ChronoModel::Adapter do
-  include ChronoTest::Adapter::Helpers
   include ChronoTest::Adapter::Structure
 
   subject { adapter }
@@ -112,11 +111,15 @@ RSpec.describe ChronoModel::Adapter do
   describe '.is_chrono?' do
     subject(:is_chrono?) { adapter.is_chrono?(table) }
 
-    with_temporal_table do
+    context 'with temporal tables' do
+      include_context 'with temporal tables'
+
       it { is_expected.to be true }
     end
 
-    with_plain_table do
+    context 'with plain tables' do
+      include_context 'with plain tables'
+
       it { is_expected.to be false }
     end
 
