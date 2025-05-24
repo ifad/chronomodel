@@ -2,6 +2,7 @@
 
 require 'spec_helper'
 require 'support/adapter/structure'
+require 'support/time_machine/structure'
 
 # For the structure of these tables, please see spec/support/adabters/structure.rb.
 #
@@ -451,6 +452,26 @@ RSpec.describe ChronoModel::Adapter do
 
       it { is_expected.not_to have_columns([%w[foo integer]]) }
       it { is_expected.to have_columns([['foo', 'double precision']]) }
+    end
+  end
+
+  describe '.add_foreign_key' do
+    with_temporal_table do
+      before do
+        adapter.add_reference table, :baz
+        adapter.add_foreign_key table, :baz
+      end
+
+      it { is_expected.to have_columns([%w[baz_id bigint]]) }
+    end
+
+    with_plain_table do
+      before do
+        adapter.add_reference table, :baz
+        adapter.add_foreign_key table, :bazs
+      end
+
+      it { is_expected.to have_columns([%w[baz_id bigint]]) }
     end
   end
 end
