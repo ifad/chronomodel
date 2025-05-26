@@ -10,14 +10,14 @@ require 'byebug'
 
 require 'chrono_model'
 
-require 'support/connection'
-require 'support/matchers/schema'
-require 'support/matchers/table'
-require 'support/matchers/column'
-require 'support/matchers/index'
-require 'support/matchers/function'
-require 'support/matchers/source'
-require 'support/aruba'
+require_relative 'support/connection'
+require_relative 'support/matchers/column'
+require_relative 'support/matchers/function'
+require_relative 'support/matchers/index'
+require_relative 'support/matchers/schema'
+require_relative 'support/matchers/source'
+require_relative 'support/matchers/table'
+require_relative 'support/aruba'
 
 puts "Testing against Active Record #{ActiveRecord::VERSION::STRING} with Arel #{Arel::VERSION}"
 
@@ -37,12 +37,12 @@ puts "Testing against Active Record #{ActiveRecord::VERSION::STRING} with Arel #
 #
 # See https://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
 RSpec.configure do |config|
-  config.include(ChronoTest::Matchers::Schema)
-  config.include(ChronoTest::Matchers::Table)
   config.include(ChronoTest::Matchers::Column)
-  config.include(ChronoTest::Matchers::Index)
   config.include(ChronoTest::Matchers::Function)
+  config.include(ChronoTest::Matchers::Index)
+  config.include(ChronoTest::Matchers::Schema)
   config.include(ChronoTest::Matchers::Source)
+  config.include(ChronoTest::Matchers::Table)
   config.include(ChronoTest::Aruba, type: :aruba)
 
   ChronoTest.recreate_database!
