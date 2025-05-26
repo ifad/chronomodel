@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'support/adapter/shared_contexts'
+require_relative 'shared_contexts'
 
 # This module contains the definition of a test structure that is used by the
 # adapter methods tests, that look up in the database directly whether the

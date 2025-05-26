@@ -7,7 +7,7 @@ require 'rails'
 
 module ChronoTest
   module Aruba
-    def load_schema_task(as_regexp: false)
+    def schema_load_task(as_regexp: false)
       str = 'db:schema:load'
       as_regexp ? Regexp.new(str) : str
     end
@@ -16,7 +16,7 @@ module ChronoTest
       copy("%/#{file}", 'config/database.yml')
     end
 
-    def dump_schema_task(as_regexp: false)
+    def schema_dump_task(as_regexp: false)
       str = 'db:schema:dump'
       as_regexp ? Regexp.new(str) : str
     end

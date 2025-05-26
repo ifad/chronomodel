@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'support/matchers/base'
+require_relative 'base'
 
 module ChronoTest
   module Matchers
