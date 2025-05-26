@@ -4,7 +4,6 @@ require 'spec_helper'
 require 'support/adapter/structure'
 
 RSpec.describe ChronoModel::Adapter do
-  include ChronoTest::Adapter::Helpers
   include ChronoTest::Adapter::Structure
 
   let(:current) { "#{ChronoModel::Adapter::TEMPORAL_SCHEMA}.#{table}" }
@@ -188,7 +187,7 @@ RSpec.describe ChronoModel::Adapter do
     end
 
     describe 'schema changes' do
-      table 'journaled_things'
+      let(:table) { 'journaled_things' }
 
       before do
         adapter.create_table table, temporal: true, journal: %w[foo] do |t|

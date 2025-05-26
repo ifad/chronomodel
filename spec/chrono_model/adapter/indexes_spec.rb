@@ -4,7 +4,6 @@ require 'spec_helper'
 require 'support/adapter/structure'
 
 RSpec.describe ChronoModel::Adapter do
-  include ChronoTest::Adapter::Helpers
   include ChronoTest::Adapter::Structure
 
   before do

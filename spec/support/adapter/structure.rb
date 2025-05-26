@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative 'helpers'
+require_relative 'shared_contexts'
 
 # This module contains the definition of a test structure that is used by the
 # adapter methods tests, that look up in the database directly whether the
@@ -16,10 +16,12 @@ module ChronoTest
       extend ActiveSupport::Concern
 
       included do
-        table 'test_table'
+        delegate :adapter, to: ChronoTest
+
         subject { table }
 
-        columns do
+        let(:table) { 'test_table' }
+        let(:columns) do
           native = [
             ['test', 'character varying'],
             %w[foo integer],
