@@ -40,7 +40,25 @@ RSpec.describe ChronoModel::Adapter do
   describe '.create_table' do
     context 'with temporal tables' do
       include_context 'with temporal tables'
+
       it_behaves_like 'temporal table'
+
+      context 'when columns have an index' do
+        let(:columns) do
+          native = []
+
+          def native.to_proc
+            proc { |t|
+              t.string :bar, index: true
+            }
+          end
+
+          native
+        end
+
+        it { is_expected.to have_temporal_index 'index_test_table_on_bar', %w[bar] }
+        it { is_expected.to have_history_index  'index_test_table_on_bar', %w[bar] }
+      end
     end
 
     context 'with plain tables' do
@@ -232,6 +250,42 @@ RSpec.describe ChronoModel::Adapter do
 
       it { is_expected.not_to have_public_backing }
       it { is_expected.not_to have_public_interface }
+    end
+  end
+
+  describe '.add_reference' do
+    context 'with temporal tables' do
+      include_context 'with temporal tables'
+
+      before do
+        adapter.add_reference table, :foo
+      end
+
+      it { is_expected.to have_columns([%w[foo_id bigint]]) }
+      it { is_expected.to have_temporal_columns([%w[foo_id bigint]]) }
+      it { is_expected.to have_history_columns([%w[foo_id bigint]]) }
+
+      it { is_expected.to have_temporal_index 'index_test_table_on_foo_id', %w[foo_id] }
+      it { is_expected.to have_history_index  'index_test_table_on_foo_id', %w[foo_id] }
+    end
+  end
+
+  describe '.references' do
+    context 'with temporal tables' do
+      include_context 'with temporal tables'
+
+      before do
+        adapter.create_table table, force: true, temporal: true do |t|
+          t.references :foo
+        end
+      end
+
+      it { is_expected.to have_columns([%w[foo_id bigint]]) }
+      it { is_expected.to have_temporal_columns([%w[foo_id bigint]]) }
+      it { is_expected.to have_history_columns([%w[foo_id bigint]]) }
+
+      it { is_expected.to have_temporal_index 'index_test_table_on_foo_id', %w[foo_id] }
+      it { is_expected.to have_history_index  'index_test_table_on_foo_id', %w[foo_id] }
     end
   end
 
