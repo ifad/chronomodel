@@ -46,7 +46,7 @@ Naming/MethodName:
     - '_UPDATE_'
     - '_DELETE_'
 
-Naming/PredicateName:
+Naming/PredicatePrefix:
   Enabled: false
 
 Rails/ApplicationRecord:
