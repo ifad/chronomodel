@@ -19,13 +19,22 @@ module ChronoModel
         return scope unless _chrono_record?
 
         if _chrono_target?
-          # For standard associations, replace the table name with the virtual
-          # as-of table name at the owner's as-of-time
-          #
-          scope = scope.from(klass.history.virtual_table_at(owner.as_of_time))
+          # For through associations with where clauses, we need to handle them differently
+          # to avoid PG::UndefinedTable errors. The where clauses should be applied in the
+          # join context, not in the historical subquery.
+          if _through_association_with_where_clause?(scope)
+            # Don't replace the from clause for through associations with where clauses
+            # The join handling in relation.rb will take care of the temporal aspects
+            scope.as_of_time!(owner.as_of_time)
+          else
+            # For standard associations, replace the table name with the virtual
+            # as-of table name at the owner's as-of-time
+            scope = scope.from(klass.history.virtual_table_at(owner.as_of_time))
+            scope.as_of_time!(owner.as_of_time)
+          end
+        else
+          scope.as_of_time!(owner.as_of_time)
         end
-
-        scope.as_of_time!(owner.as_of_time)
 
         scope
       end
@@ -49,6 +58,18 @@ module ChronoModel
           end
 
         @_target_klass.chrono?
+      end
+
+      # Check if this is a through association with where clauses that might
+      # reference tables not available in the virtual table subquery
+      def _through_association_with_where_clause?(scope)
+        # Check if this is a through association
+        return false unless reflection.is_a?(ActiveRecord::Reflection::ThroughReflection)
+
+        # Check if the scope has where clauses that might reference other tables
+        # This is a conservative approach - if there are any where clauses,
+        # we assume they might reference tables outside the main table
+        scope.where_clause.any? || scope.having_clause.any?
       end
     end
   end
