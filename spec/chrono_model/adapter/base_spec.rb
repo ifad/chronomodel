@@ -108,6 +108,28 @@ RSpec.describe ChronoModel::Adapter do
     end
   end
 
+  describe '.outer_schema' do
+    subject(:outer_schema) { adapter.outer_schema }
+
+    context 'when outside of on_schema()' do
+      it { is_expected.to eq(adapter.current_schema) }
+    end
+
+    context 'when inside on_schema()' do
+      around do |example|
+        @original_schema = adapter.current_schema
+
+        adapter.on_schema('test_schema') do
+          example.run
+        end
+      end
+
+      it 'returns the original schema' do
+        expect(outer_schema).to eq(@original_schema)
+      end
+    end
+  end
+
   describe '.is_chrono?' do
     subject(:is_chrono?) { adapter.is_chrono?(table) }
 

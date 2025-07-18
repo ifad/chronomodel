@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'active_record/connection_adapters/postgresql_adapter'
+require 'active_record/connection_adapters/postgresql/utils.rb'
 
 require_relative 'adapter/migrations'
 require_relative 'adapter/migrations_modules/stable'
@@ -112,13 +113,18 @@ module ChronoModel
 
     # Evaluates the given block in the given +schema+ search path.
     #
-    # Recursion works by saving the old_path the function closure
+    # Recursion works by saving the old_path in the method closure
     # at each recursive call.
+    #
+    # @original_schema is set to the current schema on the first call,
+    # and restored to +nil+ when the recursion ends. Use outer_schema()
+    # to get the original schema.
     #
     # See specs for examples and behaviour.
     #
     def on_schema(schema, recurse: :follow)
       old_path = schema_search_path
+      @original_schema ||= current_schema
 
       count_recursions do
         if (recurse == :follow) || (Thread.current['recursions'] == 1)
@@ -144,6 +150,24 @@ module ChronoModel
       else
         self.schema_search_path = old_path
       end
+
+      @original_schema = nil if Thread.current['recursions'] == 0
+    end
+
+    # The current schema or the schema that was the current schema before
+    # on_schema() was called.
+    #
+    def outer_schema
+      @original_schema || current_schema
+    end
+
+    # Implementation copied from a private method in
+    # ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaStatements of
+    # the same name
+    #
+    def extract_schema_and_table(string)
+      name = ActiveRecord::ConnectionAdapters::PostgreSQL::Utils.extract_schema_qualified_name(string.to_s)
+      [name.schema, name.identifier]
     end
 
     # Returns true if the given name references a temporal table.

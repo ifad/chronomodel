@@ -37,7 +37,7 @@ module ChronoTest
         end
 
         def failure_message
-          "expected #{schema}.#{table} to have a foreign key constraint on #{ref_schema}#{ref_table}"
+          "expected #{schema}.#{table} to have a foreign key constraint on #{ref_schema}.#{ref_table}"
         end
 
         def failure_message_when_negated

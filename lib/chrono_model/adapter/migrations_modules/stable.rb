@@ -35,33 +35,29 @@ module ChronoModel
         end
 
         def add_foreign_key(from_table, to_table, **options)
-          if is_chrono?(from_table) != is_chrono?(to_table)
-            return on_schema("#{TEMPORAL_SCHEMA},#{schema_search_path}") { super }
+          to_table_schema, _ = extract_schema_and_table(to_table)
+
+          if to_table_schema.nil? && is_chrono?(to_table) != is_chrono?(from_table)
+            schema = is_chrono?(to_table) ? TEMPORAL_SCHEMA : outer_schema
+            to_table = "#{schema}.#{to_table}"
           end
 
-          if is_chrono?(from_table)
-            return on_temporal_schema { super }
-          end
+          return super unless is_chrono?(from_table)
 
-          super
+          on_temporal_schema { super }
         end
 
         def remove_foreign_key(from_table, to_table = nil, **options)
-          if to_table.nil?
-            return super unless is_chrono?(from_table)
+          to_table_schema, _ = extract_schema_and_table(to_table)
 
-            on_temporal_schema { super }
+          if to_table_schema.nil? && is_chrono?(to_table) != is_chrono?(from_table)
+            schema = is_chrono?(to_table) ? TEMPORAL_SCHEMA : outer_schema
+            to_table = "#{schema}.#{to_table}"
           end
 
-          if is_chrono?(from_table) != is_chrono?(to_table)
-            return on_schema("#{TEMPORAL_SCHEMA},#{schema_search_path}") { super }
-          end
+          return super unless is_chrono?(from_table)
 
-          if is_chrono?(from_table)
-            return on_temporal_schema { super }
-          end
-
-          super
+          on_temporal_schema { super }
         end
       end
     end
