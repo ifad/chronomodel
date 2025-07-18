@@ -11,7 +11,7 @@ module ChronoTest
         def initialize(ref_table, ref_schema, schema = 'public')
           @ref_table = ref_table
           @ref_schema = ref_schema
-          @schema   = schema
+          @schema = schema
         end
 
         def description

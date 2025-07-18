@@ -44,9 +44,9 @@ RSpec.describe ChronoModel::Adapter do
 
       it_behaves_like 'temporal table'
 
-      context 'using t.references to temporal tables' do
+      context 'when adding references to temporal tables' do
         let(:columns) do
-          native = [['bar_id', 'bigint']]
+          native = [%w[bar_id bigint]]
 
           def native.to_proc
             proc { |t| t.references :bar, foreign_key: true }
@@ -62,9 +62,9 @@ RSpec.describe ChronoModel::Adapter do
         end
       end
 
-      context 'using t.references to plain tables' do
+      context 'when adding references to plain tables' do
         let(:columns) do
-          native = [['baz_id', 'bigint']]
+          native = [%w[baz_id bigint]]
 
           def native.to_proc
             proc { |t| t.references :baz, foreign_key: true }
@@ -86,9 +86,9 @@ RSpec.describe ChronoModel::Adapter do
 
       it_behaves_like 'plain table'
 
-      context 'using t.references to temporal tables' do
+      context 'when adding references to temporal tables' do
         let(:columns) do
-          native = [['bar_id', 'bigint']]
+          native = [%w[bar_id bigint]]
 
           def native.to_proc
             proc { |t| t.references :bar, foreign_key: true }
@@ -104,9 +104,9 @@ RSpec.describe ChronoModel::Adapter do
         end
       end
 
-      context 'using t.references to plain tables' do
+      context 'when adding references to plain tables' do
         let(:columns) do
-          native = [['baz_id', 'bigint']]
+          native = [%w[baz_id bigint]]
 
           def native.to_proc
             proc { |t| t.references :baz, foreign_key: true }
@@ -189,7 +189,7 @@ RSpec.describe ChronoModel::Adapter do
         it { is_expected.to have_history_columns([%w[new_column integer]]) }
       end
 
-      context 'using t.references to temporal tables' do
+      context 'when adding references to temporal tables' do
         before do
           adapter.change_table table do |t|
             t.references :bar, foreign_key: true
@@ -203,7 +203,7 @@ RSpec.describe ChronoModel::Adapter do
         end
       end
 
-      context 'using t.references to plain tables' do
+      context 'when adding references to plain tables' do
         before do
           adapter.change_table table do |t|
             t.references :baz, foreign_key: true
@@ -277,7 +277,7 @@ RSpec.describe ChronoModel::Adapter do
         end
       end
 
-      context 'when using t.references to temporal tables' do
+      context 'when when adding references to temporal tables' do
         before do
           adapter.change_table table do |t|
             t.references :bar, foreign_key: true
@@ -291,7 +291,7 @@ RSpec.describe ChronoModel::Adapter do
         end
       end
 
-      context 'when using t.references to plain tables' do
+      context 'when when adding references to plain tables' do
         before do
           adapter.change_table table do |t|
             t.references :baz, foreign_key: true
@@ -623,29 +623,18 @@ RSpec.describe ChronoModel::Adapter do
   end
 
   describe '.add_foreign_key' do
-    let(:columns) do
-      native = [%w[baz_id bigint], %w[bar_id bigint]]
-
-      def native.to_proc
-        proc { |t|
-          t.references :baz
-          t.references :bar
-        }
-      end
-
-      native
-    end
-
     context 'with temporal tables' do
       include_context 'with temporal tables'
 
-      it 'adds constraints on foreign keys for plain tables' do
+      it 'adds foreign key constraints on plain tables' do
+        adapter.add_reference table, :baz, foreign_key: false
         adapter.add_foreign_key table, :bazs
 
         expect(table).to have_temporal_foreign_key_constraint('bazs', 'public')
       end
 
-      it 'adds constraints on foreign keys for other temporal tables' do
+      it 'adds foreign key constraints on other temporal tables' do
+        adapter.add_reference table, :bar, foreign_key: false
         adapter.add_foreign_key table, :bars
 
         expect(table).to have_temporal_foreign_key_constraint('bars', 'temporal')
@@ -655,13 +644,15 @@ RSpec.describe ChronoModel::Adapter do
     context 'with plain tables' do
       include_context 'with plain tables'
 
-      it 'adds constraints on foreign keys for other plain tables' do
+      it 'adds foreign key constraints on other plain tables' do
+        adapter.add_reference table, :baz, foreign_key: false
         adapter.add_foreign_key table, :bazs
 
         expect(table).to have_foreign_key_constraint('bazs', 'public')
       end
 
-      it 'adds constraints on foreign keys for temporal tables' do
+      it 'adds foreign key constraints on temporal tables' do
+        adapter.add_reference table, :bar, foreign_key: false
         adapter.add_foreign_key table, :bars
 
         expect(table).to have_foreign_key_constraint('bars', 'temporal')
@@ -673,18 +664,15 @@ RSpec.describe ChronoModel::Adapter do
     context 'with temporal tables' do
       include_context 'with temporal tables'
 
-      before do
+      it 'removes foreign key constraints on plain tables' do
         adapter.add_reference table, :baz, foreign_key: true
-        adapter.add_reference table, :bar, foreign_key: true
-      end
-
-      it 'removes constraints on plain tables' do
         adapter.remove_foreign_key table, :bazs
 
         expect(table).not_to have_temporal_foreign_key_constraint('bazs', 'public')
       end
 
-      it 'removes constraints on temporal tables' do
+      it 'removes foreign key constraints on other temporal tables' do
+        adapter.add_reference table, :bar, foreign_key: true
         adapter.remove_foreign_key table, :bars
 
         expect(table).not_to have_temporal_foreign_key_constraint('bars', 'temporal')
@@ -694,18 +682,15 @@ RSpec.describe ChronoModel::Adapter do
     context 'with plain tables' do
       include_context 'with plain tables'
 
-      before do
+      it 'removes foreign key constraint on other plain tables' do
         adapter.add_reference table, :baz, foreign_key: true
-        adapter.add_reference table, :bar, foreign_key: true
-      end
-
-      it 'removes constraints on plain tables' do
         adapter.remove_foreign_key table, :bazs
 
         expect(table).not_to have_foreign_key_constraint('bazs', 'public')
       end
 
-      it 'removes constraints on temporal tables' do
+      it 'removes foreign key constraints on temporal tables' do
+        adapter.add_reference table, :bar, foreign_key: true
         adapter.remove_foreign_key table, :bars
 
         expect(table).not_to have_foreign_key_constraint('bars', 'temporal')
@@ -717,44 +702,36 @@ RSpec.describe ChronoModel::Adapter do
     context 'with temporal tables' do
       include_context 'with temporal tables'
 
-      context 'to plain tables' do
-        it 'adds a foreign key and a constraint' do
-          adapter.add_reference table, :baz, foreign_key: true
+      it 'adds a foreign key column and constraint to plain tables' do
+        adapter.add_reference table, :baz, foreign_key: true
 
-          expect(table).to have_columns([%w[baz_id bigint]])
-          expect(table).to have_temporal_foreign_key_constraint('bazs', 'public')
-        end
+        expect(table).to have_columns([%w[baz_id bigint]])
+        expect(table).to have_temporal_foreign_key_constraint('bazs', 'public')
       end
 
-      context 'to other temporal tables' do
-        it 'adds a foreign key and a constraint' do
-          adapter.add_reference table, :bar, foreign_key: true
+      it 'adds a foreign key column and constraint to other temporal tables' do
+        adapter.add_reference table, :bar, foreign_key: true
 
-          expect(table).to have_columns([%w[bar_id bigint]])
-          expect(table).to have_temporal_foreign_key_constraint('bars', 'temporal')
-        end
+        expect(table).to have_columns([%w[bar_id bigint]])
+        expect(table).to have_temporal_foreign_key_constraint('bars', 'temporal')
       end
     end
 
     context 'with plain tables' do
       include_context 'with plain tables'
 
-      context 'to other plain tables' do
-        it 'adds a foreign key and a constraint' do
-          adapter.add_reference table, :baz, foreign_key: true
+      it 'adds a foreign key column and constraint to other plain tables' do
+        adapter.add_reference table, :baz, foreign_key: true
 
-          expect(table).to have_columns([%w[baz_id bigint]])
-          expect(table).to have_foreign_key_constraint('bazs', 'public')
-        end
+        expect(table).to have_columns([%w[baz_id bigint]])
+        expect(table).to have_foreign_key_constraint('bazs', 'public')
       end
 
-      context 'to temporal tables' do
-        it 'adds a foreign key and a constraint' do
-          adapter.add_reference table, :bar, foreign_key: true
+      it 'adds a foreign key column and constraint to temporal tables' do
+        adapter.add_reference table, :bar, foreign_key: true
 
-          expect(table).to have_columns([%w[bar_id bigint]])
-          expect(table).to have_foreign_key_constraint('bars', 'temporal')
-        end
+        expect(table).to have_columns([%w[bar_id bigint]])
+        expect(table).to have_foreign_key_constraint('bars', 'temporal')
       end
     end
   end
@@ -763,19 +740,16 @@ RSpec.describe ChronoModel::Adapter do
     context 'with temporal tables' do
       include_context 'with temporal tables'
 
-      before do
+      it 'removes the foreign key column and constraint from plain tables' do
         adapter.add_reference table, :baz, foreign_key: true
-        adapter.add_reference table, :bar, foreign_key: true
-      end
-
-      it 'removes the foreign key and constraint from plain tables' do
         adapter.remove_reference table, :baz
 
         expect(table).not_to have_columns([%w[baz_id bigint]])
         expect(table).not_to have_temporal_foreign_key_constraint('bazs', 'public')
       end
 
-      it 'removes the foreign key and constraint from other temporal tables' do
+      it 'removes the foreign key column and constraint from other temporal tables' do
+        adapter.add_reference table, :bar, foreign_key: true
         adapter.remove_reference table, :bar
 
         expect(table).not_to have_columns([%w[bar_id bigint]])
@@ -786,19 +760,16 @@ RSpec.describe ChronoModel::Adapter do
     context 'with plain tables' do
       include_context 'with plain tables'
 
-      before do
+      it 'removes the foreign key column and constraint from other plain tables' do
         adapter.add_reference table, :baz, foreign_key: true
-        adapter.add_reference table, :bar, foreign_key: true
-      end
-
-      it 'removes the foreign key and constraint from other plain tables' do
         adapter.remove_reference table, :baz
 
         expect(table).not_to have_columns([%w[baz_id bigint]])
         expect(table).not_to have_foreign_key_constraint('bazs', 'public')
       end
 
-      it 'removes the foreign key and constraint from temporal tables' do
+      it 'removes the foreign key column and constraint from temporal tables' do
+        adapter.add_reference table, :bar, foreign_key: true
         adapter.remove_reference table, :bar
 
         expect(table).not_to have_columns([%w[bar_id bigint]])

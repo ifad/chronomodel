@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require 'active_record/connection_adapters/postgresql_adapter'
-require 'active_record/connection_adapters/postgresql/utils.rb'
+require 'active_record/connection_adapters/postgresql/utils'
 
 require_relative 'adapter/migrations'
 require_relative 'adapter/migrations_modules/stable'
@@ -151,7 +151,7 @@ module ChronoModel
         self.schema_search_path = old_path
       end
 
-      @original_schema = nil if Thread.current['recursions'] == 0
+      @original_schema = nil if Thread.current['recursions'].zero?
     end
 
     # The current schema or the schema that was the current schema before

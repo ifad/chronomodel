@@ -116,16 +116,12 @@ RSpec.describe ChronoModel::Adapter do
     end
 
     context 'when inside on_schema()' do
-      around do |example|
-        @original_schema = adapter.current_schema
+      it 'returns the original schema' do
+        original_schema = adapter.current_schema
 
         adapter.on_schema('test_schema') do
-          example.run
+          expect(outer_schema).to eq(original_schema)
         end
-      end
-
-      it 'returns the original schema' do
-        expect(outer_schema).to eq(@original_schema)
       end
     end
   end

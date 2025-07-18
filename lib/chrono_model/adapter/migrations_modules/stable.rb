@@ -35,7 +35,7 @@ module ChronoModel
         end
 
         def add_foreign_key(from_table, to_table, **options)
-          to_table_schema, _ = extract_schema_and_table(to_table)
+          to_table_schema, = extract_schema_and_table(to_table)
 
           if to_table_schema.nil? && is_chrono?(to_table) != is_chrono?(from_table)
             schema = is_chrono?(to_table) ? TEMPORAL_SCHEMA : outer_schema
@@ -48,7 +48,7 @@ module ChronoModel
         end
 
         def remove_foreign_key(from_table, to_table = nil, **options)
-          to_table_schema, _ = extract_schema_and_table(to_table)
+          to_table_schema, = extract_schema_and_table(to_table)
 
           if to_table_schema.nil? && is_chrono?(to_table) != is_chrono?(from_table)
             schema = is_chrono?(to_table) ? TEMPORAL_SCHEMA : outer_schema

@@ -175,7 +175,7 @@ module ChronoModel
         table_definition = super
 
         table_definition.foreign_keys.map! do |fk|
-          to_table_schema, _ = extract_schema_and_table(fk.to_table)
+          to_table_schema, = extract_schema_and_table(fk.to_table)
 
           if to_table_schema.nil? && is_chrono?(fk.to_table) != !!options[:temporal]
             schema = is_chrono?(fk.to_table) ? TEMPORAL_SCHEMA : outer_schema
