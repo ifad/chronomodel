@@ -176,7 +176,7 @@ module ChronoModel
 
     def foreign_key_column_for(table_name, *args) # :nodoc:
       _schema, table_name = extract_schema_qualified_name(table_name)
-      super(table_name, *args)
+      super
     end
 
     def qualified_table_name(table_name)
