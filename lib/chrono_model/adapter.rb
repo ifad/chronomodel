@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'active_record/connection_adapters/postgresql_adapter'
-require 'active_record/connection_adapters/postgresql/utils'
 
 require_relative 'adapter/migrations'
 require_relative 'adapter/migrations_modules/stable'
