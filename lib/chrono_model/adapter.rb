@@ -42,6 +42,20 @@ module ChronoModel
       end
     end
 
+    class TableDefinition < ActiveRecord::ConnectionAdapters::PostgreSQL::TableDefinition
+      def foreign_key(to_table, **options)
+        if !@conn.is_schema_qualified?(to_table) && (@conn.current_schema == TEMPORAL_SCHEMA) != @conn.is_chrono?(to_table)
+          to_table = @conn.qualified_table_name(to_table)
+        end
+
+        super
+      end
+    end
+
+    def create_table_definition(name, **options)
+      ChronoModel::Adapter::TableDefinition.new(self, name, **options)
+    end
+
     # Returns true whether the connection adapter supports our
     # implementation of temporal tables. Currently, Chronomodel
     # is supported starting with PostgreSQL 9.3 (90300 in PostgreSQL's
@@ -161,13 +175,18 @@ module ChronoModel
       @original_schema || current_schema
     end
 
-    # Implementation copied from a private method in
-    # ActiveRecord::ConnectionAdapters::PostgreSQL::SchemaStatements of
-    # the same name
-    #
-    def extract_schema_and_table(string)
-      name = ActiveRecord::ConnectionAdapters::PostgreSQL::Utils.extract_schema_qualified_name(string.to_s)
-      [name.schema, name.identifier]
+    def foreign_key_column_for(table_name, *args) # :nodoc:
+      _schema, table_name = extract_schema_qualified_name(table_name)
+      super(table_name, *args)
+    end
+
+    def qualified_table_name(table_name)
+      schema = is_chrono?(table_name) ? TEMPORAL_SCHEMA : outer_schema
+      "#{schema}.#{table_name}"
+    end
+
+    def is_schema_qualified?(name)
+      name.to_s.include?('.')
     end
 
     # Returns true if the given name references a temporal table.

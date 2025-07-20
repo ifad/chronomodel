@@ -171,23 +171,6 @@ module ChronoModel
         drop_and_recreate_public_view(table_name) { super }
       end
 
-      def build_create_table_definition(table_name, id: :primary_key, primary_key: nil, force: nil, **options)
-        table_definition = super
-
-        table_definition.foreign_keys.map! do |fk|
-          to_table_schema, = extract_schema_and_table(fk.to_table)
-
-          if to_table_schema.nil? && is_chrono?(fk.to_table) != !!options[:temporal]
-            schema = is_chrono?(fk.to_table) ? TEMPORAL_SCHEMA : outer_schema
-            fk.to_table = "#{schema}.#{fk.to_table}"
-          end
-
-          fk
-        end
-
-        table_definition
-      end
-
       private
 
       # In destructive changes, such as removing columns or changing column
