@@ -19,7 +19,7 @@ We only accept issues that are bug reports or feature requests. Bugs must be iso
 
 - All pull requests should be made against the `master` branch
 - Try not to pollute your pull request with unintended changes--keep them simple and small
-- **Test.** If you find a bug, write at first a failing test case and then fix it.
+- **Test.** If you find a bug, first write a failing test case and then fix it.
 - We are open to discussion. If you have troubles or questions, feel free to start a new issue
 
 ## Coding standards
