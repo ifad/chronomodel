@@ -102,6 +102,37 @@ bundle exec rubocop lib spec
 bundle exec rubocop --autocorrect
 ```
 
+### Commit Message Guidelines
+Follow the project's commit message standards as outlined in [CONTRIBUTING.md](../CONTRIBUTING.md):
+
+- **Reference**: Follow [How to Write a Git Commit Message](https://cbea.ms/git-commit/#seven-rules)
+- **Format**: Use imperative mood ("Add feature" not "Added feature")
+- **Length**: Limit subject line to 50 characters, body lines to 72 characters
+- **Structure**: 
+  ```
+  Short summary (50 chars max)
+  
+  Detailed explanation if needed (72 chars per line)
+  
+  - Use bullet points for multiple changes
+  - Reference issues with "Fixes #123" or "Closes #456"
+  ```
+- **Examples**:
+  ```
+  Fix temporal query performance regression
+  
+  Add support for Rails 8.0 compatibility
+  
+  Update dependencies for security patches
+  
+  Fixes #123
+  ```
+- **Best Practices**:
+  - Keep commits atomic (one logical change per commit)
+  - Write clear, descriptive commit messages
+  - Reference related issues and pull requests
+  - Avoid generic messages like "Fix bug" or "Update code"
+
 ### Testing Strategy
 - **Core Tests**: Run `bundle exec rspec spec/chrono_model` for basic functionality
 - **Integration Tests**: Run `bundle exec rake` for full test suite including Rails integration
