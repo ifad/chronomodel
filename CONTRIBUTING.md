@@ -26,7 +26,7 @@ We only accept issues that are bug reports or feature requests. Bugs must be iso
 
 ### Ruby
 
-- [Ruby Styleguide](https://github.com/rubocop/ruby-style-guide)
+- [Ruby Style Guide](https://github.com/rubocop/ruby-style-guide)
 - This project uses RuboCop to enforce code style. Run `bundle exec rubocop` to check your code.
 
 ### Testing
