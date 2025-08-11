@@ -57,5 +57,7 @@ Gemfile.lock
 
 # Custom
 gemfiles/*.lock
+gemfiles/.bundle
+gemfiles/vendor
 spec/config.yml
 spec/debug.log
