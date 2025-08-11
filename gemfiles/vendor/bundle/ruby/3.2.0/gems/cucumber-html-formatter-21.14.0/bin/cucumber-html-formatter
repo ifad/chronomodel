@@ -1,0 +1,20 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+require 'optparse'
+require 'cucumber/messages'
+require 'cucumber/html_formatter'
+
+formatter = Cucumber::HTMLFormatter::Formatter.new($stdout)
+
+option_parser = OptionParser.new do |opts|
+  opts.on_tail('-h', '--help', 'Show this message') do
+    puts opts
+    exit
+  end
+end
+options = {}
+option_parser.parse!(into: options)
+message_enumerator = Cucumber::Messages::NdjsonToMessageEnumerator.new($stdin)
+
+formatter.process_messages(message_enumerator)
