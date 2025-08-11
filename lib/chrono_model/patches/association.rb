@@ -22,7 +22,16 @@ module ChronoModel
           # For standard associations, replace the table name with the virtual
           # as-of table name at the owner's as-of-time
           #
-          scope = scope.from(klass.history.virtual_table_at(owner.as_of_time))
+          # When building temporal queries, we need to preserve WHERE clauses
+          # but apply them outside the temporal subquery to avoid referencing
+          # tables that don't exist in the subquery context.
+          where_clause = scope.where_clause
+
+          # Start with a clean temporal scope
+          scope = klass.unscoped.from(klass.history.virtual_table_at(owner.as_of_time))
+
+          # Re-apply the where clause to the final scope
+          scope = scope.where(where_clause) unless where_clause.empty?
         end
 
         scope.as_of_time!(owner.as_of_time)
