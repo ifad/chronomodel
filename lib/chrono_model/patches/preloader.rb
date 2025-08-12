@@ -56,7 +56,7 @@ module ChronoModel
         # Builds the preloader scope taking into account a potential
         # +as_of_time+ passed down the call chain starting at the
         # end user invocation.
-        # 
+        #
         # Also handles WHERE clauses properly in temporal context to avoid
         # referencing tables not available in temporal subqueries.
         #
@@ -67,7 +67,7 @@ module ChronoModel
           return scope if options[:disable_joins]
 
           values = reflection_scope.values
-          if annotations = values[:annotate]
+          if (annotations = values[:annotate])
             scope.annotate!(*annotations)
           end
 
@@ -78,10 +78,10 @@ module ChronoModel
             if preload_scope.try(:as_of_time) && scope.klass.try(:chrono?)
               # Store the where clause to apply after temporal setup
               where_clause = reflection_scope.where_clause
-              
+
               # Apply temporal transformation first
               scope = scope.as_of(preload_scope.as_of_time)
-              
+
               # Re-apply where clause after temporal setup
               scope.where_clause += where_clause unless where_clause.empty?
             else
@@ -89,27 +89,27 @@ module ChronoModel
               scope.where_clause = reflection_scope.where_clause
             end
 
-            if includes = values[:includes]
+            if (includes = values[:includes])
               scope.includes!(source_reflection.name => includes)
             else
               scope.includes!(source_reflection.name)
             end
 
-            if values[:references] && !values[:references].empty?
+            if values[:references].present?
               scope.references_values |= values[:references]
             else
               scope.references!(source_reflection.table_name)
             end
 
-            if joins = values[:joins]
+            if (joins = values[:joins])
               scope.joins!(source_reflection.name => joins)
             end
 
-            if left_outer_joins = values[:left_outer_joins]
+            if (left_outer_joins = values[:left_outer_joins])
               scope.left_outer_joins!(source_reflection.name => left_outer_joins)
             end
 
-            if scope.eager_loading? && order_values = values[:order]
+            if scope.eager_loading? && (order_values = values[:order])
               scope = scope.order(order_values)
             end
           end
