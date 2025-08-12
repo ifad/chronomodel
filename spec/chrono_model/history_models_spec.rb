@@ -27,6 +27,10 @@ RSpec.describe ChronoModel do
       expected['sections'] = Section::History if defined?(Section::History)
       expected['articles'] = Article::History if defined?(Article::History)
 
+      # historical_associations_spec
+      expected['countries'] = Country::History if defined?(Country::History)
+      expected['cities'] = City::History if defined?(City::History)
+
       # sti_spec
       expected['animals']  = Animal::History  if defined?(Animal::History)
       expected['elements'] = Element::History if defined?(Element::History)
