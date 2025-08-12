@@ -30,8 +30,8 @@ module ChronoModel
           # Start with a clean temporal scope
           scope = klass.unscoped.from(klass.history.virtual_table_at(owner.as_of_time))
 
-          # Re-apply the where clause to the final scope
-          scope = scope.where(where_clause) unless where_clause.empty?
+          # Re-apply the where clause to the final scope by merging the where clauses
+          scope.where_clause += where_clause unless where_clause.empty?
         end
 
         scope.as_of_time!(owner.as_of_time)
