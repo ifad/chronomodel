@@ -228,11 +228,13 @@ module ChronoModel
         return valid_to if valid_to.nil?
 
         # If the validity period has a meaningful duration, use a time just before valid_to
-        # Otherwise, use valid_from if available
-        if valid_from && valid_to && (valid_to - valid_from) > 0.001 # More than 1ms duration
-          # Use a time slightly before the end to avoid boundary issues
-          valid_to - 0.0001 # 0.1ms before the end
+        # We subtract 1 microsecond (the precision that ChronoModel uses) from valid_to
+        # to ensure we query within the validity period, not at the boundary.
+        if valid_from && valid_to && (valid_to - valid_from) > 0.000001 # More than 1μs duration
+          # Subtract 1 microsecond to avoid boundary issues
+          valid_to - 0.000001
         elsif valid_from
+          # For instant periods or when valid_to equals valid_from, use valid_from
           valid_from
         else
           # Fallback to the original behavior (valid_to)
