@@ -219,7 +219,26 @@ module ChronoModel
       def valid_to
         validity.end if validity.end.is_a?(Time)
       end
-      alias as_of_time valid_to
+
+      # For historical records, as_of_time should be within the validity period
+      # to ensure association queries return records that existed during this
+      # record's validity, not records that became valid at the boundary time.
+      def as_of_time
+        # If this is the current record (infinite upper bound), use valid_to (original behavior)
+        return valid_to if valid_to.nil?
+
+        # If the validity period has a meaningful duration, use a time just before valid_to
+        # Otherwise, use valid_from if available
+        if valid_from && valid_to && (valid_to - valid_from) > 0.001 # More than 1ms duration
+          # Use a time slightly before the end to avoid boundary issues
+          valid_to - 0.0001 # 0.1ms before the end
+        elsif valid_from
+          valid_from
+        else
+          # Fallback to the original behavior (valid_to)
+          valid_to
+        end
+      end
 
       # `.read_attribute` uses the memoized `primary_key` if it detects
       # that the attribute name is `id`.
