@@ -14,6 +14,7 @@ require_relative 'support/connection'
 require_relative 'support/matchers/column'
 require_relative 'support/matchers/function'
 require_relative 'support/matchers/index'
+require_relative 'support/matchers/foreign_key_constraint'
 require_relative 'support/matchers/schema'
 require_relative 'support/matchers/source'
 require_relative 'support/matchers/table'
@@ -40,6 +41,7 @@ RSpec.configure do |config|
   config.include(ChronoTest::Matchers::Column)
   config.include(ChronoTest::Matchers::Function)
   config.include(ChronoTest::Matchers::Index)
+  config.include(ChronoTest::Matchers::ForeignKeyConstraint)
   config.include(ChronoTest::Matchers::Schema)
   config.include(ChronoTest::Matchers::Source)
   config.include(ChronoTest::Matchers::Table)

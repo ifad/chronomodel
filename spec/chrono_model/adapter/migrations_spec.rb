@@ -2,6 +2,7 @@
 
 require 'spec_helper'
 require 'support/adapter/structure'
+require 'support/time_machine/structure'
 
 # For the structure of these tables, please see spec/support/adabters/structure.rb.
 
@@ -40,13 +41,86 @@ RSpec.describe ChronoModel::Adapter do
   describe '.create_table' do
     context 'with temporal tables' do
       include_context 'with temporal tables'
+
       it_behaves_like 'temporal table'
+
+      context 'when adding references to temporal tables' do
+        let(:columns) do
+          native = [%w[bar_id bigint]]
+
+          def native.to_proc
+            proc { |t| t.references :bar, foreign_key: true }
+          end
+
+          native
+        end
+
+        it_behaves_like 'temporal table'
+
+        it 'creates a foreign key constraint to the temporal schema' do
+          expect(table).to have_temporal_foreign_key_constraint('bars', 'temporal')
+        end
+      end
+
+      context 'when adding references to plain tables' do
+        let(:columns) do
+          native = [%w[baz_id bigint]]
+
+          def native.to_proc
+            proc { |t| t.references :baz, foreign_key: true }
+          end
+
+          native
+        end
+
+        it_behaves_like 'temporal table'
+
+        it 'creates a foreign key constraint to the public schema' do
+          expect(table).to have_temporal_foreign_key_constraint('bazs', 'public')
+        end
+      end
     end
 
     context 'with plain tables' do
       include_context 'with plain tables'
 
       it_behaves_like 'plain table'
+
+      context 'when adding references to temporal tables' do
+        let(:columns) do
+          native = [%w[bar_id bigint]]
+
+          def native.to_proc
+            proc { |t| t.references :bar, foreign_key: true }
+          end
+
+          native
+        end
+
+        it_behaves_like 'plain table'
+
+        it 'creates a foreign key constraint to the temporal schema' do
+          expect(table).to have_foreign_key_constraint('bars', 'temporal')
+        end
+      end
+
+      context 'when adding references to plain tables' do
+        let(:columns) do
+          native = [%w[baz_id bigint]]
+
+          def native.to_proc
+            proc { |t| t.references :baz, foreign_key: true }
+          end
+
+          native
+        end
+
+        it_behaves_like 'plain table'
+
+        it 'creates a foreign key constraint to the public schema' do
+          expect(table).to have_foreign_key_constraint('bazs', 'public')
+        end
+      end
     end
   end
 
@@ -114,6 +188,34 @@ RSpec.describe ChronoModel::Adapter do
         it { is_expected.to have_temporal_columns([%w[new_column integer]]) }
         it { is_expected.to have_history_columns([%w[new_column integer]]) }
       end
+
+      context 'when adding references to temporal tables' do
+        before do
+          adapter.change_table table do |t|
+            t.references :bar, foreign_key: true
+          end
+        end
+
+        it_behaves_like 'temporal table'
+
+        it 'creates a foreign key constraint to the temporal schema' do
+          expect(table).to have_temporal_foreign_key_constraint('bars', 'temporal')
+        end
+      end
+
+      context 'when adding references to plain tables' do
+        before do
+          adapter.change_table table do |t|
+            t.references :baz, foreign_key: true
+          end
+        end
+
+        it_behaves_like 'temporal table'
+
+        it 'creates a foreign key constraint to the public schema' do
+          expect(table).to have_temporal_foreign_key_constraint('bazs', 'public')
+        end
+      end
     end
 
     context 'with plain tables' do
@@ -172,6 +274,34 @@ RSpec.describe ChronoModel::Adapter do
           expect(temporal_indexes.map(&:name).sort).to eq(indexes)
 
           expect(indexes - history_indexes.map(&:name).sort).to be_empty
+        end
+      end
+
+      context 'when when adding references to temporal tables' do
+        before do
+          adapter.change_table table do |t|
+            t.references :bar, foreign_key: true
+          end
+        end
+
+        it_behaves_like 'plain table'
+
+        it 'creates a foreign key constraint to the temporal schema' do
+          expect(table).to have_foreign_key_constraint('bars', 'temporal')
+        end
+      end
+
+      context 'when when adding references to plain tables' do
+        before do
+          adapter.change_table table do |t|
+            t.references :baz, foreign_key: true
+          end
+        end
+
+        it_behaves_like 'plain table'
+
+        it 'creates a foreign key constraint to the public schema' do
+          expect(table).to have_foreign_key_constraint('bazs', 'public')
         end
       end
     end
@@ -489,6 +619,162 @@ RSpec.describe ChronoModel::Adapter do
 
       it { is_expected.not_to have_columns([%w[foo integer]]) }
       it { is_expected.to have_columns([['foo', 'double precision']]) }
+    end
+  end
+
+  describe '.add_foreign_key' do
+    context 'with temporal tables' do
+      include_context 'with temporal tables'
+
+      it 'adds foreign key constraints on plain tables' do
+        adapter.add_reference table, :baz, foreign_key: false
+        adapter.add_foreign_key table, :bazs
+
+        expect(table).to have_temporal_foreign_key_constraint('bazs', 'public')
+      end
+
+      it 'adds foreign key constraints on other temporal tables' do
+        adapter.add_reference table, :bar, foreign_key: false
+        adapter.add_foreign_key table, :bars
+
+        expect(table).to have_temporal_foreign_key_constraint('bars', 'temporal')
+      end
+    end
+
+    context 'with plain tables' do
+      include_context 'with plain tables'
+
+      it 'adds foreign key constraints on other plain tables' do
+        adapter.add_reference table, :baz, foreign_key: false
+        adapter.add_foreign_key table, :bazs
+
+        expect(table).to have_foreign_key_constraint('bazs', 'public')
+      end
+
+      it 'adds foreign key constraints on temporal tables' do
+        adapter.add_reference table, :bar, foreign_key: false
+        adapter.add_foreign_key table, :bars
+
+        expect(table).to have_foreign_key_constraint('bars', 'temporal')
+      end
+    end
+  end
+
+  describe '.remove_foreign_key' do
+    context 'with temporal tables' do
+      include_context 'with temporal tables'
+
+      it 'removes foreign key constraints on plain tables' do
+        adapter.add_reference table, :baz, foreign_key: true
+        adapter.remove_foreign_key table, :bazs
+
+        expect(table).not_to have_temporal_foreign_key_constraint('bazs', 'public')
+      end
+
+      it 'removes foreign key constraints on other temporal tables' do
+        adapter.add_reference table, :bar, foreign_key: true
+        adapter.remove_foreign_key table, :bars
+
+        expect(table).not_to have_temporal_foreign_key_constraint('bars', 'temporal')
+      end
+    end
+
+    context 'with plain tables' do
+      include_context 'with plain tables'
+
+      it 'removes foreign key constraint on other plain tables' do
+        adapter.add_reference table, :baz, foreign_key: true
+        adapter.remove_foreign_key table, :bazs
+
+        expect(table).not_to have_foreign_key_constraint('bazs', 'public')
+      end
+
+      it 'removes foreign key constraints on temporal tables' do
+        adapter.add_reference table, :bar, foreign_key: true
+        adapter.remove_foreign_key table, :bars
+
+        expect(table).not_to have_foreign_key_constraint('bars', 'temporal')
+      end
+    end
+  end
+
+  describe '.add_reference' do
+    context 'with temporal tables' do
+      include_context 'with temporal tables'
+
+      it 'adds a foreign key column and constraint to plain tables' do
+        adapter.add_reference table, :baz, foreign_key: true
+
+        expect(table).to have_columns([%w[baz_id bigint]])
+        expect(table).to have_temporal_foreign_key_constraint('bazs', 'public')
+      end
+
+      it 'adds a foreign key column and constraint to other temporal tables' do
+        adapter.add_reference table, :bar, foreign_key: true
+
+        expect(table).to have_columns([%w[bar_id bigint]])
+        expect(table).to have_temporal_foreign_key_constraint('bars', 'temporal')
+      end
+    end
+
+    context 'with plain tables' do
+      include_context 'with plain tables'
+
+      it 'adds a foreign key column and constraint to other plain tables' do
+        adapter.add_reference table, :baz, foreign_key: true
+
+        expect(table).to have_columns([%w[baz_id bigint]])
+        expect(table).to have_foreign_key_constraint('bazs', 'public')
+      end
+
+      it 'adds a foreign key column and constraint to temporal tables' do
+        adapter.add_reference table, :bar, foreign_key: true
+
+        expect(table).to have_columns([%w[bar_id bigint]])
+        expect(table).to have_foreign_key_constraint('bars', 'temporal')
+      end
+    end
+  end
+
+  describe '.remove_reference' do
+    context 'with temporal tables' do
+      include_context 'with temporal tables'
+
+      it 'removes the foreign key column and constraint from plain tables' do
+        adapter.add_reference table, :baz, foreign_key: true
+        adapter.remove_reference table, :baz
+
+        expect(table).not_to have_columns([%w[baz_id bigint]])
+        expect(table).not_to have_temporal_foreign_key_constraint('bazs', 'public')
+      end
+
+      it 'removes the foreign key column and constraint from other temporal tables' do
+        adapter.add_reference table, :bar, foreign_key: true
+        adapter.remove_reference table, :bar
+
+        expect(table).not_to have_columns([%w[bar_id bigint]])
+        expect(table).not_to have_temporal_foreign_key_constraint('bars', 'temporal')
+      end
+    end
+
+    context 'with plain tables' do
+      include_context 'with plain tables'
+
+      it 'removes the foreign key column and constraint from other plain tables' do
+        adapter.add_reference table, :baz, foreign_key: true
+        adapter.remove_reference table, :baz
+
+        expect(table).not_to have_columns([%w[baz_id bigint]])
+        expect(table).not_to have_foreign_key_constraint('bazs', 'public')
+      end
+
+      it 'removes the foreign key column and constraint from temporal tables' do
+        adapter.add_reference table, :bar, foreign_key: true
+        adapter.remove_reference table, :bar
+
+        expect(table).not_to have_columns([%w[bar_id bigint]])
+        expect(table).not_to have_foreign_key_constraint('bars', 'temporal')
+      end
     end
   end
 end
