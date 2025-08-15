@@ -219,7 +219,37 @@ module ChronoModel
       def valid_to
         validity.end if validity.end.is_a?(Time)
       end
-      alias as_of_time valid_to
+
+      # For historical records, as_of_time should be within the validity period
+      # to ensure association queries return records that existed during this
+      # record's validity, not records that became valid at the boundary time.
+      def as_of_time
+        # If this is the current record (infinite upper bound), use valid_to (original behavior)
+        return valid_to if valid_to.nil?
+
+        # If we have both valid_from and valid_to, we need to be careful about the timestamp
+        # we use for association queries to ensure we stay within the validity period.
+        if valid_from && valid_to
+          # PostgreSQL ranges are [start, end) - left-inclusive, right-exclusive.
+          # If start == end, the range is empty and contains no valid timestamps.
+          # In such cases, we cannot use any timestamp within the range, so we
+          # fall back to valid_to (which maintains backward compatibility).
+          if valid_from >= valid_to
+            # Empty or invalid range - fall back to boundary time
+            valid_to
+          else
+            # Non-empty range - use a timestamp that's guaranteed to be within the period.
+            # We subtract the smallest time unit that ChronoModel can represent.
+            valid_to - ChronoModel::Conversions.timestamp_precision
+          end
+        elsif valid_from
+          # Only valid_from is available, use it
+          valid_from
+        else
+          # Fallback to the original behavior (valid_to)
+          valid_to
+        end
+      end
 
       # `.read_attribute` uses the memoized `primary_key` if it detects
       # that the attribute name is `id`.
