@@ -56,11 +56,7 @@ module ActiveRecord
       # Rails >= 8.1: run_cmd(cmd, *args, **opts)
       def run_cmd_with_compatibility(cmd, args, action_description)
         # Check if run_cmd method accepts keyword arguments (new signature)
-        method_obj = method(:run_cmd)
-        method_parameters = method_obj.parameters
-
-        # If the method accepts rest args (*args), it's the new signature
-        if method_parameters.any? { |type, _name| type == :rest }
+        if method(:run_cmd).parameters.any? { |type, _name| type == :rest }
           run_cmd(cmd, *args)
         else
           run_cmd(cmd, args, action_description)
