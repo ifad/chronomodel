@@ -227,14 +227,23 @@ module ChronoModel
         # If this is the current record (infinite upper bound), use valid_to (original behavior)
         return valid_to if valid_to.nil?
 
-        # If the validity period has a meaningful duration, use a time just before valid_to
-        # We subtract 1 microsecond (the precision that ChronoModel uses) from valid_to
-        # to ensure we query within the validity period, not at the boundary.
-        if valid_from && valid_to && (valid_to - valid_from) > 0.000001 # More than 1μs duration
-          # Subtract 1 microsecond to avoid boundary issues
-          valid_to - 0.000001
+        # If we have both valid_from and valid_to, we need to be careful about the timestamp
+        # we use for association queries to ensure we stay within the validity period.
+        if valid_from && valid_to
+          # PostgreSQL ranges are [start, end) - left-inclusive, right-exclusive.
+          # If start == end, the range is empty and contains no valid timestamps.
+          # In such cases, we cannot use any timestamp within the range, so we
+          # fall back to valid_to (which maintains backward compatibility).
+          if valid_from >= valid_to
+            # Empty or invalid range - fall back to boundary time
+            valid_to
+          else
+            # Non-empty range - use a timestamp that's guaranteed to be within the period.
+            # We subtract the smallest time unit that ChronoModel can represent.
+            valid_to - ChronoModel::Conversions.timestamp_precision
+          end
         elsif valid_from
-          # For instant periods or when valid_to equals valid_from, use valid_from
+          # Only valid_from is available, use it
           valid_from
         else
           # Fallback to the original behavior (valid_to)
