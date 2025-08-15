@@ -50,7 +50,7 @@ module ActiveRecord
         @chronomodel_configuration ||= @configuration_hash
       end
 
-      # TODO: replace `run_cmd_with_compatibility` with `run_cmd` and remove when dropping Rails < 8.1 support
+      # TODO: replace `run_cmd_with_compatibility` with `run_cmd` and remove when dropping Rails < 8.1 alpha support
       # Compatibility method to handle Rails version differences in run_cmd signature
       # Rails < edge: run_cmd(cmd, args, action)
       # Rails >= edge: run_cmd(cmd, *args, **opts)
@@ -61,10 +61,8 @@ module ActiveRecord
 
         # If the method accepts rest args (*args), it's the new signature
         if method_parameters.any? { |type, _name| type == :rest }
-          # New signature: run_cmd(cmd, *args, **opts)
           run_cmd(cmd, *args)
         else
-          # Old signature: run_cmd(cmd, args, action)
           run_cmd(cmd, args, action_description)
         end
       end
