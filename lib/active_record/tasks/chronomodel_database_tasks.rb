@@ -32,7 +32,7 @@ module ActiveRecord
         args = ['-c', '-f', target.to_s]
         args << chronomodel_configuration[:database]
 
-        run_cmd 'pg_dump', args, 'dumping data'
+        run_cmd_with_compatibility('pg_dump', args, 'dumping data')
       end
 
       def data_load(source)
@@ -41,13 +41,26 @@ module ActiveRecord
         args = ['-f', source]
         args << chronomodel_configuration[:database]
 
-        run_cmd 'psql', args, 'loading data'
+        run_cmd_with_compatibility('psql', args, 'loading data')
       end
 
       private
 
       def chronomodel_configuration
         @chronomodel_configuration ||= @configuration_hash
+      end
+
+      # TODO: replace `run_cmd_with_compatibility` with `run_cmd` and remove when dropping Rails < 8.1 support
+      # Compatibility method to handle Rails version differences in run_cmd signature
+      # Rails < 8.1: run_cmd(cmd, args, action)
+      # Rails >= 8.1: run_cmd(cmd, *args, **opts)
+      def run_cmd_with_compatibility(cmd, args, action_description)
+        # Check if run_cmd method accepts keyword arguments (new signature)
+        if method(:run_cmd).parameters.any? { |type, _name| type == :rest }
+          run_cmd(cmd, *args)
+        else
+          run_cmd(cmd, args, action_description)
+        end
       end
 
       # If a schema search path is defined in the configuration file, it will
