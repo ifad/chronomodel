@@ -50,7 +50,7 @@ module ActiveRecord
         @chronomodel_configuration ||= @configuration_hash
       end
 
-      # TODO: replace `run_cmd_with_compatibility` with `run_cmd` and remove when dropping Rails < 8.1 alpha support
+      # TODO: replace `run_cmd_with_compatibility` with `run_cmd` and remove when dropping Rails < 8.1 support
       # Compatibility method to handle Rails version differences in run_cmd signature
       # Rails < edge: run_cmd(cmd, args, action)
       # Rails >= edge: run_cmd(cmd, *args, **opts)
