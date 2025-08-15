@@ -52,8 +52,8 @@ module ActiveRecord
 
       # TODO: replace `run_cmd_with_compatibility` with `run_cmd` and remove when dropping Rails < 8.1 support
       # Compatibility method to handle Rails version differences in run_cmd signature
-      # Rails < edge: run_cmd(cmd, args, action)
-      # Rails >= edge: run_cmd(cmd, *args, **opts)
+      # Rails < 8.1: run_cmd(cmd, args, action)
+      # Rails >= 8.1: run_cmd(cmd, *args, **opts)
       def run_cmd_with_compatibility(cmd, args, action_description)
         # Check if run_cmd method accepts keyword arguments (new signature)
         method_obj = method(:run_cmd)
