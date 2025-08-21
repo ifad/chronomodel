@@ -17,6 +17,11 @@ module ChronoModel
   class Error < ActiveRecord::ActiveRecordError # :nodoc:
   end
 
+  # ChronoModel uses default timestamp precision (p=6) for tsrange columns.
+  # PostgreSQL timestamp precision can range from 0 to 6 fractional digits,
+  # where 6 provides microsecond resolution (1 microsecond = 10^-6 seconds).
+  VALIDITY_TSRANGE_PRECISION = Rational(1, 10**6)
+
   # Performs structure upgrade.
   #
   def self.upgrade!
