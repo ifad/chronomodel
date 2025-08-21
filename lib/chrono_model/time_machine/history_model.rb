@@ -229,10 +229,19 @@ module ChronoModel
       # PostgreSQL ranges are half-open [start, end) by default.
       # See ifad/chronomodel#283
       def as_of_time
-        if valid_to.is_a?(Time)
-          valid_to - ChronoModel::VALIDITY_TSRANGE_PRECISION
+        end_time = validity.end
+        return nil if end_time.nil?
+
+        if end_time.respond_to?(:infinite?) && end_time.infinite?
+          # For current records with infinite valid_to, use the current time
+          # (we can't return infinity as it would break association queries)
+          Time.current
+        elsif end_time.is_a?(Time)
+          # For historical records with finite valid_to, subtract 1μs to avoid edge case
+          end_time - ChronoModel::VALIDITY_TSRANGE_PRECISION
         else
-          valid_to
+          # Fallback for any other case
+          end_time
         end
       end
 
