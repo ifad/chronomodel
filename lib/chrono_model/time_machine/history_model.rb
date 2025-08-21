@@ -229,8 +229,6 @@ module ChronoModel
       # PostgreSQL ranges are half-open [start, end) by default.
       # See ifad/chronomodel#283
       def as_of_time
-        return nil if valid_to.nil?
-
         if valid_to.is_a?(Time)
           valid_to - ChronoModel::VALIDITY_TSRANGE_PRECISION
         else
