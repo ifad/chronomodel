@@ -227,17 +227,16 @@ module ChronoModel
       # When objects are updated in the same transaction, they get the same valid_to
       # timestamp, creating an edge case where association queries return the wrong version.
       # PostgreSQL ranges are half-open [start, end) by default.
+      # See ifad/chronomodel#283
       def as_of_time
-        # For current objects with infinite valid_to, use the time as-is
-        # For historical objects with finite valid_to, subtract 1 unit at precision 6 to avoid edge case
-        if valid_to&.infinite?
-          valid_to  # Keep infinite time as-is
-        elsif valid_to.nil?
-          nil       # Handle nil case for backward compatibility
-        else
+        return nil if valid_to.nil?
+
+        if valid_to.is_a?(Time)
           # Subtract 1 unit at precision 6 to get "just before" the boundary
           # This ensures we get the historical version, not the current one
           valid_to - ChronoModel::TIMESTAMP_PRECISION
+        else
+          valid_to
         end
       end
 
