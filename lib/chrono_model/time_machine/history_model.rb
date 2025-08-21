@@ -232,9 +232,7 @@ module ChronoModel
         return nil if valid_to.nil?
 
         if valid_to.is_a?(Time)
-          # Subtract 1 unit at precision 6 to get "just before" the boundary
-          # This ensures we get the historical version, not the current one
-          valid_to - ChronoModel::TIMESTAMP_PRECISION
+          valid_to - ChronoModel::VALIDITY_TSRANGE_PRECISION
         else
           valid_to
         end

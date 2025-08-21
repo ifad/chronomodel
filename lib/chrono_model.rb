@@ -17,8 +17,8 @@ module ChronoModel
   class Error < ActiveRecord::ActiveRecordError # :nodoc:
   end
 
-  # Validity is a tsrange field which has by default a precision of 6
-  TIMESTAMP_PRECISION = Rational(1, 1_000_000) # 1 unit at precision 6
+  # tsrange columns have microsecond precision (6 digits)
+  VALIDITY_TSRANGE_PRECISION = Rational(1, 10**6)
 
   # Performs structure upgrade.
   #
