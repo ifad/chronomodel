@@ -229,15 +229,15 @@ module ChronoModel
       # PostgreSQL ranges are half-open [start, end) by default.
       def as_of_time
         # For current objects with infinite valid_to, use the time as-is
-        # For historical objects with finite valid_to, subtract 1μs to avoid edge case
-        if valid_to.respond_to?(:infinite?) && valid_to.infinite?
+        # For historical objects with finite valid_to, subtract 1 unit at precision 6 to avoid edge case
+        if valid_to&.infinite?
           valid_to  # Keep infinite time as-is
         elsif valid_to.nil?
           nil       # Handle nil case for backward compatibility
         else
-          # Subtract 1 microsecond to get "just before" the boundary
+          # Subtract 1 unit at precision 6 to get "just before" the boundary
           # This ensures we get the historical version, not the current one
-          valid_to - ChronoModel::Conversions.timestamp_precision
+          valid_to - ChronoModel::TIMESTAMP_PRECISION
         end
       end
 

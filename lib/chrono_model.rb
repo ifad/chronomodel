@@ -17,6 +17,9 @@ module ChronoModel
   class Error < ActiveRecord::ActiveRecordError # :nodoc:
   end
 
+  # Validity is a tsrange field which has by default a precision of 6
+  TIMESTAMP_PRECISION = Rational(1, 1_000_000) # 1 unit at precision 6
+
   # Performs structure upgrade.
   #
   def self.upgrade!
