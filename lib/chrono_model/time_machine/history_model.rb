@@ -89,7 +89,7 @@ module ChronoModel
         # Returns the history sorted by recorded_at
         #
         def sorted
-          all.order(Arel.sql(%( #{quoted_table_name}."recorded_at" ASC, #{quoted_table_name}."hid" ASC )))
+          all.order(Arel.sql(%(#{quoted_table_name}."recorded_at" ASC, #{quoted_table_name}."hid" ASC)))
         end
 
         # Fetches the given +object+ history, sorted by history record time

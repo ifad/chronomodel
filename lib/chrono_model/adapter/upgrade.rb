@@ -81,12 +81,12 @@ module ChronoModel
         p_pkey = primary_key(table_name)
 
         execute "ALTER TABLE #{history_table} ADD COLUMN validity tsrange;"
-        execute <<-SQL.squish
-            UPDATE #{history_table} SET validity = tsrange(valid_from,
-                CASE WHEN extract(year from valid_to) = 9999 THEN NULL
-                     ELSE valid_to
-                END
-            );
+        execute <<~SQL.squish
+          UPDATE #{history_table} SET validity = tsrange(valid_from,
+              CASE WHEN extract(year from valid_to) = 9999 THEN NULL
+                   ELSE valid_to
+              END
+          );
         SQL
 
         execute "DROP INDEX #{history_table}_temporal_on_valid_from;"
