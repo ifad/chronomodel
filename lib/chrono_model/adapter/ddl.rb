@@ -55,12 +55,12 @@ module ChronoModel
         parent = "#{TEMPORAL_SCHEMA}.#{table}"
         p_pkey = primary_key(parent)
 
-        execute <<-SQL.squish
-            CREATE TABLE #{table} (
-              hid         BIGSERIAL PRIMARY KEY,
-              validity    tsrange NOT NULL,
-              recorded_at timestamp NOT NULL DEFAULT timezone('UTC', now())
-            ) INHERITS ( #{parent} )
+        execute <<~SQL.squish
+          CREATE TABLE #{table} (
+            hid         BIGSERIAL PRIMARY KEY,
+            validity    tsrange NOT NULL,
+            recorded_at timestamp NOT NULL DEFAULT timezone('UTC', now())
+          ) INHERITS (#{parent})
         SQL
 
         add_history_validity_constraint(table, p_pkey)
@@ -85,11 +85,11 @@ module ChronoModel
         execute <<-SQL.strip_heredoc # rubocop:disable Rails/SquishedSQLHeredocs,Rails/StripHeredoc
             CREATE OR REPLACE FUNCTION chronomodel_#{table}_insert() RETURNS TRIGGER AS $$
                 BEGIN
-                    #{insert_sequence_sql(pk, current)} INTO #{current} ( #{pk}, #{fields} )
-                    VALUES ( NEW.#{pk}, #{values} );
+                    #{insert_sequence_sql(pk, current)} INTO #{current} (#{pk}, #{fields})
+                    VALUES (NEW.#{pk}, #{values});
 
-                    INSERT INTO #{history} ( #{pk}, #{fields}, validity )
-                    VALUES ( NEW.#{pk}, #{values}, tsrange(timezone('UTC', now()), NULL) );
+                    INSERT INTO #{history} (#{pk}, #{fields}, validity)
+                    VALUES (NEW.#{pk}, #{values}, tsrange(timezone('UTC', now()), NULL));
 
                     RETURN NEW;
                 END;
@@ -150,7 +150,7 @@ module ChronoModel
                     _new := row(#{journal.map { |c| "NEW.#{c}" }.join(', ')});
 
                     IF _old IS NOT DISTINCT FROM _new THEN
-                        UPDATE ONLY #{current} SET ( #{fields} ) = ( #{values} ) WHERE #{pk} = OLD.#{pk};
+                        UPDATE ONLY #{current} SET (#{fields}) = (#{values}) WHERE #{pk} = OLD.#{pk};
                         RETURN NEW;
                     END IF;
 
@@ -160,16 +160,16 @@ module ChronoModel
                     #{"SELECT hid INTO _hid FROM #{history} WHERE #{pk} = OLD.#{pk} AND lower(validity) = _now;" unless ENV['CHRONOMODEL_NO_SQUASH']}
 
                     IF _hid IS NOT NULL THEN
-                        UPDATE #{history} SET ( #{fields} ) = ( #{values} ) WHERE hid = _hid;
+                        UPDATE #{history} SET (#{fields}) = (#{values}) WHERE hid = _hid;
                     ELSE
                         UPDATE #{history} SET validity = tsrange(lower(validity), _now)
                         WHERE #{pk} = OLD.#{pk} AND upper_inf(validity);
 
-                        INSERT INTO #{history} ( #{pk}, #{fields}, validity )
-                            VALUES ( OLD.#{pk}, #{values}, tsrange(_now, NULL) );
+                        INSERT INTO #{history} (#{pk}, #{fields}, validity)
+                            VALUES (OLD.#{pk}, #{values}, tsrange(_now, NULL));
                     END IF;
 
-                    UPDATE ONLY #{current} SET ( #{fields} ) = ( #{values} ) WHERE #{pk} = OLD.#{pk};
+                    UPDATE ONLY #{current} SET (#{fields}) = (#{values}) WHERE #{pk} = OLD.#{pk};
 
                     RETURN NEW;
                 END;

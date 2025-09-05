@@ -170,7 +170,7 @@ module ChronoModel
     def chrono_metadata_set(view_name, metadata)
       comment = MultiJson.dump(metadata)
 
-      execute %( COMMENT ON VIEW #{view_name} IS #{quote(comment)} )
+      execute "COMMENT ON VIEW #{view_name} IS #{quote(comment)}"
     end
 
     def valid_table_definition_options

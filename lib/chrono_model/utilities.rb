@@ -16,12 +16,12 @@ module ChronoModel
         raise 'Can amend history only with UTC timestamps'
       end
 
-      connection.execute %[
+      connection.execute <<~SQL.squish
         UPDATE #{quoted_table_name}
-           SET "validity" = tsrange(#{connection.quote(from)}, #{connection.quote(to)}),
+           SET "validity"    = tsrange(#{connection.quote(from)}, #{connection.quote(to)}),
                "recorded_at" = #{connection.quote(from)}
          WHERE "hid" = #{hid.to_i}
-      ]
+      SQL
     end
   end
 end

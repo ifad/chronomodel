@@ -24,15 +24,13 @@ module ChronoModel
           temporal_index_names(table, range, options)
 
         chrono_alter_index(table, options) do
-          execute <<-SQL.squish
-            CREATE INDEX #{range_idx} ON #{table} USING gist ( #{range} )
-          SQL
+          execute "CREATE INDEX #{range_idx} ON #{table} USING gist (#{range})"
 
           # Indexes used for precise history filtering, sorting and, in history
           # tables, by UPDATE / DELETE triggers.
           #
-          execute "CREATE INDEX #{lower_idx} ON #{table} ( lower(#{range}) )"
-          execute "CREATE INDEX #{upper_idx} ON #{table} ( upper(#{range}) )"
+          execute "CREATE INDEX #{lower_idx} ON #{table} (lower(#{range}))"
+          execute "CREATE INDEX #{upper_idx} ON #{table} (upper(#{range}))"
         end
       end
 
@@ -53,9 +51,9 @@ module ChronoModel
         id   = options[:id] || primary_key(table)
 
         chrono_alter_constraint(table, options) do
-          execute <<-SQL.squish
+          execute <<~SQL.squish
             ALTER TABLE #{table} ADD CONSTRAINT #{name}
-              EXCLUDE USING gist ( #{id} WITH =, #{range} WITH && )
+              EXCLUDE USING gist (#{id} WITH =, #{range} WITH &&)
           SQL
         end
       end
@@ -64,7 +62,7 @@ module ChronoModel
         name = timeline_consistency_constraint_name(table)
 
         chrono_alter_constraint(table, options) do
-          execute <<-SQL.squish
+          execute <<~SQL.squish
             ALTER TABLE #{table} DROP CONSTRAINT #{name}
           SQL
         end
@@ -81,9 +79,9 @@ module ChronoModel
       def chrono_create_history_indexes_for(table, p_pkey)
         add_temporal_indexes table, :validity, on_current_schema: true
 
-        execute "CREATE INDEX #{table}_inherit_pkey     ON #{table} ( #{p_pkey} )"
-        execute "CREATE INDEX #{table}_recorded_at      ON #{table} ( recorded_at )"
-        execute "CREATE INDEX #{table}_instance_history ON #{table} ( #{p_pkey}, recorded_at )"
+        execute "CREATE INDEX #{table}_inherit_pkey     ON #{table} (#{p_pkey})"
+        execute "CREATE INDEX #{table}_recorded_at      ON #{table} (recorded_at)"
+        execute "CREATE INDEX #{table}_instance_history ON #{table} (#{p_pkey}, recorded_at)"
       end
 
       # Rename indexes on history schema
@@ -144,10 +142,10 @@ module ChronoModel
             #
             columns = Array.wrap(index.columns).join(', ')
 
-            execute %[
-                CREATE INDEX #{index.name} ON #{table_name}
-                USING #{index.using} ( #{columns} )
-              ], 'Copy index from temporal to history'
+            execute <<~SQL.squish, 'Copy index from temporal to history'
+              CREATE INDEX #{index.name} ON #{table_name}
+              USING #{index.using} (#{columns})
+            SQL
           end
         end
       end

@@ -214,14 +214,14 @@ module ChronoModel
         seq  = on_history_schema { pk_and_sequence_for(table_name).last.to_s }
         from = options[:validity] || '0001-01-01 00:00:00'
 
-        execute %[
-              INSERT INTO #{HISTORY_SCHEMA}.#{table_name}
-              SELECT *,
-                nextval('#{seq}')        AS hid,
-                tsrange('#{from}', NULL) AS validity,
-                timezone('UTC', now())   AS recorded_at
-              FROM #{TEMPORAL_SCHEMA}.#{table_name}
-          ]
+        execute <<~SQL.squish
+          INSERT INTO #{HISTORY_SCHEMA}.#{table_name}
+          SELECT *,
+            nextval('#{seq}')        AS hid,
+            tsrange('#{from}', NULL) AS validity,
+            timezone('UTC', now())   AS recorded_at
+          FROM #{TEMPORAL_SCHEMA}.#{table_name}
+        SQL
       end
 
       # Removes temporal features from this table

@@ -176,7 +176,7 @@ module ChronoModel
       else
         return nil unless (ts = pred_timestamp(options))
 
-        order_clause = Arel.sql %[ LOWER(#{options[:table] || self.class.quoted_table_name}."validity") DESC ]
+        order_clause = Arel.sql %[LOWER(#{options[:table] || self.class.quoted_table_name}."validity") DESC]
 
         self.class.as_of(ts).order(order_clause).find(options[:id] || id)
       end
