@@ -1,8 +1,6 @@
 # Temporal database system on PostgreSQL using [updatable views][pg-updatable-views], [table inheritance][pg-table-inheritance] and [INSTEAD OF triggers][pg-instead-of-triggers].
 
 [![Build Status][build-status-badge]][build-status]
-[![Code Climate][code-analysis-badge]][code-analysis]
-[![Test Coverage][test-coverage-badge]][test-coverage]
 [![Gem Version][gem-version-badge]][gem-version]
 [![Inlinedocs][docs-analysis-badge]][docs-analysis]
 
@@ -388,14 +386,10 @@ This software is Made in Italy :it: :smile:.
 
 [build-status]: https://github.com/ifad/chronomodel/actions
 [build-status-badge]: https://github.com/ifad/chronomodel/actions/workflows/ruby.yml/badge.svg
-[code-analysis]: https://codeclimate.com/github/ifad/chronomodel/maintainability
-[code-analysis-badge]: https://api.codeclimate.com/v1/badges/cdee7327938dc2eaff99/maintainability
 [docs-analysis]: https://inch-ci.org/github/ifad/chronomodel
 [docs-analysis-badge]: https://inch-ci.org/github/ifad/chronomodel.svg?branch=master
 [gem-version]: https://rubygems.org/gems/chrono_model
 [gem-version-badge]: https://badge.fury.io/rb/chrono_model.svg
-[test-coverage]: https://codeclimate.com/github/ifad/chronomodel
-[test-coverage-badge]: https://codeclimate.com/github/ifad/chronomodel/badges/coverage.svg
 
 [delorean-image]: https://i.imgur.com/DD77F4s.jpg
 
