@@ -87,15 +87,10 @@ module ChronoModel
     # The default search path is included however, since the table
     # may reference types defined in other schemas, which result in their
     # names becoming schema qualified, which will cause type resolutions to fail.
-    #
-    # NOTE: This method is dynamically defined, see the source.
-    #
-    def column_definitions; end
+    def column_definitions(table_name)
+      return super unless is_chrono?(table_name)
 
-    define_method(:column_definitions) do |table_name|
-      return super(table_name) unless is_chrono?(table_name)
-
-      on_schema("#{TEMPORAL_SCHEMA},#{schema_search_path}", recurse: :ignore) { super(table_name) }
+      on_schema("#{TEMPORAL_SCHEMA},#{schema_search_path}", recurse: :ignore) { super }
     end
 
     # Evaluates the given block in the temporal schema.
