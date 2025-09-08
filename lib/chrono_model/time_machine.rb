@@ -51,8 +51,10 @@ module ChronoModel
           descendants_with_history.reject(&:history?)
         end
 
-        # STI support.
+        # Handles Single Table Inheritance support for temporal models.
         #
+        # @param subclass [Class] the inheriting class
+        # @return [void]
         def inherited(subclass)
           super
 
@@ -85,8 +87,9 @@ module ChronoModel
     end
 
     module ClassMethods
-      # Identify this class as the parent, non-history, class.
+      # Identifies this class as the parent, non-history, class.
       #
+      # @return [Boolean] always returns false for non-history models
       def history?
         false
       end
@@ -117,16 +120,21 @@ module ChronoModel
       delegate :timeline_associations, to: :history
     end
 
-    # Returns a read-only representation of this record as it was +time+ ago.
+    # Returns a read-only representation of this record as it was at the given time.
     # Returns nil if no record is found.
     #
+    # @param time [Time, DateTime] the time to query for
+    # @return [Object, nil] the historical record or nil if not found
     def as_of(time)
       _as_of(time).first
     end
 
-    # Returns a read-only representation of this record as it was +time+ ago.
+    # Returns a read-only representation of this record as it was at the given time.
     # Raises ActiveRecord::RecordNotFound if no record is found.
     #
+    # @param time [Time, DateTime] the time to query for
+    # @return [Object] the historical record
+    # @raise [ActiveRecord::RecordNotFound] if no record is found at that time
     def as_of!(time)
       _as_of(time).first!
     end
@@ -135,13 +143,17 @@ module ChronoModel
     # as it was on +time+. Used both by +as_of+ and +as_of!+ for performance
     # reasons, to avoid a `rescue` (@lleirborras).
     #
+    # @param time [Time, DateTime] the time to query for
+    # @return [ActiveRecord::Relation] the scoped history relation
+    # @api private
     def _as_of(time)
       self.class.as_of(time).where(id: id)
     end
     protected :_as_of
 
-    # Return the complete read-only history of this instance.
+    # Returns the complete read-only history of this instance.
     #
+    # @return [ActiveRecord::Relation] chronologically ordered history records
     def history
       self.class.history.chronological.of(self)
     end
@@ -149,18 +161,23 @@ module ChronoModel
     # Returns an Array of timestamps for which this instance has an history
     # record. Takes temporal associations into account.
     #
+    # @param options [Hash] timeline options
+    # @return [Array<Time>] array of timestamps
     def timeline(options = {})
       self.class.history.timeline(self, options)
     end
 
     # Returns a boolean indicating whether this record is an history entry.
     #
+    # @return [Boolean] true if this is a historical record, false otherwise
     def historical?
       as_of_time.present?
     end
 
-    # Inhibit destroy of historical records
+    # Inhibits destroy of historical records.
     #
+    # @return [void]
+    # @raise [ActiveRecord::ReadOnlyRecord] if attempting to destroy a historical record
     def destroy
       raise ActiveRecord::ReadOnlyRecord, 'Cannot delete historical records' if historical?
 
@@ -170,6 +187,8 @@ module ChronoModel
     # Returns the previous record in the history, or nil if this is the only
     # recorded entry.
     #
+    # @param options [Hash] options for the query
+    # @return [Object, nil] the previous historical record or nil
     def pred(options = {})
       if self.class.timeline_associations.empty?
         history.reverse_order.second
@@ -185,6 +204,8 @@ module ChronoModel
     # Returns the previous timestamp in this record's timeline. Includes
     # temporal associations.
     #
+    # @param options [Hash] options for the timeline query
+    # @return [Time, nil] the previous timestamp or nil if not found
     def pred_timestamp(options = {})
       if historical?
         options[:before] ||= as_of_time
@@ -196,12 +217,14 @@ module ChronoModel
 
     # This is a current record, so its next instance is always nil.
     #
+    # @return [nil] always returns nil for current records
     def succ
       nil
     end
 
-    # Returns the current history version
+    # Returns the current history version.
     #
+    # @return [Object] the current version of this record
     def current_version
       if historical?
         self.class.find(id)
@@ -213,6 +236,7 @@ module ChronoModel
     # Returns the differences between this entry and the previous history one.
     # See: +changes_against+.
     #
+    # @return [Hash, nil] hash of changes or nil if no previous record exists
     def last_changes
       pred = self.pred
       changes_against(pred) if pred
@@ -223,6 +247,8 @@ module ChronoModel
     # values are arrays containing previous and current attributes values -
     # the same format used by ActiveModel::Dirty.
     #
+    # @param ref [Object] the reference record to compare against
+    # @return [Hash] hash of changes in ActiveModel::Dirty format
     def changes_against(ref)
       self.class.attribute_names_for_history_changes.inject({}) do |changes, attr|
         old = ref.public_send(attr)

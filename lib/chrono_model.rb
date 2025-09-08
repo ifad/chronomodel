@@ -13,12 +13,20 @@ require_relative 'chrono_model/version'
 require_relative 'chrono_model/railtie' if defined?(Rails::Railtie)
 require_relative 'chrono_model/db_console' if defined?(Rails::DBConsole) && Rails.version < '7.1'
 
+# ChronoModel provides temporal database functionality for PostgreSQL using Active Record.
+#
+# This gem implements Type-2 Slowly-Changing Dimensions through Oracle-style
+# "Flashback Queries" using updatable views, table inheritance, and INSTEAD OF triggers.
 module ChronoModel
+  # Base error class for ChronoModel-specific errors.
+  # @api private
   class Error < ActiveRecord::ActiveRecordError # :nodoc:
   end
 
-  # Performs structure upgrade.
+  # Performs structure upgrade on the database connection.
   #
+  # @raise [ChronoModel::Error] if the connection is not a ChronoModel::Adapter
+  # @return [void]
   def self.upgrade!
     connection = ActiveRecord::Base.connection
 
@@ -32,6 +40,7 @@ module ChronoModel
   # Returns an Hash keyed by table name of ChronoModels.
   # Computed upon inclusion of the +TimeMachine+ module.
   #
+  # @return [Hash] hash of history models keyed by table name
   def self.history_models
     @history_models ||= {}
   end

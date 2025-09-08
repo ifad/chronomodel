@@ -2,6 +2,8 @@
 
 module ActiveRecord
   module Tasks
+    # Database tasks for ChronoModel, extending PostgreSQL database tasks
+    # to handle temporal schema structures.
     class ChronomodelDatabaseTasks < PostgreSQLDatabaseTasks
       CHRONOMODEL_SCHEMAS = [
         ChronoModel::Adapter::TEMPORAL_SCHEMA,

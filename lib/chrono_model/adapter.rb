@@ -13,7 +13,6 @@ module ChronoModel
   # This class implements all ActiveRecord::ConnectionAdapters::SchemaStatements
   # methods adding support for temporal extensions. It inherits from the Postgres
   # adapter for a clean override of its methods using super.
-  #
   class Adapter < ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
     include ChronoModel::Adapter::Migrations
     include ChronoModel::Adapter::DDL
@@ -46,10 +45,15 @@ module ChronoModel
     # is supported starting with PostgreSQL 9.3 (90300 in PostgreSQL's
     # `PG_VERSION_NUM` numeric format).
     #
+    # @return [Boolean] true if PostgreSQL version >= 9.3
     def chrono_supported?
       postgresql_version >= 90300 # rubocop:disable Style/NumericLiterals
     end
 
+    # Sets up ChronoModel schemas and performs upgrade checks.
+    #
+    # @return [void]
+    # @api private
     def chrono_setup!
       chrono_ensure_schemas
 
@@ -70,6 +74,9 @@ module ChronoModel
     #
     # NOTE: These methods are dynamically defined, see the source.
     #
+    # @param table_name [String] name of the table
+    # @return [Object] depends on the method being called
+    # @api private
     def primary_key(table_name); end
 
     %i[primary_key indexes default_sequence_name].each do |method|
@@ -95,23 +102,31 @@ module ChronoModel
 
     # Evaluates the given block in the temporal schema.
     #
+    # @yield [] the block to execute within the temporal schema
+    # @return [Object] the result of the block execution
     def on_temporal_schema(&block)
       on_schema(TEMPORAL_SCHEMA, &block)
     end
 
     # Evaluates the given block in the history schema.
     #
+    # @yield [] the block to execute within the history schema
+    # @return [Object] the result of the block execution
     def on_history_schema(&block)
       on_schema(HISTORY_SCHEMA, &block)
     end
 
-    # Evaluates the given block in the given +schema+ search path.
+    # Evaluates the given block in the given schema search path.
     #
     # Recursion works by saving the old_path the function closure
     # at each recursive call.
     #
     # See specs for examples and behaviour.
     #
+    # @param schema [String] the schema search path to use
+    # @param recurse [:follow, :ignore] how to handle recursive calls
+    # @yield [] the block to execute within the specified schema
+    # @return [Object] the result of the block execution
     def on_schema(schema, recurse: :follow)
       old_path = schema_search_path
 
@@ -143,6 +158,8 @@ module ChronoModel
 
     # Returns true if the given name references a temporal table.
     #
+    # @param table [String, Symbol] the table name to check
+    # @return [Boolean] true if the table exists in both temporal and history schemas
     def is_chrono?(table)
       on_temporal_schema { data_source_exists?(table) } &&
         on_history_schema { data_source_exists?(table) }
@@ -151,6 +168,8 @@ module ChronoModel
     # Reads the Gem metadata from the COMMENT set on the given PostgreSQL
     # view name.
     #
+    # @param view_name [String] the name of the view
+    # @return [Hash] the metadata hash with indifferent access
     def chrono_metadata_for(view_name)
       comment = select_value(
         "SELECT obj_description(#{quote(view_name)}::regclass)",
@@ -162,26 +181,37 @@ module ChronoModel
 
     # Writes Gem metadata on the COMMENT field in the given VIEW name.
     #
+    # @param view_name [String] the name of the view
+    # @param metadata [Hash] the metadata to store
+    # @return [void]
     def chrono_metadata_set(view_name, metadata)
       comment = MultiJson.dump(metadata)
 
       execute "COMMENT ON VIEW #{view_name} IS #{quote(comment)}"
     end
 
+    # Returns the valid table definition options for ChronoModel.
+    #
+    # @return [Array<Symbol>] array of valid options
     def valid_table_definition_options
       super + %i[temporal journal no_journal full_journal]
     end
 
     private
 
-    # Rails 7.1 uses `@raw_connection`, older versions use `@connection`
+    # Rails 7.1 uses `@raw_connection`, older versions use `@connection`.
     #
+    # @return [PG::Connection] the PostgreSQL connection object
+    # @api private
     def chrono_connection
       @chrono_connection ||= @raw_connection || @connection
     end
 
-    # Counts the number of recursions in a thread local variable
+    # Counts the number of recursions in a thread local variable.
     #
+    # @yield [] the block to execute while counting recursions
+    # @return [Object] the result of the block execution
+    # @api private
     def count_recursions # yield
       Thread.current['recursions'] ||= 0
       Thread.current['recursions'] += 1
@@ -191,8 +221,10 @@ module ChronoModel
       Thread.current['recursions'] -= 1
     end
 
-    # Create the temporal and history schemas, unless they already exist
+    # Creates the temporal and history schemas, unless they already exist.
     #
+    # @return [void]
+    # @api private
     def chrono_ensure_schemas
       [TEMPORAL_SCHEMA, HISTORY_SCHEMA].each do |schema|
         execute "CREATE SCHEMA #{schema}" unless schema_exists?(schema)

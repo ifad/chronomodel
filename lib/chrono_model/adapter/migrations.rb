@@ -6,6 +6,10 @@ module ChronoModel
       # Creates the given table, possibly creating the temporal schema
       # objects if the `:temporal` option is given and set to true.
       #
+      # @param table_name [String, Symbol] the name of the table to create
+      # @param options [Hash] table creation options
+      # @option options [Boolean] :temporal when true, creates temporal table structure
+      # @return [void]
       def create_table(table_name, **options)
         # No temporal features requested, skip
         return super unless options[:temporal]
@@ -27,6 +31,10 @@ module ChronoModel
 
       # If renaming a temporal table, rename the history and view as well.
       #
+      # @param name [String, Symbol] current table name
+      # @param new_name [String, Symbol] new table name
+      # @param options [Hash] renaming options
+      # @return [void]
       def rename_table(name, new_name, **options)
         unless is_chrono?(name)
           return super(name, new_name) if method(:rename_table).super_method.arity == 2
@@ -68,6 +76,11 @@ module ChronoModel
       # features on the given table. Please note that you'll lose your history
       # when demoting a temporal table to a plain one.
       #
+      # @param table_name [String, Symbol] the name of the table to change
+      # @param options [Hash] table change options
+      # @option options [Boolean] :temporal when specified, enables/disables temporal features
+      # @yield [] block containing table alterations
+      # @return [void]
       def change_table(table_name, **options, &block)
         transaction do
           # Add an empty proc to support calling change_table without a block.
@@ -96,6 +109,9 @@ module ChronoModel
       # If dropping a temporal table, drops it from the temporal schema
       # adding the CASCADE option so to delete the history, view and triggers.
       #
+      # @param table_name [String, Symbol] the name of the table to drop
+      # @param options [Hash] drop table options
+      # @return [void]
       def drop_table(table_name, **options)
         return super unless is_chrono?(table_name)
 
@@ -107,6 +123,11 @@ module ChronoModel
       # If adding a column to a temporal table, creates it in the table in
       # the temporal schema and updates the triggers.
       #
+      # @param table_name [String, Symbol] the name of the table
+      # @param column_name [String, Symbol] the name of the column to add
+      # @param type [Symbol] the column type
+      # @param options [Hash] column options
+      # @return [void]
       def add_column(table_name, column_name, type, **options)
         return super unless is_chrono?(table_name)
 
@@ -120,8 +141,10 @@ module ChronoModel
       end
 
       # If renaming a column of a temporal table, rename it in the table in
-      # the temporal schema and update the triggers.
+      # Renames a column in a temporal table, updating both the temporal schema and triggers.
       #
+      # @param table_name [String, Symbol] the name of the table
+      # @return [void]
       def rename_column(table_name, *)
         return super unless is_chrono?(table_name)
 
@@ -137,8 +160,13 @@ module ChronoModel
 
       # If removing a column from a temporal table, we are forced to drop the
       # view, then change the column from the table in the temporal schema and
-      # eventually recreate the triggers.
+      # Changes a column type in a temporal table and recreates the triggers.
       #
+      # @param table_name [String, Symbol] the name of the table
+      # @param column_name [String, Symbol] the name of the column to change
+      # @param type [Symbol] the new column type
+      # @param options [Hash] column options
+      # @return [void]
       def change_column(table_name, column_name, type, **options)
         return super unless is_chrono?(table_name)
 
@@ -153,8 +181,10 @@ module ChronoModel
         on_temporal_schema { super }
       end
 
-      # Change the null constraint on the temporal schema table.
+      # Changes the null constraint on the temporal schema table.
       #
+      # @param table_name [String, Symbol] the name of the table
+      # @return [void]
       def change_column_null(table_name, *)
         return super unless is_chrono?(table_name)
 

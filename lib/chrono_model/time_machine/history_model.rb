@@ -26,9 +26,9 @@ module ChronoModel
         include ChronoModel::TimeMachine::TimeQuery
         include ChronoModel::TimeMachine::Timeline
 
-        # HACK. find() and save() require the real history ID. So we are
+        # FIXME: find() and save() require the real history ID. So we are
         # setting it now and ensuring to reset it to the original one after
-        # execution completes. FIXME
+        # execution completes.
         #
         def with_hid_pkey
           old = primary_key

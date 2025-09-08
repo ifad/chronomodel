@@ -2,10 +2,16 @@
 
 module ChronoModel
   module TimeMachine
-    #
-    # TODO Documentation
-    #
+    # Provides time-based query methods for temporal tables using PostgreSQL range operators.
     module TimeQuery
+      # Builds a time-based query on temporal data.
+      #
+      # @param match [Symbol] the type of time match (:at, :not, :before, :after)
+      # @param time [Time, Array, Symbol] the time value(s) to query for
+      # @param options [Hash] query options
+      # @option options [Symbol] :on the temporal column to query on
+      # @option options [Boolean] :inclusive (true) whether the query is inclusive
+      # @return [ActiveRecord::Relation] the scoped relation
       def time_query(match, time, options)
         range = columns_hash.fetch(options[:on].to_s)
 
@@ -14,6 +20,14 @@ module ChronoModel
 
       private
 
+      # Builds the SQL for time queries based on the match type.
+      #
+      # @param match [Symbol] the type of time match
+      # @param time [Time, Array, Symbol] the time value(s)
+      # @param range [ActiveRecord::ConnectionAdapters::Column] the range column
+      # @param options [Hash] query options
+      # @return [Arel::Nodes::SqlLiteral] the SQL query fragment
+      # @api private
       def time_query_sql(match, time, range, options)
         case match
         when :at

@@ -5,14 +5,20 @@ require_relative '../../chrono_model'
 module ActiveRecord
   # TODO: Remove when dropping Rails < 7.2 compatibility
   module ConnectionHandling
+    # Returns the ChronoModel adapter class.
+    #
+    # @return [Class] the ChronoModel::Adapter class
     def chronomodel_adapter_class
       ChronoModel::Adapter
     end
 
-    # Install the new adapter in ActiveRecord. This approach is required because
+    # Installs the new adapter in ActiveRecord. This approach is required because
     # the PG adapter defines +add_column+ itself, thus making impossible to use
     # super() in overridden Module methods.
     #
+    # @param config [Hash] database configuration
+    # @return [ChronoModel::Adapter] the configured adapter instance
+    # @api private
     def chronomodel_connection(config) # :nodoc:
       return chronomodel_adapter_class.new(config) if ActiveRecord::VERSION::STRING >= '7.1'
 
