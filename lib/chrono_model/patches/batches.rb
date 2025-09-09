@@ -17,7 +17,7 @@ module ChronoModel
     # - This approach prevents specifying 'id' as a cursor for historical models.
     #   If 'id' is needed, it must be handled separately.
     #
-    # See: ifad/chronomodel#321 for more context
+    # @see https://github.com/ifad/chronomodel/issues/321
     module Batches
       def find_each(**options)
         return super unless try(:history?)

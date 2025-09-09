@@ -3,6 +3,11 @@
 module ChronoModel
   class Adapter < ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
     module Upgrade
+      # Performs a complete ChronoModel upgrade.
+      #
+      # Ensures schemas exist and upgrades the structure of all temporal tables.
+      #
+      # @return [void]
       def chrono_upgrade!
         chrono_ensure_schemas
 
@@ -11,8 +16,10 @@ module ChronoModel
 
       private
 
-      # Locate tables needing a structure upgrade
+      # Locates tables needing a structure upgrade.
       #
+      # @return [Hash] hash of table names and their upgrade metadata
+      # @api private
       def chrono_tables_needing_upgrade
         tables = {}
 
@@ -32,8 +39,10 @@ module ChronoModel
         tables
       end
 
-      # Emit a warning about tables needing an upgrade
+      # Emits a warning about tables needing an upgrade.
       #
+      # @return [void]
+      # @api private
       def chrono_upgrade_warning
         upgrade = chrono_tables_needing_upgrade.map do |table, desc|
           "#{table} - priority: #{desc[:priority]}"
@@ -50,6 +59,9 @@ module ChronoModel
 
       # Upgrades existing structure for each table, if required.
       #
+      # @return [void]
+      # @raise [StandardError] when upgrade fails due to dependent objects
+      # @api private
       def chrono_upgrade_structure!
         transaction do
           chrono_tables_needing_upgrade.each do |table_name, desc|
@@ -73,6 +85,14 @@ module ChronoModel
         warn message
       end
 
+      # Upgrades a table from PostgreSQL 9.0 legacy format.
+      #
+      # Converts old valid_from/valid_to columns to validity tsrange and
+      # recreates indexes, constraints, and triggers using the new format.
+      #
+      # @param table_name [String] the table to upgrade
+      # @return [void]
+      # @api private
       def chrono_upgrade_from_postgres_v90(table_name)
         # roses are red
         # violets are blue

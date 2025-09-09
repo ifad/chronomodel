@@ -3,22 +3,18 @@
 module ChronoModel
   class Adapter < ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
     module Indexes
-      # Create temporal indexes for timestamp search.
+      # Creates temporal indexes for timestamp search.
       #
       # This index is used by +TimeMachine.at+, `.current` and `.past` to
       # build the temporal WHERE clauses that fetch the state of records at
       # a single point in time.
       #
-      # Parameters:
-      #
-      #   `table`: the table where to create indexes on
-      #   `range`: the tsrange field
-      #
-      # Options:
-      #
-      #   `:name`: the index name prefix, defaults to
-      #            index_{table}_temporal_on_{range / lower_range / upper_range}
-      #
+      # @param table [String] the table where to create indexes on
+      # @param range [String, Symbol] the tsrange field
+      # @param options [Hash] options for index creation
+      # @option options [String] :name the index name prefix, defaults to
+      #   +index_{table}\_temporal_on_{range / lower_range / upper_range}+
+      # @return [void]
       def add_temporal_indexes(table, range, options = {})
         range_idx, lower_idx, upper_idx =
           temporal_index_names(table, range, options)
@@ -34,6 +30,12 @@ module ChronoModel
         end
       end
 
+      # Removes temporal indexes from a table.
+      #
+      # @param table [String] the table to remove indexes from
+      # @param range [String, Symbol] the tsrange field
+      # @param options [Hash] options for index removal
+      # @return [void]
       def remove_temporal_indexes(table, range, options = {})
         indexes = temporal_index_names(table, range, options)
 
@@ -42,10 +44,16 @@ module ChronoModel
         end
       end
 
-      # Adds an EXCLUDE constraint to the given table, to assure that
-      # no more than one record can occupy a definite segment on a
-      # timeline.
+      # Adds an EXCLUDE constraint to the given table.
       #
+      # Ensures that no more than one record can occupy a definite segment
+      # on a timeline.
+      #
+      # @param table [String] the table to add the constraint to
+      # @param range [String, Symbol] the tsrange field
+      # @param options [Hash] options for constraint creation
+      # @option options [String] :id the primary key field, defaults to primary key
+      # @return [void]
       def add_timeline_consistency_constraint(table, range, options = {})
         name = timeline_consistency_constraint_name(table)
         id   = options[:id] || primary_key(table)
@@ -58,6 +66,11 @@ module ChronoModel
         end
       end
 
+      # Removes the timeline consistency constraint from a table.
+      #
+      # @param table [String] the table to remove the constraint from
+      # @param options [Hash] options for constraint removal
+      # @return [void]
       def remove_timeline_consistency_constraint(table, options = {})
         name = timeline_consistency_constraint_name(table)
 
@@ -68,14 +81,22 @@ module ChronoModel
         end
       end
 
+      # Returns the timeline consistency constraint name for a table.
+      #
+      # @param table [String] the table name
+      # @return [String] the constraint name
       def timeline_consistency_constraint_name(table)
         "#{table}_timeline_consistency"
       end
 
       private
 
-      # Creates indexes for a newly made history table
+      # Creates indexes for a newly made history table.
       #
+      # @param table [String] the history table name
+      # @param p_pkey [String] the primary key field
+      # @return [void]
+      # @api private
       def chrono_create_history_indexes_for(table, p_pkey)
         add_temporal_indexes table, :validity, on_current_schema: true
 
@@ -84,8 +105,12 @@ module ChronoModel
         execute "CREATE INDEX #{table}_instance_history ON #{table} (#{p_pkey}, recorded_at)"
       end
 
-      # Rename indexes on history schema
+      # Renames indexes on history schema.
       #
+      # @param name [String] the old table name
+      # @param new_name [String] the new table name
+      # @return [void]
+      # @api private
       def chrono_rename_history_indexes(name, new_name)
         on_history_schema do
           standard_index_names = %w[
@@ -105,8 +130,12 @@ module ChronoModel
         end
       end
 
-      # Rename indexes on temporal schema
+      # Renames indexes on temporal schema.
       #
+      # @param name [String] the old table name
+      # @param new_name [String] the new table name
+      # @return [void]
+      # @api private
       def chrono_rename_temporal_indexes(name, new_name)
         on_temporal_schema do
           temporal_indexes = indexes(new_name)
@@ -119,16 +148,19 @@ module ChronoModel
         end
       end
 
-      # Copy the indexes from the temporal table to the history table
-      # if the indexes are not already created with the same name.
+      # Copies the indexes from the temporal table to the history table.
       #
+      # Copies indexes if they are not already created with the same name.
       # Uniqueness is voluntarily ignored, as it doesn't make sense on
       # history tables.
       #
       # Used in migrations.
       #
-      # Ref: GitHub pull #21.
+      # @param table_name [String] the table name
+      # @return [void]
+      # @api private
       #
+      # @see GitHub pull #21
       def chrono_copy_indexes_to_history(table_name)
         history_indexes  = on_history_schema  { indexes(table_name) }.map(&:name)
         temporal_indexes = on_temporal_schema { indexes(table_name) }
@@ -150,9 +182,16 @@ module ChronoModel
         end
       end
 
-      # Returns a suitable index name on the given table and for the
-      # given range definition.
+      # Returns suitable index names for a temporal table.
       #
+      # Returns index names on the given table and for the given range definition.
+      #
+      # @param table [String] the table name
+      # @param range [String, Symbol] the range field name
+      # @param options [Hash] options for name generation
+      # @option options [String] :name the index name prefix
+      # @return [Array<String>] array of three index names for range, lower_range, upper_range
+      # @api private
       def temporal_index_names(table, range, options = {})
         prefix = options[:name].presence || "index_#{table}_temporal"
 
@@ -168,14 +207,19 @@ module ChronoModel
         end
       end
 
-      # Generic alteration of history tables, where changes have to be
-      # propagated both on the temporal table and the history one.
+      # Performs generic alteration of history tables for indexes.
       #
-      # Internally, the :on_current_schema bypasses the +is_chrono?+
-      # check, as some temporal indexes and constraints are created
-      # only on the history table, and the creation methods already
-      # run scoped into the correct schema.
+      # Changes are propagated both on the temporal table and the history one.
+      # The :on_current_schema option bypasses the +is_chrono?+ check, as some
+      # temporal indexes and constraints are created only on the history table,
+      # and the creation methods already run scoped into the correct schema.
       #
+      # @param table_name [String] the table name
+      # @param options [Hash] alteration options
+      # @option options [Boolean] :on_current_schema bypass schema switching
+      # @param block [Proc] the block to execute for alterations
+      # @return [void]
+      # @api private
       def chrono_alter_index(table_name, options, &block)
         if is_chrono?(table_name) && !options[:on_current_schema]
           on_temporal_schema(&block)
@@ -185,6 +229,16 @@ module ChronoModel
         end
       end
 
+      # Performs generic alteration of history tables for constraints.
+      #
+      # Changes are propagated both on the temporal table and the history one.
+      #
+      # @param table_name [String] the table name
+      # @param options [Hash] alteration options
+      # @option options [Boolean] :on_current_schema bypass schema switching
+      # @param block [Proc] the block to execute for alterations
+      # @return [void]
+      # @api private
       def chrono_alter_constraint(table_name, options, &block)
         if is_chrono?(table_name) && !options[:on_current_schema]
           on_temporal_schema(&block)
