@@ -2,10 +2,22 @@
 
 module ChronoModel
   module TimeMachine
+    # Provides timeline functionality for temporal models and their associations.
+    #
+    # This module enables querying unique timestamps across temporal models and their
+    # associated temporal models, providing comprehensive timeline functionality.
     module Timeline
       # Returns an Array of unique UTC timestamps for which at least an
       # history record exists. Takes temporal associations into account.
       #
+      # @param record [ActiveRecord::Base, Integer, nil] the record or record ID to get timeline for
+      # @param options [Hash] timeline query options
+      # @option options [Array<Symbol>, Symbol] :with associations to include in timeline
+      # @option options [Boolean] :reverse whether to sort timestamps in descending order
+      # @option options [Time] :before only include timestamps before this time
+      # @option options [Time] :after only include timestamps after this time
+      # @option options [Integer] :limit maximum number of timestamps to return
+      # @return [Array<Time>] array of unique UTC timestamps
       def timeline(record = nil, options = {})
         rid =
           if record
@@ -85,6 +97,11 @@ module ChronoModel
         end
       end
 
+      # Configures timeline associations for this model.
+      #
+      # @param options [Hash] configuration options
+      # @option options [Array<Symbol>, Symbol] :with association names to include in timeline
+      # @return [Array<ActiveRecord::Reflection::AssociationReflection>] configured associations
       def has_timeline(options)
         options.assert_valid_keys(:with)
 
@@ -93,10 +110,18 @@ module ChronoModel
         end
       end
 
+      # Returns the timeline associations configured for this model.
+      #
+      # @return [Array<ActiveRecord::Reflection::AssociationReflection>] timeline associations
       def timeline_associations
         @timeline_associations ||= []
       end
 
+      # Converts association names to association reflection objects.
+      #
+      # @param names [Array<Symbol>, Symbol] association names
+      # @return [Array<ActiveRecord::Reflection::AssociationReflection>] association reflections
+      # @raise [ArgumentError] if an association is not found
       def timeline_associations_from(names)
         Array.wrap(names).map do |name|
           reflect_on_association(name) or raise ArgumentError,
@@ -104,6 +129,9 @@ module ChronoModel
         end
       end
 
+      # Returns quoted history field names for this model's timeline.
+      #
+      # @return [Array<String>] array of quoted SQL field expressions for timeline queries
       def quoted_history_fields
         @quoted_history_fields ||= begin
           validity = "#{quoted_table_name}.#{connection.quote_column_name('validity')}"

@@ -2,6 +2,8 @@
 
 module ChronoModel
   module Patches
+    # Virtual join node for temporal associations compatibility with ActiveRecord < 7.1.
+    #
     # This class supports the AR < 7.1 code that expects to receive an
     # Arel::Table as the left join node. We need to replace the node
     # with a virtual table that fetches from the history at a given
@@ -14,8 +16,14 @@ module ChronoModel
     #
     # TODO: Remove when dropping Rails < 7.1 compatibility
     class JoinNode < Arel::Nodes::SqlLiteral
+      # @return [String] the table name for this join node
       attr_reader :name, :table_name, :table_alias, :as_of_time
 
+      # Creates a new JoinNode for temporal associations.
+      #
+      # @param join_node [Arel::Table, Object] the original join node to replace
+      # @param history_model [Class] the history model class
+      # @param as_of_time [Time] the timestamp for the temporal query
       def initialize(join_node, history_model, as_of_time)
         @name        = join_node.table_name
         @table_name  = join_node.table_name

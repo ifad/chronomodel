@@ -3,13 +3,22 @@
 require_relative '../active_record/tasks/chronomodel_database_tasks'
 
 module ChronoModel
+  # Rails integration for ChronoModel database adapter.
+  #
+  # Registers database tasks and provides Rake tasks for data dumping and loading
+  # specific to ChronoModel's temporal database functionality.
   class Railtie < ::Rails::Railtie
+    # @return [Class] the database tasks class for ChronoModel operations
     TASKS_CLASS = ActiveRecord::Tasks::ChronomodelDatabaseTasks
 
     # Register our database tasks under our adapter name
     ActiveRecord::Tasks::DatabaseTasks.register_task(/chronomodel/, TASKS_CLASS.to_s)
 
     rake_tasks do
+      # Returns the task configuration from the current database connection.
+      #
+      # @return [ActiveRecord::DatabaseConfigurations::DatabaseConfig] database configuration
+      # @api private
       def task_config
         ActiveRecord::Base.connection_db_config
       end
