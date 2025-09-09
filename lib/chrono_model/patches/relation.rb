@@ -7,7 +7,10 @@ module ChronoModel
 
       def preload_associations(records) # :nodoc:
         preload = preload_values
-        preload += includes_values unless eager_loading?
+        # ChronoModel fix: When using as_of_time, we need to ensure includes_values
+        # are processed even when eager_loading? is true (e.g., includes + joins)
+        # to properly apply temporal scoping to the included associations
+        preload += includes_values unless eager_loading? && !@_as_of_time
         scope = StrictLoadingScope if strict_loading_value
 
         preload.each do |associations|

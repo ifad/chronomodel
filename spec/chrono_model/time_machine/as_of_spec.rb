@@ -189,5 +189,38 @@ RSpec.describe ChronoModel::TimeMachine do
         expect(Foo.as_of(Time.now).load).to be_an(ActiveRecord::Relation)
       end
     end
+
+    describe 'includes with joins regression' do
+      # This tests the fix for the issue where includes + joins didn't work correctly
+      # with temporal queries due to eager_loading? returning true and skipping includes_values
+      context 'with includes and joins combined' do
+        let(:historical_time) { $t.bar.ts[0] }  # Use a timestamp when data existed differently
+
+        it 'works with joins alone' do
+          # This should work - joins uses build_arel temporal processing
+          result = Bar.as_of(historical_time).joins(:foo)
+          expect(result).not_to be_empty
+        end
+
+        it 'works with includes alone' do
+          # This should work - includes uses preload_associations temporal processing
+          result = Bar.as_of(historical_time).includes(:foo)
+          expect(result).not_to be_empty
+        end
+
+        it 'works with includes and joins together' do
+          # This is the regression test - includes + joins should work together
+          # Before the fix, this would skip includes_values when eager_loading? was true
+          result = Bar.as_of(historical_time).includes(:foo).joins(:foo)
+          expect(result).not_to be_empty
+          
+          # Verify that the temporal data is correctly loaded for the association
+          first_bar = result.first
+          expect(first_bar.foo).not_to be_nil
+          # The foo association should have the temporal data from historical_time
+          expect(first_bar.foo.as_of_time).to eq(historical_time)
+        end
+      end
+    end
   end
 end
