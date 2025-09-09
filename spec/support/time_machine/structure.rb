@@ -75,6 +75,7 @@ module ChronoTest
     adapter.create_table 'sub_bars', temporal: true do |t|
       t.string     :name
       t.references :bar
+      t.boolean    :active, default: true
     end
 
     adapter.create_table 'sub_sub_bars', temporal: true do |t|
@@ -87,6 +88,8 @@ module ChronoTest
 
       belongs_to :foo
       has_many :sub_bars
+      has_many :active_sub_bars, -> { active }, class_name: 'SubBar'
+
       has_one :baz
 
       has_timeline with: :foo
@@ -121,6 +124,7 @@ module ChronoTest
       has_many :tars, foreign_key: :foo_refering, primary_key: :refee_foo
       has_many :sub_bars, through: :bars
       has_many :sub_sub_bars, through: :sub_bars
+      has_many :active_sub_bars, through: :bars
 
       belongs_to :goo, class_name: 'FooGoo', optional: true
     end
@@ -146,6 +150,8 @@ module ChronoTest
 
       belongs_to :bar
       has_many :sub_sub_bars
+
+      scope :active, -> { where(active: true) }
 
       has_timeline with: :bar
     end
