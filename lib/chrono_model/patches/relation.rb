@@ -26,7 +26,12 @@ module ChronoModel
       def load(&block)
         return super unless @_as_of_time && (!loaded? || scheduled?)
 
-        super.each { |record| record.as_of_time!(@_as_of_time) }
+        records = super
+
+        records.each do |record|
+          record.as_of_time!(@_as_of_time)
+          propagate_as_of_time_to_includes(record)
+        end
 
         self
       end
@@ -88,6 +93,46 @@ module ChronoModel
         return super unless try(:history?)
 
         with_hid_pkey { super }
+      end
+
+      # Propagate as_of_time to associations that were eager loaded via includes/eager_load
+      def propagate_as_of_time_to_includes(record)
+        return unless eager_loading?
+
+        assign_as_of_time_to_spec(record, includes_values)
+      end
+
+      def assign_as_of_time_to_spec(record, spec)
+        case spec
+        when Symbol, String
+          assign_as_of_time_to_association(record, spec.to_sym, nil)
+        when Array
+          spec.each { |s| assign_as_of_time_to_spec(record, s) }
+        when Hash
+          spec.each do |name, nested|
+            assign_as_of_time_to_association(record, name.to_sym, nested)
+          end
+        end
+      end
+
+      def assign_as_of_time_to_association(record, name, nested)
+        reflection = record.class.reflect_on_association(name)
+        return unless reflection
+
+        assoc = record.association(name)
+        return unless assoc.loaded?
+
+        target = assoc.target
+
+        if target.is_a?(Array)
+          target.each { |t| t.respond_to?(:as_of_time!) && t.as_of_time!(@_as_of_time) }
+          if nested.present?
+            target.each { |t| assign_as_of_time_to_spec(t, nested) }
+          end
+        else
+          target.respond_to?(:as_of_time!) && target.as_of_time!(@_as_of_time)
+          assign_as_of_time_to_spec(target, nested) if nested.present? && target
+        end
       end
     end
   end
