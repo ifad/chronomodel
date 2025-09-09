@@ -82,8 +82,12 @@ module ChronoModel
 
         # Fetches history record at the given time
         #
+        # Build on an unscoped relation to avoid leaking outer predicates
+        # (e.g., through association scopes) into the inner subquery.
+        #
+        # @see https://github.com/ifad/chronomodel/issues/295
         def at(time)
-          time_query(:at, time).from(quoted_table_name).as_of_time!(time)
+          unscoped.time_query(:at, time).from(quoted_table_name).as_of_time!(time)
         end
 
         # Returns the history sorted by recorded_at

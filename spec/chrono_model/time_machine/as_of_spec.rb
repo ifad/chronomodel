@@ -153,6 +153,8 @@ RSpec.describe ChronoModel::TimeMachine do
       it { expect(Foo.as_of($t.subbar.ts[3]).includes(:bars, :sub_bars).first.sub_bars.first.name).to eq 'new sub-bar' }
 
       it { expect(Foo.as_of(Time.now).includes(:bars, :sub_bars, :sub_sub_bars).first.sub_sub_bars.compact.size).to eq 1 }
+
+      it { expect(Foo.as_of(Time.now).includes(:active_sub_bars).first.name).to eq 'new foo' }
     end
 
     it 'does not raise RecordNotFound when no history records are found' do
