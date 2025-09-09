@@ -158,8 +158,6 @@ module ChronoModel
         end
       end
 
-      # If removing a column from a temporal table, we are forced to drop the
-      # view, then change the column from the table in the temporal schema and
       # Changes a column type in a temporal table and recreates the triggers.
       #
       # @param table_name [String, Symbol] the name of the table
