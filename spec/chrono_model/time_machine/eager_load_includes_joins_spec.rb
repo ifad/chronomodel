@@ -30,7 +30,7 @@ RSpec.describe ChronoModel::TimeMachine, :db do
         expect(names).to eq(['foo bar'])
       end
 
-      it 'also works with left_outer_joins' do
+      it 'works with left_outer_joins' do
         t = $t.bar.ts[1]
         names = Baz.as_of(t).includes(:bar).left_outer_joins(:bar).map { |bz| bz.bar.foo.name }.uniq
         expect(names).to eq(['foo bar'])
