@@ -3,6 +3,8 @@
 module ChronoModel
   module TimeMachine
     # Provides time-based query methods for temporal tables using PostgreSQL range operators.
+    # 
+    # Supports the following query types: :at, :not, :before, :after.
     module TimeQuery
       # Builds a time-based query on temporal data.
       #
