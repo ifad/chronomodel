@@ -219,7 +219,30 @@ module ChronoModel
       def valid_to
         validity.end if validity.end.is_a?(Time)
       end
-      alias as_of_time valid_to
+
+      # Computes an `as_of_time` strictly inside this record's validity period
+      # for historical queries.
+      #
+      # Ensures association queries return versions that existed during this
+      # record's validity, not ones that became valid exactly at the boundary
+      # time. When objects are updated in the same transaction, they can share
+      # the same `valid_to`, which would otherwise cause boundary
+      # mis-selection.
+      #
+      # PostgreSQL ranges are half-open `[start, end)` by default.
+      #
+      # @return [Time, nil] `valid_to - ChronoModel::VALIDITY_TSRANGE_PRECISION`
+      #   when `valid_to` is a Time; otherwise returns `valid_to` unchanged
+      #   (which may be `nil` for open-ended validity).
+      #
+      # @see https://github.com/ifad/chronomodel/issues/283
+      def as_of_time
+        if valid_to.is_a?(Time)
+          valid_to - ChronoModel::VALIDITY_TSRANGE_PRECISION
+        else
+          valid_to
+        end
+      end
 
       # `.read_attribute` uses the memoized `primary_key` if it detects
       # that the attribute name is `id`.
