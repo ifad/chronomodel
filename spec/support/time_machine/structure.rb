@@ -165,7 +165,7 @@ module ChronoTest
     # Master timeline, used in multiple specs. It is defined here
     # as a global variable to be able to be shared across specs.
     #
-    $t = Struct.new(:foo, :bar, :baz, :subbar, :foos, :bars, :boos, :moos, :noos, :noo).new
+    $t = Struct.new(:foo, :bar, :baz, :subbar, :foos, :bars, :boos, :moos, :noos, :noo, :additional_sub_bars, :additional_sub_sub_bars).new
 
     # Set up associated records, with intertwined updates
     #
@@ -194,6 +194,18 @@ module ChronoTest
     $t.moos = Array.new(2) { |i| ts_eval { Moo.create! name: "moo #{i}", boos: $t.boos } }
 
     $t.baz = Baz.create! name: 'baz', bar: $t.bar
+
+    # Add extra SubBars and SubSubBars for coverage testing
+    # These additional records help trigger the uncovered code paths in as_of propagation
+    # without impacting existing tests
+    $t.additional_sub_bars = Array.new(2) { |i| 
+      ts_eval { SubBar.create! name: "extra-sub-bar-#{i}", bar: $t.bar }
+    }
+    $t.additional_sub_sub_bars = $t.additional_sub_bars.flat_map { |sub_bar|
+      Array.new(2) { |i| 
+        ts_eval { SubSubBar.create! name: "extra-sub-sub-bar-#{i}", sub_bar: sub_bar }
+      }
+    }
 
     $t.noo = ts_eval { Noo.create! name: 'Historical Element 1' }
     Noo.create! name: 'Historical Element 2'

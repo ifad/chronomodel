@@ -78,6 +78,48 @@ RSpec.describe ChronoModel::TimeMachine, :db do
           end
         end
       end
+
+      it 'covers Hash case in assign_as_of_time_to_spec with multiple sub_bars' do
+        # This test specifically targets the Hash case with multiple associations
+        # to ensure Rails actually performs eager loading instead of optimization
+        t = $t.bar.ts[1]
+
+        # Query the main bar with multiple sub_bars using Hash-style includes
+        bar_records = Bar.as_of(t).includes(sub_bars: :sub_sub_bars).joins(:sub_bars)
+        
+        bar_records.each do |bar|
+          expect(bar.foo.name).to eq('foo bar')
+          
+          # Navigate through the sub_bars
+          bar.sub_bars.each do |sub_bar|
+            expect(sub_bar.bar.foo.name).to eq('foo bar')
+            sub_bar.sub_sub_bars.each do |sub_sub_bar|
+              expect(sub_sub_bar.sub_bar.bar.foo.name).to eq('foo bar')
+            end
+          end
+        end
+      end
+
+      it 'covers nested Array case with multiple associations' do
+        # Test the specific case where target.is_a?(Array) and nested.present?
+        # This should trigger lines 129-130 in assign_as_of_time_to_association
+        t = $t.bar.ts[1]
+
+        # Use the bar that has multiple sub_bars and deeply nested associations
+        bar_records = Bar.as_of(t).includes(sub_bars: { sub_sub_bars: {} }).joins(:sub_bars)
+        bar_records.each do |bar|
+          # Ensure we're testing the specific bar with multiple sub_bars
+          next unless bar.sub_bars.count > 1
+          
+          expect(bar.foo.name).to eq('foo bar')
+          bar.sub_bars.each do |sub_bar|
+            expect(sub_bar.bar.foo.name).to eq('foo bar')
+            sub_bar.sub_sub_bars.each do |sub_sub_bar|
+              expect(sub_sub_bar.sub_bar.bar.foo.name).to eq('foo bar')
+            end
+          end
+        end
+      end
     end
   end
 end
