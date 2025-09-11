@@ -344,9 +344,6 @@ Ensure to run the full test suite before pushing.
 
  * Foreign keys are not supported. [See issue #174][gh-issue-174]
 
- * There may be unexpected results when combining eager loading and joins.
-   [See issue #186][gh-issue-186]
-
  * Global ID ignores historical objects. [See issue #192][gh-issue-192]
 
  * Different historical objects are considered the identical. [See issue
@@ -421,7 +418,6 @@ This software is Made in Italy :it: :smile:.
 
 [gh-pzac]: https://github.com/pzac
 [gh-issue-174]: https://github.com/ifad/chronomodel/issues/174
-[gh-issue-186]: https://github.com/ifad/chronomodel/issues/186
 [gh-issue-192]: https://github.com/ifad/chronomodel/issues/192
 [gh-issue-206]: https://github.com/ifad/chronomodel/issues/206
 [gh-issue-313]: https://github.com/ifad/chronomodel/issues/313
