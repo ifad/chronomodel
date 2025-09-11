@@ -109,6 +109,9 @@ module ChronoModel
         when Array
           spec.each { |s| assign_as_of_time_to_spec(record, s) }
         when Hash
+          # This branch is difficult to trigger in practice due to Rails query optimization.
+          # Modern Rails versions tend to optimize eager loading in ways that make this specific
+          # code path challenging to reproduce in tests without artificial scenarios.
           spec.each do |name, nested|
             assign_as_of_time_to_association(record, name.to_sym, nested)
           end
@@ -126,6 +129,9 @@ module ChronoModel
 
         if target.is_a?(Array)
           target.each { |t| t.respond_to?(:as_of_time!) && t.as_of_time!(@_as_of_time) }
+          # This nested condition is difficult to trigger in practice as it requires specific
+          # association loading scenarios with Array targets and nested specs that Rails
+          # query optimization tends to handle differently in modern versions.
           if nested.present?
             target.each { |t| assign_as_of_time_to_spec(t, nested) }
           end
