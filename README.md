@@ -96,6 +96,79 @@ format:
 config.active_record.schema_format = :sql
 ```
 
+## Database Permissions (PostgreSQL)
+
+ChronoModel creates and manages data in the `temporal` and `history` schemas. Your application database user needs appropriate privileges on these schemas and their objects.
+
+### Required Privileges
+
+Grant the following privileges to your application database user (replace `app_user` with your actual username):
+
+```sql
+-- Schema access
+GRANT USAGE ON SCHEMA temporal TO app_user;
+GRANT USAGE ON SCHEMA history TO app_user;
+
+-- Table privileges for existing objects
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA temporal TO app_user;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA history TO app_user;
+
+-- Sequence privileges for existing objects
+GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA temporal TO app_user;
+GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA history TO app_user;
+
+-- Default privileges for future objects
+ALTER DEFAULT PRIVILEGES IN SCHEMA temporal GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO app_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA history GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO app_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA temporal GRANT USAGE, SELECT, UPDATE ON SEQUENCES TO app_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA history GRANT USAGE, SELECT, UPDATE ON SEQUENCES TO app_user;
+```
+
+### Quick Diagnostics
+
+You can verify your privileges are correctly set up by running these queries as your application user:
+
+```sql
+-- Check schema access
+SELECT 
+  schema_name,
+  has_schema_privilege(current_user, schema_name, 'USAGE') AS has_usage
+FROM information_schema.schemata 
+WHERE schema_name IN ('temporal', 'history');
+
+-- Check table privileges (run after creating temporal tables)
+SELECT 
+  schemaname,
+  tablename,
+  has_table_privilege(current_user, schemaname||'.'||tablename, 'SELECT') AS has_select,
+  has_table_privilege(current_user, schemaname||'.'||tablename, 'INSERT') AS has_insert,
+  has_table_privilege(current_user, schemaname||'.'||tablename, 'UPDATE') AS has_update,
+  has_table_privilege(current_user, schemaname||'.'||tablename, 'DELETE') AS has_delete
+FROM pg_tables 
+WHERE schemaname IN ('temporal', 'history');
+
+-- Check sequence privileges (run after creating temporal tables)
+SELECT 
+  schemaname,
+  sequencename,
+  has_sequence_privilege(current_user, schemaname||'.'||sequencename, 'USAGE') AS has_usage,
+  has_sequence_privilege(current_user, schemaname||'.'||sequencename, 'SELECT') AS has_select,
+  has_sequence_privilege(current_user, schemaname||'.'||sequencename, 'UPDATE') AS has_update
+FROM pg_sequences 
+WHERE schemaname IN ('temporal', 'history');
+```
+
+### Troubleshooting
+
+If you encounter these symptoms, check your database permissions:
+
+- **`ActiveRecord::UnknownPrimaryKey`** errors on temporalized models
+- **`Model.chrono?` returns `false`** for models that should be temporal
+- **Unexpected primary key or temporalization issues** during schema operations
+- **Permission denied errors** when ChronoModel tries to access temporal/history objects
+
+These issues often indicate insufficient privileges on the `temporal` and `history` schemas. Run the diagnostic queries above to identify missing privileges, then apply the appropriate `GRANT` statements.
+
 ## Schema creation
 
 ChronoModel hooks all `ActiveRecord::Migration` methods to make them temporal
