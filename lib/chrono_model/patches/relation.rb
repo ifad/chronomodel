@@ -75,13 +75,16 @@ module ChronoModel
         #
         return if join.left.respond_to?(:as_of_time)
 
-        model =
-          if join.left.respond_to?(:table_name)
-            ChronoModel.history_models[join.left.table_name]
-          else
-            ChronoModel.history_models[join.left]
-          end
+        # Handle both Arel::Table (which has .name) and other objects (which might have .table_name)
+        table_name = if join.left.respond_to?(:table_name)
+                       join.left.table_name
+                     elsif join.left.respond_to?(:name)
+                       join.left.name
+                     end
 
+        return unless table_name
+
+        model = ChronoModel.history_models[table_name]
         return unless model
 
         join.left = ChronoModel::Patches::JoinNode.new(

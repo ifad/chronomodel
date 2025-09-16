@@ -17,9 +17,18 @@ module ChronoModel
       attr_reader :name, :table_name, :table_alias, :as_of_time
 
       def initialize(join_node, history_model, as_of_time)
-        @name        = join_node.table_name
-        @table_name  = join_node.table_name
-        @table_alias = join_node.table_alias
+        # Handle both Arel::Table (which has .name) and other objects (which might have .table_name)
+        table_name = if join_node.respond_to?(:table_name)
+                       join_node.table_name
+                     elsif join_node.respond_to?(:name)
+                       join_node.name
+                     else
+                       raise ArgumentError, "Cannot determine table name from #{join_node.class}"
+                     end
+
+        @name        = table_name
+        @table_name  = table_name
+        @table_alias = join_node.respond_to?(:table_alias) ? join_node.table_alias : nil
 
         @as_of_time  = as_of_time
 
