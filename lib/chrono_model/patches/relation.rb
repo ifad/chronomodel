@@ -75,11 +75,13 @@ module ChronoModel
         #
         return if join.left.respond_to?(:as_of_time)
 
+        # Handle both Arel::Table (which has .name method) and other join node types
+        # (which have .table_name method) to extract the table name consistently
         model =
           if join.left.respond_to?(:table_name)
             ChronoModel.history_models[join.left.table_name]
-          else
-            ChronoModel.history_models[join.left]
+          elsif join.left.respond_to?(:name)
+            ChronoModel.history_models[join.left.name]
           end
 
         return unless model
