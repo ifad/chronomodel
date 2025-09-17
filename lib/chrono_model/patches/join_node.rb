@@ -17,16 +17,7 @@ module ChronoModel
       attr_reader :name, :table_name, :table_alias, :as_of_time
 
       def initialize(join_node, history_model, as_of_time)
-        # Handle both Arel::Table (which has .name method) and other join node types
-        # (which have .table_name method) to extract the table name consistently
-        table_name =
-          if join_node.respond_to?(:table_name)
-            join_node.table_name
-          elsif join_node.respond_to?(:name)
-            join_node.name
-          else
-            raise ArgumentError, "Cannot determine table name from #{join_node.class}: expected :table_name or :name method"
-          end
+        table_name = self.class.table_name_for(join_node)
 
         @name        = table_name
         @table_name  = table_name
@@ -38,6 +29,28 @@ module ChronoModel
                         .virtual_table_at(@as_of_time, table_name: @table_alias || @table_name)
 
         super(virtual_table)
+      end
+
+      class << self
+        # Handle both Arel::Table (which has .name method) and other join node types
+        # (which have .table_name method) to extract the table name consistently
+        def table_name_for(join_node)
+          if join_node.respond_to?(:table_name)
+            join_node.table_name
+          elsif join_node.respond_to?(:name)
+            join_node.name
+          else
+            raise ArgumentError, "Cannot determine table name from #{join_node.class}: expected :table_name or :name method"
+          end
+        end
+
+        def history_model_for(join_node)
+          if join_node.respond_to?(:table_name)
+            ChronoModel.history_models[join_node.table_name]
+          elsif join_node.respond_to?(:name)
+            ChronoModel.history_models[join_node.name]
+          end
+        end
       end
     end
   end
