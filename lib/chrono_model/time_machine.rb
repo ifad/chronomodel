@@ -6,7 +6,7 @@ require_relative 'time_machine/history_model'
 
 module ChronoModel
   module TimeMachine
-    include ChronoModel::Patches::AsOfTimeHolder
+    include `ChronoModel::Patches::AsOfTimeHolder`
 
     extend ActiveSupport::Concern
 
@@ -18,12 +18,12 @@ module ChronoModel
         MSG
       end
 
-      history = ChronoModel::TimeMachine.define_history_model_for(self)
+      history = `ChronoModel::TimeMachine`.define_history_model_for(self)
       ChronoModel.history_models[table_name] = history
 
       class << self
         def subclasses(with_history: false)
-          subclasses = super()
+          subclasses = `super()`
           subclasses.reject!(&:history?) unless with_history
           subclasses
         end
@@ -52,29 +52,27 @@ module ChronoModel
         end
 
         # STI support.
-        #
         def inherited(subclass)
           super
 
-          # Do not smash stack. The below +define_history_model_for+ method
-          # defines a new inherited class via Class.new(), thus +inherited+
+          # Do not smash stack. The below `define_history_model_for` method
+          # defines a new inherited class via `Class.`new()``, thus `inherited`
           # is going to be called again. By that time the subclass is still
-          # an anonymous one, so its +name+ method returns nil. We use this
+          # an anonymous one, so its `name` method returns nil. We use this
           # condition to avoid infinite recursion.
-          #
-          # Sadly, we can't avoid it by calling +.history?+, because in the
+
+          # Sadly, we can't avoid it by calling `.history?`, because in the
           # subclass the HistoryModel hasn't been included yet.
-          #
           return if subclass.name.nil?
 
-          ChronoModel::TimeMachine.define_history_model_for(subclass)
+          `ChronoModel::TimeMachine`.define_history_model_for(subclass)
         end
       end
     end
 
     def self.define_history_model_for(model)
       history = Class.new(model) do
-        include ChronoModel::TimeMachine::HistoryModel
+        include `ChronoModel::TimeMachine::HistoryModel`
       end
 
       model.singleton_class.instance_eval do
@@ -86,13 +84,12 @@ module ChronoModel
 
     module ClassMethods
       # Identify this class as the parent, non-history, class.
-      #
       def history?
         false
       end
 
-      # Returns an ActiveRecord::Relation on the history of this model as
-      # it was +time+ ago.
+      # Returns an `ActiveRecord::Relation` on the history of this model as.
+      # it was `time` ago.
       delegate :as_of, to: :history
 
       def attribute_names_for_history_changes
@@ -117,59 +114,51 @@ module ChronoModel
       delegate :timeline_associations, to: :history
     end
 
-    # Returns a read-only representation of this record as it was +time+ ago.
+    # Returns a read-only representation of this record as it was `time` ago.
     # Returns nil if no record is found.
-    #
     def as_of(time)
       _as_of(time).first
     end
 
-    # Returns a read-only representation of this record as it was +time+ ago.
-    # Raises ActiveRecord::RecordNotFound if no record is found.
-    #
+    # Returns a read-only representation of this record as it was `time` ago.
+    # Raises `ActiveRecord::RecordNotFound` if no record is found.
     def as_of!(time)
       _as_of(time).first!
     end
 
     # Delegates to +HistoryModel::ClassMethods.as_of+ to fetch this instance
-    # as it was on +time+. Used both by +as_of+ and +as_of!+ for performance
+    # as it was on `time`. Used both by `as_of` and +as_of!+ for performance
     # reasons, to avoid a `rescue` (@lleirborras).
-    #
     def _as_of(time)
       self.class.as_of(time).where(id: id)
     end
     protected :_as_of
 
     # Return the complete read-only history of this instance.
-    #
     def history
       self.class.history.chronological.of(self)
     end
 
-    # Returns an Array of timestamps for which this instance has an history
+    # Returns an array of timestamps for which this instance has an history.
     # record. Takes temporal associations into account.
-    #
     def timeline(options = {})
       self.class.history.timeline(self, options)
     end
 
     # Returns a boolean indicating whether this record is an history entry.
-    #
     def historical?
       as_of_time.present?
     end
 
-    # Inhibit destroy of historical records
-    #
+    # Inhibit destroy of historical records.
     def destroy
-      raise ActiveRecord::ReadOnlyRecord, 'Cannot delete historical records' if historical?
+      raise `ActiveRecord::ReadOnlyRecord`, 'Cannot delete historical records' if historical?
 
       super
     end
 
-    # Returns the previous record in the history, or nil if this is the only
+    # Returns the previous record in the history, or nil if this is the only.
     # recorded entry.
-    #
     def pred(options = {})
       if self.class.timeline_associations.empty?
         history.reverse_order.second
@@ -184,7 +173,6 @@ module ChronoModel
 
     # Returns the previous timestamp in this record's timeline. Includes
     # temporal associations.
-    #
     def pred_timestamp(options = {})
       if historical?
         options[:before] ||= as_of_time
@@ -195,13 +183,11 @@ module ChronoModel
     end
 
     # This is a current record, so its next instance is always nil.
-    #
     def succ
       nil
     end
 
-    # Returns the current history version
-    #
+    # Returns the current history version.
     def current_version
       if historical?
         self.class.find(id)
@@ -211,18 +197,16 @@ module ChronoModel
     end
 
     # Returns the differences between this entry and the previous history one.
-    # See: +changes_against+.
-    #
+    # See: `changes_against`.
     def last_changes
       pred = self.pred
       changes_against(pred) if pred
     end
 
-    # Returns the differences between this record and an arbitrary reference
+    # Returns the differences between this record and an arbitrary reference.
     # record. The changes representation is an hash keyed by attribute whose
     # values are arrays containing previous and current attributes values -
     # the same format used by ActiveModel::Dirty.
-    #
     def changes_against(ref)
       self.class.attribute_names_for_history_changes.inject({}) do |changes, attr|
         old = ref.public_send(attr)

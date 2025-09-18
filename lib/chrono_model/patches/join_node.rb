@@ -8,7 +8,7 @@ module ChronoModel
     # point in time, we replace the join node with a SqlLiteral node
     # that does not respond to the methods that AR expects.
     #
-    # This class provides AR with an object implementing the methods
+    # This class provides AR with an object implementing the methods.
     # it expects, yet producing SQL that fetches from history tables
     # as-of-time.
     #

@@ -3,9 +3,8 @@
 module ChronoModel
   module TimeMachine
     module Timeline
-      # Returns an Array of unique UTC timestamps for which at least an
+      # Returns an array of unique UTC timestamps for which at least an
       # history record exists. Takes temporal associations into account.
-      #
       def timeline(record = nil, options = {})
         rid =
           if record
@@ -74,7 +73,7 @@ module ChronoModel
             if chrono?
               %{ AND ts <@ (SELECT tsrange(min(lower(validity)), max(upper(validity)), '[]') FROM #{quoted_table_name} WHERE id = #{rid})}
             else
-              ' AND ts < NOW()'
+              ' AND ts < `NOW()`'
             end
         end
 

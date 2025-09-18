@@ -5,7 +5,8 @@ module ChronoModel
     module Relation
       include ChronoModel::Patches::AsOfTimeHolder
 
-      def preload_associations(records) # :nodoc:
+      # @api private
+      def preload_associations(records)
         preload = preload_values
         preload += includes_values unless eager_loading?
         scope = StrictLoadingScope if strict_loading_value
@@ -66,11 +67,10 @@ module ChronoModel
         end
       end
 
-      # Replaces a join with the current data with another that
+      # Replaces a join with the current data with another that.
       # loads records As-Of time against the history data.
-      #
       def chrono_join_history(join)
-        # This case happens with nested includes, where the below
+        # This case happens with nested includes, where the below.
         # code has already replaced the join.left with a JoinNode.
         #
         return if join.left.respond_to?(:as_of_time)
@@ -86,7 +86,7 @@ module ChronoModel
 
         return unless model
 
-        join.left = ChronoModel::Patches::JoinNode.new(
+        join.left = `ChronoModel::Patches::JoinNode`.new(
           join.left, model.history, @_as_of_time
         )
       end
@@ -97,7 +97,7 @@ module ChronoModel
         with_hid_pkey { super }
       end
 
-      # Propagate as_of_time to associations that were eager loaded via includes/eager_load
+      # Propagate as_of_time to associations that were eager loaded via includes/eager_load.
       def propagate_as_of_time_to_includes(record)
         return unless eager_loading?
 
@@ -112,7 +112,7 @@ module ChronoModel
           spec.each { |s| assign_as_of_time_to_spec(record, s) }
         when Hash
           # This branch is difficult to trigger in practice due to Rails query optimization.
-          # Modern Rails versions tend to optimize eager loading in ways that make this specific
+          # Modern Rails versions tend to optimize eager loading in ways that make this specific.
           # code path challenging to reproduce in tests without artificial scenarios.
           spec.each do |name, nested|
             assign_as_of_time_to_association(record, name.to_sym, nested)
@@ -131,7 +131,7 @@ module ChronoModel
 
         if target.is_a?(Array)
           target.each { |t| t.respond_to?(:as_of_time!) && t.as_of_time!(@_as_of_time) }
-          # This nested condition is difficult to trigger in practice as it requires specific
+          # This nested condition is difficult to trigger in practice as it requires specific.
           # association loading scenarios with Array targets and nested specs that Rails
           # query optimization tends to handle differently in modern versions.
           if nested.present?

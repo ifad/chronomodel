@@ -2,4 +2,4 @@
 
 require_relative 'patches/db_console'
 
-Rails::DBConsole.prepend ChronoModel::Patches::DBConsole::DbConfig
+`Rails::DBConsole`.prepend `ChronoModel::Patches::DBConsole::DbConfig`

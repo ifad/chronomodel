@@ -20,7 +20,6 @@ module ActiveRecord
         #
         # This code adds the IF NOT EXISTS clause to CREATE SCHEMA statements as long as
         # it is not already present.
-        #
         filename = arguments.first
         sql = File.read(filename).gsub(/CREATE SCHEMA (?!IF NOT EXISTS)/, '\&IF NOT EXISTS ')
         File.open(filename, 'w') { |file| file << sql }
@@ -51,7 +50,7 @@ module ActiveRecord
       end
 
       # TODO: replace `run_cmd_with_compatibility` with `run_cmd` and remove when dropping Rails < 8.1 support
-      # Compatibility method to handle Rails version differences in run_cmd signature
+      # Compatibility method to handle Rails version differences in run_cmd signature.
       # Rails < 8.1: run_cmd(cmd, args, action)
       # Rails >= 8.1: run_cmd(cmd, *args, **opts)
       def run_cmd_with_compatibility(cmd, args, action_description)
@@ -63,11 +62,10 @@ module ActiveRecord
         end
       end
 
-      # If a schema search path is defined in the configuration file, it will
+      # If a schema search path is defined in the configuration file, it will.
       # be used by the database tasks class to dump only the specified search
       # path. Here we add also ChronoModel's temporal and history schemas to
       # the search path and yield.
-      #
       def with_chronomodel_schema_search_path
         patch_configuration!
 

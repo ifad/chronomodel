@@ -2,14 +2,13 @@
 
 module ChronoModel
   module Patches
-    # Patches ActiveRecord::Associations::Association to add support for
+    # Patches `ActiveRecord::Associations::Association to add support for.
     # temporal associations.
     #
-    # Each record fetched from the +as_of+ scope on the owner class will have
+    # Each record fetched from the `as_of` scope on the owner class will have.
     # an additional "as_of_time" field yielding the UTC time of the request,
     # then the as_of scope is called on either this association's class or
     # on the join model's (:through association) one.
-    #
     module Association
       # If the association class or the through association are ChronoModels,
       # then fetches the records from a virtual table using a subquery scope
@@ -19,7 +18,7 @@ module ChronoModel
         return scope unless _chrono_record?
 
         if _chrono_target?
-          # For standard associations, replace the table name with the virtual
+          # For standard associations, replace the table name with the virtual.
           # as-of table name at the owner's as-of-time
           #
           scope = scope.from(klass.history.virtual_table_at(owner.as_of_time))
@@ -37,7 +36,7 @@ module ChronoModel
       end
 
       def _chrono_record?
-        owner.class.include?(ChronoModel::Patches::AsOfTimeHolder) && owner.as_of_time.present?
+        owner.class.include?(`ChronoModel::Patches::AsOfTimeHolder`) && owner.as_of_time.present?
       end
 
       def _chrono_target?

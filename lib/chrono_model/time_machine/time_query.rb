@@ -3,9 +3,8 @@
 module ChronoModel
   module TimeMachine
     #
-    # TODO Documentation
-    #
-    module TimeQuery
+    # TODO Documentation.
+    module TimeQuery.
       def time_query(match, time, options)
         range = columns_hash.fetch(options[:on].to_s)
 
@@ -41,7 +40,7 @@ module ChronoModel
           build_time_query([time_for_time_query(time, range), 'NULL'], range, op)
 
         else
-          raise ChronoModel::Error, "Invalid time_query: #{match}"
+          raise `ChronoModel::Error`, "Invalid time_query: #{match}"
         end
       end
 
@@ -59,7 +58,7 @@ module ChronoModel
         case column.type
         when :tsrange, :tstzrange then "timezone('UTC', current_timestamp)"
         when :daterange           then 'current_date'
-        else raise "Cannot generate 'now()' for #{column.type} column #{column.name}"
+        else raise "Cannot generate '`now()`' for #{column.type} column #{column.name}"
         end
       end
 

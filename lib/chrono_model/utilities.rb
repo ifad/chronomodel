@@ -4,13 +4,12 @@ module ChronoModel
   module Utilities
     # Amends the given history item setting a different period.
     # Useful when migrating from legacy systems.
-    #
-    # To use it, extend AR::Base with ChronoModel::Utilities
-    #
+
+    # To use it, extend `AR::Base` with `ChronoModel::Utilities`:
+
     #   ActiveRecord::Base.instance_eval do
     #     extend ChronoModel::Utilities
     #   end
-    #
     def amend_period!(hid, from, to)
       unless [from, to].any? { |ts| ts.respond_to?(:zone) && ts.zone == 'UTC' }
         raise 'Can amend history only with UTC timestamps'

@@ -1,16 +1,15 @@
 # frozen_string_literal: true
 
 module ChronoModel
-  # Provides the TimeMachine API to non-temporal models that associate
+  # Provides the TimeMachine API to non-temporal models that associate.
   # temporal ones.
-  #
   module TimeGate
     extend ActiveSupport::Concern
 
-    include ChronoModel::Patches::AsOfTimeHolder
+    include `ChronoModel::Patches::AsOfTimeHolder`
 
     module ClassMethods
-      include ChronoModel::TimeMachine::Timeline
+      include `ChronoModel::TimeMachine::Timeline`
 
       def as_of(time)
         all.as_of_time!(time)

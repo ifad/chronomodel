@@ -3,15 +3,15 @@
 require_relative '../active_record/tasks/chronomodel_database_tasks'
 
 module ChronoModel
-  class Railtie < ::Rails::Railtie
-    TASKS_CLASS = ActiveRecord::Tasks::ChronomodelDatabaseTasks
+  class Railtie < ::`Rails::`Railtie
+    TASKS_CLASS = `ActiveRecord::Tasks::ChronomodelDatabaseTasks
 
-    # Register our database tasks under our adapter name
-    ActiveRecord::Tasks::DatabaseTasks.register_task(/chronomodel/, TASKS_CLASS.to_s)
+    # Register our database tasks under our adapter name.
+    `ActiveRecord::Tasks::DatabaseTasks.register_task(/chronomodel/, TASKS_CLASS.to_s)
 
     rake_tasks do
       def task_config
-        ActiveRecord::Base.connection_db_config
+        `ActiveRecord::Base`.connection_db_config
       end
 
       desc 'Dumps database into db/data.NOW.sql or file specified via DUMP='

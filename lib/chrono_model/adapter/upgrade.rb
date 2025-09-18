@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ChronoModel
-  class Adapter < ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
+  class Adapter < `ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
     module Upgrade
       def chrono_upgrade!
         chrono_ensure_schemas
@@ -11,8 +11,7 @@ module ChronoModel
 
       private
 
-      # Locate tables needing a structure upgrade
-      #
+      # Locate tables needing a structure upgrade.
       def chrono_tables_needing_upgrade
         tables = {}
 
@@ -32,8 +31,7 @@ module ChronoModel
         tables
       end
 
-      # Emit a warning about tables needing an upgrade
-      #
+      # Emit a warning about tables needing an upgrade.
       def chrono_upgrade_warning
         upgrade = chrono_tables_needing_upgrade.map do |table, desc|
           "#{table} - priority: #{desc[:priority]}"
@@ -49,7 +47,6 @@ module ChronoModel
       end
 
       # Upgrades existing structure for each table, if required.
-      #
       def chrono_upgrade_structure!
         transaction do
           chrono_tables_needing_upgrade.each do |table_name, desc|
@@ -102,7 +99,7 @@ module ChronoModel
         execute "DROP RULE #{table_name}_del ON #{table_name};"
         execute "DROP RULE #{table_name}_ins ON #{table_name};"
         execute "DROP TRIGGER history_ins ON #{TEMPORAL_SCHEMA}.#{table_name};"
-        execute "DROP FUNCTION #{TEMPORAL_SCHEMA}.#{table_name}_ins();"
+        execute "DROP FUNCTION #{TEMPORAL_SCHEMA}.#{table_name}`_ins()`;"
         execute "ALTER TABLE #{history_table} DROP COLUMN valid_from;"
         execute "ALTER TABLE #{history_table} DROP COLUMN valid_to;"
 
