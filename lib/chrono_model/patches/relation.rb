@@ -68,26 +68,18 @@ module ChronoModel
 
       # Replaces a join with the current data with another that
       # loads records As-Of time against the history data.
-      #
       def chrono_join_history(join)
+        join_left = join.left
+
         # This case happens with nested includes, where the below
         # code has already replaced the join.left with a JoinNode.
-        #
-        return if join.left.respond_to?(:as_of_time)
+        return if join_left.is_a?(ChronoModel::Patches::JoinNode)
 
-        # Handle both Arel::Table (which has .name method) and other join node types
-        # (which have .table_name method) to extract the table name consistently
-        model =
-          if join.left.respond_to?(:table_name)
-            ChronoModel.history_models[join.left.table_name]
-          elsif join.left.respond_to?(:name)
-            ChronoModel.history_models[join.left.name]
-          end
-
+        model = ChronoModel.history_models[join_left.name] if join_left.respond_to?(:name)
         return unless model
 
         join.left = ChronoModel::Patches::JoinNode.new(
-          join.left, model.history, @_as_of_time
+          join_left, model.history, @_as_of_time
         )
       end
 
