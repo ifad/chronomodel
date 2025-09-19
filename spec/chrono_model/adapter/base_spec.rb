@@ -69,14 +69,9 @@ RSpec.describe ChronoModel::Adapter do
         subject(:on_schema) do
           adapter.on_schema('test_1') do
             adapter.on_schema('test_2') do
-              adapter.execute 'BEGIN'
               adapter.execute 'ERRORING ON PURPOSE'
             end
           end
-        end
-
-        after do
-          adapter.execute 'ROLLBACK'
         end
 
         it {
