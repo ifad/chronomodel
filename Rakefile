@@ -25,6 +25,7 @@ namespace :testapp do
       --skip-asset-pipeline
       --skip-bootsnap
       --skip-brakeman
+      --skip-bundler-audit
       --skip-ci
       --skip-decrypted-diffs
       --skip-dev-gems
