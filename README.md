@@ -4,7 +4,7 @@
 [![Gem Version][gem-version-badge]][gem-version]
 [![Inlinedocs][docs-analysis-badge]][docs-analysis]
 
-![A Delorean that we all love][delorean-image]
+![Chronomodel logo][chronomodel-logo]
 
 ChronoModel implements what Oracle sells as "Flashback Queries", with standard
 SQL on free PostgreSQL. Academically speaking, ChronoModel implements a
@@ -130,31 +130,31 @@ You can verify your privileges are correctly set up by running these queries as 
 
 ```sql
 -- Check schema access
-SELECT 
+SELECT
   schema_name,
   has_schema_privilege(current_user, schema_name, 'USAGE') AS has_usage
-FROM information_schema.schemata 
+FROM information_schema.schemata
 WHERE schema_name IN ('temporal', 'history');
 
 -- Check table privileges (run after creating temporal tables)
-SELECT 
+SELECT
   schemaname,
   tablename,
   has_table_privilege(current_user, schemaname||'.'||tablename, 'SELECT') AS has_select,
   has_table_privilege(current_user, schemaname||'.'||tablename, 'INSERT') AS has_insert,
   has_table_privilege(current_user, schemaname||'.'||tablename, 'UPDATE') AS has_update,
   has_table_privilege(current_user, schemaname||'.'||tablename, 'DELETE') AS has_delete
-FROM pg_tables 
+FROM pg_tables
 WHERE schemaname IN ('temporal', 'history');
 
 -- Check sequence privileges (run after creating temporal tables)
-SELECT 
+SELECT
   schemaname,
   sequencename,
   has_sequence_privilege(current_user, schemaname||'.'||sequencename, 'USAGE') AS has_usage,
   has_sequence_privilege(current_user, schemaname||'.'||sequencename, 'SELECT') AS has_select,
   has_sequence_privilege(current_user, schemaname||'.'||sequencename, 'UPDATE') AS has_update
-FROM pg_sequences 
+FROM pg_sequences
 WHERE schemaname IN ('temporal', 'history');
 ```
 
@@ -461,7 +461,7 @@ This software is Made in Italy :it: :smile:.
 [gem-version]: https://rubygems.org/gems/chrono_model
 [gem-version-badge]: https://badge.fury.io/rb/chrono_model.svg
 
-[delorean-image]: https://i.imgur.com/DD77F4s.jpg
+[chronomodel-logo]: /chronomodel.png
 
 [wp-scd-2]: https://en.wikipedia.org/wiki/Slowly_changing_dimension#Type_2
 [wp-scd-4]: https://en.wikipedia.org/wiki/Slowly_changing_dimension#Type_4
