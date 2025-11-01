@@ -461,7 +461,7 @@ This software is Made in Italy :it: :smile:.
 [gem-version]: https://rubygems.org/gems/chrono_model
 [gem-version-badge]: https://badge.fury.io/rb/chrono_model.svg
 
-[chronomodel-logo]: /chronomodel.png
+[chronomodel-logo]: /chronomodel.svg
 
 [wp-scd-2]: https://en.wikipedia.org/wiki/Slowly_changing_dimension#Type_2
 [wp-scd-4]: https://en.wikipedia.org/wiki/Slowly_changing_dimension#Type_4
