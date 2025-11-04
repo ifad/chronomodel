@@ -41,6 +41,20 @@ module ChronoModel
       end
     end
 
+    class TableDefinition < ActiveRecord::ConnectionAdapters::PostgreSQL::TableDefinition
+      def foreign_key(to_table, **options)
+        if !@conn.is_schema_qualified?(to_table) && (@conn.current_schema == TEMPORAL_SCHEMA) != @conn.is_chrono?(to_table)
+          to_table = @conn.qualified_table_name(to_table)
+        end
+
+        super
+      end
+    end
+
+    def create_table_definition(name, **options)
+      ChronoModel::Adapter::TableDefinition.new(self, name, **options)
+    end
+
     # Returns true whether the connection adapter supports our
     # implementation of temporal tables. Currently, Chronomodel
     # is supported starting with PostgreSQL 9.3 (90300 in PostgreSQL's
@@ -107,13 +121,18 @@ module ChronoModel
 
     # Evaluates the given block in the given +schema+ search path.
     #
-    # Recursion works by saving the old_path the function closure
+    # Recursion works by saving the old_path in the method closure
     # at each recursive call.
+    #
+    # @original_schema is set to the current schema on the first call,
+    # and restored to +nil+ when the recursion ends. Use outer_schema()
+    # to get the original schema.
     #
     # See specs for examples and behaviour.
     #
     def on_schema(schema, recurse: :follow)
       old_path = schema_search_path
+      @original_schema ||= current_schema
 
       count_recursions do
         if (recurse == :follow) || (Thread.current['recursions'] == 1)
@@ -139,6 +158,29 @@ module ChronoModel
       else
         self.schema_search_path = old_path
       end
+
+      @original_schema = nil if Thread.current['recursions'].zero?
+    end
+
+    # The current schema or the schema that was the current schema before
+    # on_schema() was called.
+    #
+    def outer_schema
+      @original_schema || current_schema
+    end
+
+    def foreign_key_column_for(table_name, *args) # :nodoc:
+      _schema, table_name = extract_schema_qualified_name(table_name)
+      super
+    end
+
+    def qualified_table_name(table_name)
+      schema = is_chrono?(table_name) ? TEMPORAL_SCHEMA : outer_schema
+      "#{schema}.#{table_name}"
+    end
+
+    def is_schema_qualified?(name)
+      name.to_s.include?('.')
     end
 
     # Returns true if the given name references a temporal table.

@@ -33,6 +33,26 @@ module ChronoModel
             on_history_schema { super }
           end
         end
+
+        def add_foreign_key(from_table, to_table, **options)
+          if !is_schema_qualified?(to_table) && is_chrono?(to_table) != is_chrono?(from_table)
+            to_table = qualified_table_name(to_table)
+          end
+
+          return super unless is_chrono?(from_table)
+
+          on_temporal_schema { super }
+        end
+
+        def remove_foreign_key(from_table, to_table = nil, **options)
+          if !is_schema_qualified?(to_table) && is_chrono?(to_table) != is_chrono?(from_table)
+            to_table = qualified_table_name(to_table)
+          end
+
+          return super unless is_chrono?(from_table)
+
+          on_temporal_schema { super }
+        end
       end
     end
   end
