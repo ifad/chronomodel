@@ -51,8 +51,9 @@ RSpec.describe ChronoModel::Adapter do
   end
 
   describe '.rename_table' do
-    renamed = 'foo_table'
     subject { renamed }
+
+    let(:renamed) { 'foo_table' }
 
     context 'with temporal tables' do
       before do

@@ -64,11 +64,11 @@ RSpec.describe ChronoModel::TimeMachine do
     end
 
     describe 'on current records' do
-      rec = nil
       subject(:destroy) { rec.destroy }
 
+      let!(:rec) { ts_eval { Foo.create!(name: 'alive foo', fooity: 42) } }
+
       before do
-        rec = ts_eval { Foo.create!(name: 'alive foo', fooity: 42) }
         ts_eval(rec) { update!(name: 'dying foo') }
       end
 
