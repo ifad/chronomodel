@@ -81,7 +81,7 @@ jobs:
     continue-on-error: ${{ matrix.channel != 'stable' }}
 
     steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
     - uses: ankane/setup-postgres@v1
       with:
         postgres-version: ${{ matrix.postgres-version }}
