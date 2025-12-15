@@ -40,6 +40,9 @@ Metrics/MethodLength:
   Exclude:
     - 'spec/**/*'
 
+Metrics/ModuleLength:
+  CountAsOne: ['heredoc']
+
 Naming/MethodName:
   AllowedPatterns:
     - '_INSERT_'
