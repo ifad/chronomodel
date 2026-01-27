@@ -12,7 +12,7 @@ module ChronoModel
 
     included do
       if table_exists? && !chrono?
-        logger.warn <<-MSG.squish
+        logger.warn <<~MSG.squish
           ChronoModel: #{table_name} is not a temporal table.
           Please use `change_table :#{table_name}, temporal: true` in a migration.
         MSG

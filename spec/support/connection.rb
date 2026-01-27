@@ -56,7 +56,7 @@ module ChronoTest
       end
     end
   rescue Errno::ENOENT
-    warn <<-MSG.squish
+    warn <<~MSG.squish
       Please define your AR database configuration
       in spec/config.yml or reference your own configuration
       file using the TEST_CONFIG environment variable
