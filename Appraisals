@@ -8,8 +8,6 @@ end
 
 appraise 'rails-7.1' do
   gem 'rails', '~> 7.1.0'
-
-  gem 'concurrent-ruby', '1.3.4' # Ref: rails/rails#54260
 end
 
 appraise 'rails-7.2' do
