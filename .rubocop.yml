@@ -97,3 +97,8 @@ Style/HashExcept:
 
 Style/IfUnlessModifier:
   Enabled: false
+
+Style/OneClassPerFile:
+  Exclude:
+    - 'benchmarks/**/*'
+    - 'spec/**/*'
