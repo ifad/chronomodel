@@ -1,10 +1,23 @@
 # frozen_string_literal: true
 
+require 'pg'
+
 require 'spec_helper'
 require 'support/time_machine/structure'
 
 RSpec.describe ChronoModel::TimeMachine do
   include ChronoTest::TimeMachine::Helpers
+
+  let(:pg_connection_config) do
+    {
+      dbname: ChronoTest.config[:database],
+      user: ChronoTest.config[:username],
+      host: ChronoTest.config[:host]
+    }.tap do |config|
+      password = ChronoTest.config[:password]
+      config[:password] = password unless password.nil? || password.empty?
+    end
+  end
 
   describe 'concurrent updates' do
     it 'handles concurrent updates without PG::ExclusionViolation' do
@@ -43,6 +56,44 @@ RSpec.describe ChronoModel::TimeMachine do
       if foo
         foo.destroy
         Foo::History.where(id: foo.id).delete_all
+      end
+    end
+
+    it 'keeps the open history row aligned with the current row when an older transaction commits last' do
+      foo = Foo.create!(name: 'orig')
+      connections = []
+
+      begin
+        stale = PG.connect(**pg_connection_config)
+        t1 = PG.connect(**pg_connection_config)
+        t2 = PG.connect(**pg_connection_config)
+        connections.concat([stale, t1, t2])
+
+        stale.exec('BEGIN')
+        # Anchor the transaction timestamp before the later updates run.
+        stale.exec("SELECT timezone('UTC', now())")
+
+        sleep(0.05)
+        t1.exec_params('UPDATE foos SET name = $1 WHERE id = $2', ['t1', foo.id])
+        sleep(0.05)
+        t2.exec_params('UPDATE foos SET name = $1 WHERE id = $2', ['t2', foo.id])
+        sleep(0.05)
+
+        stale.exec_params('UPDATE foos SET name = $1 WHERE id = $2', ['stale', foo.id])
+        stale.exec('COMMIT')
+
+        foo.reload
+
+        expect(foo.name).to eq('stale')
+        expect(Foo::History.where(id: foo.id).where('upper_inf(validity)').pick(:name)).to eq(foo.name)
+      ensure
+        if stale && stale.transaction_status != PG::PQTRANS_IDLE
+          stale.exec('ROLLBACK')
+        end
+        connections.each { |connection| connection.close rescue nil }
+
+        Foo.where(id: foo.id).delete_all if foo
+        Foo::History.where(id: foo.id).delete_all if foo
       end
     end
   end

@@ -116,7 +116,7 @@ create or replace function chronomodel_countries_update() returns trigger as $$
     _now := timezone('UTC', now());
     _hid := null;
 
-    select hid into _hid from history.countries where id = old.id and lower(validity) >= _now;
+    select hid into _hid from history.countries where id = old.id and lower(validity) >= _now order by lower(validity) desc, hid desc limit 1;
 
     if _hid is not null then
       update history.countries set ( name, updated_at ) = ( new.name, new.updated_at ) where hid = _hid;
