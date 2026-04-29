@@ -2,7 +2,7 @@
 
 source 'https://rubygems.org'
 
-gem 'appraisal'
+gem 'appraisal2'
 gem 'aruba'
 gem 'bundler'
 gem 'byebug'
