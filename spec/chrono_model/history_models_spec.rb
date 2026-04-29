@@ -20,6 +20,9 @@ RSpec.describe ChronoModel do
       expected['sub_bars'] = SubBar::History  if defined?(SubBar::History)
       expected['sub_sub_bars'] = SubSubBar::History if defined?(SubSubBar::History)
 
+      expected['overlappers'] = Overlapper::History if defined?(Overlapper::History)
+      expected['overlap_bros'] = OverlapBro::History if defined?(OverlapBro::History)
+
       # default_scope_spec
       expected['defoos']   = Defoo::History   if defined?(Defoo::History)
 
