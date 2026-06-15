@@ -70,6 +70,10 @@ Rails/SkipsModelValidations:
 Rails/TimeZone:
   Enabled: false
 
+RSpec/ExpectActual:
+  Exclude:
+    - 'spec/aruba/**/*'
+
 RSpec/ExampleLength:
   Enabled: false
 
