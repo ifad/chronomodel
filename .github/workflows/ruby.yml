@@ -83,8 +83,8 @@ jobs:
     continue-on-error: ${{ matrix.channel != 'stable' }}
 
     steps:
-    - uses: actions/checkout@v6
-    - uses: ankane/setup-postgres@v1
+    - uses: actions/checkout@v7.0.0
+    - uses: ankane/setup-postgres@5ea2c95e040b07615e2cacec2e83f96f97593990
       with:
         postgres-version: ${{ matrix.postgres-version }}
         database: chronomodel
@@ -92,7 +92,7 @@ jobs:
       run: |
         createdb chronomodel_railsapp
     - name: Set up Ruby
-      uses: ruby/setup-ruby@v1
+      uses: ruby/setup-ruby@v1.314.0
       with:
         ruby-version: ${{ matrix.ruby-version }}
         bundler-cache: true
