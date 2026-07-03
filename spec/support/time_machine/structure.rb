@@ -83,6 +83,16 @@ module ChronoTest
       t.references :sub_bar
     end
 
+    adapter.create_table 'overlap_bros', temporal: true do |t|
+      t.string :name
+    end
+
+    adapter.create_table 'overlappers', temporal: true do |t|
+      t.string :name
+
+      t.references :overlap_bro
+    end
+
     class ::Bar < ActiveRecord::Base
       include ChronoModel::TimeMachine
 
@@ -160,6 +170,18 @@ module ChronoTest
       include ChronoModel::TimeMachine
 
       belongs_to :sub_bar
+    end
+
+    class ::OverlapBro < ActiveRecord::Base
+      include ChronoModel::TimeMachine
+
+      has_many :overlappers
+    end
+
+    class ::Overlapper < ActiveRecord::Base
+      include ChronoModel::TimeMachine
+
+      belongs_to :overlap_bro, optional: true
     end
 
     # Master timeline, used in multiple specs. It is defined here
