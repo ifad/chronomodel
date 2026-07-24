@@ -92,7 +92,7 @@ jobs:
       run: |
         createdb chronomodel_railsapp
     - name: Set up Ruby
-      uses: ruby/setup-ruby@v1.316.0
+      uses: ruby/setup-ruby@v1.319.0
       with:
         ruby-version: ${{ matrix.ruby-version }}
         bundler-cache: true
