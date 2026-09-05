@@ -33,7 +33,7 @@ module ChronoTest
     end
 
     adapter.create_table 'boos', temporal: true do |t|
-      t.string     :name
+      t.string :name
     end
 
     adapter.create_table 'boos_moos', temporal: true do |t|
@@ -53,8 +53,8 @@ module ChronoTest
     end
 
     adapter.create_table 'tars', temporal: true do |t|
-      t.string     :name
-      t.string     :foo_refering
+      t.string :name
+      t.string :foo_refering
     end
 
     adapter.change_table 'tars', temporal: true do
@@ -64,12 +64,12 @@ module ChronoTest
     end
 
     adapter.create_table 'moos', temporal: true do |t|
-      t.string     :name
+      t.string :name
     end
 
     adapter.create_table 'noos', temporal: true do |t|
-      t.string     :name
-      t.string     :surname
+      t.string :name
+      t.string :surname
     end
 
     adapter.create_table 'sub_bars', temporal: true do |t|

@@ -11,13 +11,13 @@ RSpec.describe ChronoModel do
       expected = {}
 
       # support/time_machine/structure
-      expected['foos']     = Foo::History     if defined?(Foo::History)
-      expected['bars']     = Bar::History     if defined?(Bar::History)
-      expected['moos']     = Moo::History     if defined?(Moo::History)
-      expected['boos']     = Boo::History     if defined?(Boo::History)
-      expected['noos']     = Noo::History     if defined?(Noo::History)
+      expected['foos']     = Foo::History if defined?(Foo::History)
+      expected['bars']     = Bar::History if defined?(Bar::History)
+      expected['moos']     = Moo::History if defined?(Moo::History)
+      expected['boos']     = Boo::History if defined?(Boo::History)
+      expected['noos']     = Noo::History if defined?(Noo::History)
 
-      expected['sub_bars'] = SubBar::History  if defined?(SubBar::History)
+      expected['sub_bars'] = SubBar::History if defined?(SubBar::History)
       expected['sub_sub_bars'] = SubSubBar::History if defined?(SubSubBar::History)
 
       expected['overlappers'] = Overlapper::History if defined?(Overlapper::History)
