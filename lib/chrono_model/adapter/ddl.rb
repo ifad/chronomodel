@@ -24,9 +24,11 @@ module ChronoModel
 
         chrono_metadata_set(table, options.merge(chronomodel: VERSION))
 
+        temporal_columns = columns(current)
+
         # Set default values on the view (closes #12)
         #
-        columns(table).each do |column|
+        temporal_columns.each do |column|
           default =
             if column.default.nil?
               column.default_function
@@ -39,7 +41,7 @@ module ChronoModel
           execute "ALTER VIEW #{table} ALTER COLUMN #{quote_column_name(column.name)} SET DEFAULT #{default}"
         end
 
-        columns = self.columns(table).map { |c| quote_column_name(c.name) }
+        columns = temporal_columns.map { |c| quote_column_name(c.name) }
         columns.delete(quote_column_name(pk))
 
         fields = columns.join(', ')

@@ -125,7 +125,7 @@ module ChronoModel
     ensure
       # If the transaction is aborted, any execute() call will raise
       # "transaction is aborted errors" - thus calling the Adapter's
-      # setter won't update the memoized variable.
+      # setter won't reliably update the memoized variable.
       #
       # Here we reset it to +nil+ to refresh it on the next call, as
       # there is no way to know which path will be restored when the
@@ -134,7 +134,7 @@ module ChronoModel
       transaction_aborted =
         chrono_connection.transaction_status == PG::Connection::PQTRANS_INERROR
 
-      if transaction_aborted && Thread.current['recursions'] == 1
+      if transaction_aborted
         @schema_search_path = nil
       else
         self.schema_search_path = old_path
