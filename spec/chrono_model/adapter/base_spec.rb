@@ -74,11 +74,16 @@ RSpec.describe ChronoModel::Adapter do
           end
         end
 
-        it {
-          expect { on_schema }
-            .to raise_error(/current transaction is aborted/)
-            .and(change { adapter.instance_variable_get(:@schema_search_path) })
-        }
+        it 'restores the schema after rollback' do
+          original_path = adapter.schema_search_path
+
+          expect { on_schema }.to raise_error(ActiveRecord::StatementInvalid)
+
+          adapter.execute 'ROLLBACK'
+
+          expect(adapter.schema_search_path).to eq(original_path)
+          expect(adapter).to be_in_schema(original_path)
+        end
       end
     end
 
@@ -100,6 +105,61 @@ RSpec.describe ChronoModel::Adapter do
 
         expect(on_schema).to be_in_schema(:default)
       end
+    end
+  end
+
+  describe '.columns' do
+    include_context 'with temporal tables'
+
+    it 'reads defaults and null constraints from the temporal table' do
+      column = adapter.columns(table).find { |field| field.name == 'test' }
+
+      expect(column.default).to eq('default-value')
+      expect(column.null).to be false
+    end
+  end
+
+  describe 'bulk schema metadata',
+           if: ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.private_method_defined?(:fetch_column_definitions) do
+    include_context 'with temporal tables'
+
+    let(:tables) { [table, 'plain_table', "history.#{table}"] }
+
+    before do
+      adapter.create_table('plain_table', &columns)
+      adapter.add_index('plain_table', :test)
+      adapter.add_index(table, :test)
+    end
+
+    after { adapter.drop_table('plain_table') }
+
+    it 'reads columns from each table in its appropriate schema' do
+      result = adapter.columns(tables).transform_values { |fields| fields.index_by(&:name) }
+
+      tables.each do |name|
+        expect(result.fetch(name).fetch('test').default).to eq('default-value')
+        expect(result.fetch(name).fetch('test').null).to be false
+      end
+      expect(result.fetch("history.#{table}")).to have_key('hid')
+      expect(result.fetch(table)).not_to have_key('hid')
+    end
+
+    it 'reads primary keys from temporal, plain and history tables' do
+      expect(adapter.primary_keys(tables)).to eq(
+        table => ['id'], 'plain_table' => ['id'], "history.#{table}" => ['hid']
+      )
+    end
+
+    it 'returns the same indexes as individual lookups' do
+      expected = tables.index_with { |name| adapter.indexes(name).map(&:name) }
+
+      expect(adapter.indexes(tables).transform_values { |indexes| indexes.map(&:name) }).to eq(expected)
+    end
+
+    it 'returns empty hashes for empty table lists' do
+      expect(adapter.columns([])).to eq({})
+      expect(adapter.primary_keys([])).to eq({})
+      expect(adapter.indexes([])).to eq({})
     end
   end
 

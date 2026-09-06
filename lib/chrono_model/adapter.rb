@@ -56,7 +56,7 @@ module ChronoModel
       chrono_upgrade_warning
     end
 
-    # Runs primary_key, indexes and default_sequence_name in the
+    # Runs primary_keys, indexes and default_sequence_name in the
     # temporal schema, as the table there defined is the source for
     # this information.
     #
@@ -70,11 +70,15 @@ module ChronoModel
     #
     # NOTE: These methods are dynamically defined, see the source.
     #
-    def primary_key(table_name); end
+    def primary_keys(table_name); end
 
-    %i[primary_key indexes default_sequence_name].each do |method|
+    %i[primary_keys indexes default_sequence_name].each do |method|
       define_method(method) do |*args|
         table_name = args.first
+        if table_name.is_a?(Array)
+          return table_name.to_h { |table| [table.to_s, public_send(method, table.to_s, *args.drop(1))] }
+        end
+
         return super(*args) unless is_chrono?(table_name)
 
         on_schema(TEMPORAL_SCHEMA, recurse: :ignore) { super(*args) }
@@ -173,6 +177,11 @@ module ChronoModel
     end
 
     private
+
+    # Rails' bulk column lookup must retain the per-table schema routing.
+    def fetch_column_definitions(tables)
+      tables.index_with { |table| column_definitions(table) }
+    end
 
     # Rails 7.1 uses `@raw_connection`, older versions use `@connection`
     #
