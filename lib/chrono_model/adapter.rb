@@ -93,6 +93,26 @@ module ChronoModel
       on_schema("#{TEMPORAL_SCHEMA},#{schema_search_path}", recurse: :ignore) { super }
     end
 
+    # Rails 8.2 reads column metadata in bulk through +fetch_column_definitions+,
+    # which +columns+ uses instead of +column_definitions+, resolving relations
+    # through the schema search path rather than casting names to +regclass+.
+    # This bypasses the +column_definitions+ override above, reading metadata
+    # from the public view - which carries no column defaults nor NOT NULL
+    # constraints - instead of the temporal table (see GH #414).
+    #
+    # Apply the same redirection here: column metadata for temporal tables is
+    # read in the temporal schema, while the default search path is included to
+    # resolve types defined in other schemas, as done in +column_definitions+.
+    #
+    if ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.private_method_defined?(:fetch_column_definitions)
+      def fetch_column_definitions(tables)
+        chrono, plain = tables.partition { |table| is_chrono?(table) }
+        return super if chrono.empty?
+
+        super(plain).merge(on_schema("#{TEMPORAL_SCHEMA},#{schema_search_path}", recurse: :ignore) { super(chrono) })
+      end
+    end
+
     # Evaluates the given block in the temporal schema.
     #
     def on_temporal_schema(&block)
