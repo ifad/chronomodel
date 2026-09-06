@@ -30,11 +30,15 @@ jobs:
 
           - ruby-version: '3.3'
             gemfile: rails_edge
-            postgres-version: '16'
+            postgres-version: '18'
             channel: 'experimental'
           - ruby-version: '3.4'
             gemfile: rails_edge
-            postgres-version: '16'
+            postgres-version: '18'
+            channel: 'experimental'
+          - ruby-version: '4.0'
+            gemfile: rails_edge
+            postgres-version: '18'
             channel: 'experimental'
           - ruby-version: 'head'
             gemfile: rails_7.1
@@ -54,7 +58,7 @@ jobs:
             channel: 'experimental'
           - ruby-version: 'head'
             gemfile: rails_edge
-            postgres-version: '16'
+            postgres-version: '18'
             channel: 'experimental'
 
         exclude:
