@@ -26,7 +26,7 @@ module ChronoModel
 
         # Set default values on the view (closes #12)
         #
-        columns(table).each do |column|
+        columns(current).each do |column|
           default =
             if column.default.nil?
               column.default_function

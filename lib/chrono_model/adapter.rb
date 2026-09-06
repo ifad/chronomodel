@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'English'
 require 'active_record/connection_adapters/postgresql_adapter'
 
 require_relative 'adapter/migrations'
@@ -138,6 +139,7 @@ module ChronoModel
         @schema_search_path = nil
       else
         self.schema_search_path = old_path
+        @schema_search_path = nil if $ERROR_INFO
       end
     end
 
