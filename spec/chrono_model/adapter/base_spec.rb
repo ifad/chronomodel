@@ -74,11 +74,17 @@ RSpec.describe ChronoModel::Adapter do
           end
         end
 
-        it {
-          expect { on_schema }
-            .to raise_error(/current transaction is aborted/)
-            .and(change { adapter.instance_variable_get(:@schema_search_path) })
-        }
+        it 'keeps the schema path valid after the transaction rolls back' do
+          original_schema = adapter.schema_search_path
+
+          expect { on_schema }.to raise_error(ActiveRecord::StatementInvalid)
+
+          adapter.execute 'ROLLBACK'
+
+          expect(adapter.schema_search_path).to eq original_schema
+
+          adapter.execute 'BEGIN'
+        end
       end
     end
 

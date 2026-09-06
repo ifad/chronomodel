@@ -2,6 +2,7 @@
 
 require 'active_record/connection_adapters/postgresql_adapter'
 
+require_relative 'adapter/columns'
 require_relative 'adapter/migrations'
 require_relative 'adapter/migrations_modules/stable'
 
@@ -15,6 +16,7 @@ module ChronoModel
   # adapter for a clean override of its methods using super.
   #
   class Adapter < ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
+    include ChronoModel::Adapter::Columns
     include ChronoModel::Adapter::Migrations
     include ChronoModel::Adapter::DDL
     include ChronoModel::Adapter::Indexes
@@ -79,18 +81,6 @@ module ChronoModel
 
         on_schema(TEMPORAL_SCHEMA, recurse: :ignore) { super(*args) }
       end
-    end
-
-    # Runs column_definitions in the temporal schema, as the table there
-    # defined is the source for this information.
-    #
-    # The default search path is included however, since the table
-    # may reference types defined in other schemas, which result in their
-    # names becoming schema qualified, which will cause type resolutions to fail.
-    def column_definitions(table_name)
-      return super unless is_chrono?(table_name)
-
-      on_schema("#{TEMPORAL_SCHEMA},#{schema_search_path}", recurse: :ignore) { super }
     end
 
     # Evaluates the given block in the temporal schema.
