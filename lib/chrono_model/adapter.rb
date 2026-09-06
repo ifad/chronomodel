@@ -56,7 +56,7 @@ module ChronoModel
       chrono_upgrade_warning
     end
 
-    # Runs primary_key, indexes and default_sequence_name in the
+    # Runs primary_keys, indexes and default_sequence_name in the
     # temporal schema, as the table there defined is the source for
     # this information.
     #
@@ -70,27 +70,21 @@ module ChronoModel
     #
     # NOTE: These methods are dynamically defined, see the source.
     #
-    def primary_key(table_name); end
-
-    %i[primary_key indexes default_sequence_name].each do |method|
-      define_method(method) do |*args|
-        table_name = args.first
-        return super(*args) unless is_chrono?(table_name)
-
-        on_schema(TEMPORAL_SCHEMA, recurse: :ignore) { super(*args) }
+    %i[primary_keys indexes default_sequence_name].each do |method|
+      define_method(method) do |table_name, *args|
+        chrono_schema_lookup(table_name, TEMPORAL_SCHEMA) { |name| super(name, *args) }
       end
     end
 
-    # Runs column_definitions in the temporal schema, as the table there
-    # defined is the source for this information.
+    # Runs columns in the temporal schema, as the table there defined is
+    # the source for this information.
     #
     # The default search path is included however, since the table
     # may reference types defined in other schemas, which result in their
     # names becoming schema qualified, which will cause type resolutions to fail.
-    def column_definitions(table_name)
-      return super unless is_chrono?(table_name)
-
-      on_schema("#{TEMPORAL_SCHEMA},#{schema_search_path}", recurse: :ignore) { super }
+    #
+    def columns(table_name)
+      chrono_schema_lookup(table_name, "#{TEMPORAL_SCHEMA},#{schema_search_path}") { |name| super(name) }
     end
 
     # Evaluates the given block in the temporal schema.
@@ -173,6 +167,29 @@ module ChronoModel
     end
 
     private
+
+    # Runs the given block in the given schema search path for temporal
+    # tables, and as-is for regular ones.
+    #
+    # Rails 8.2 schema readers accept an Array of table names as well and
+    # return a Hash keyed by table name: temporal and regular tables are
+    # then looked up separately and the results merged back together in
+    # the order they were requested.
+    #
+    def chrono_schema_lookup(table_name, schema)
+      unless table_name.is_a?(Array)
+        return yield(table_name) unless is_chrono?(table_name)
+
+        return on_schema(schema, recurse: :ignore) { yield(table_name) }
+      end
+
+      temporal, regular = table_name.partition { |name| is_chrono?(name) }
+
+      result = {}
+      result.merge!(yield(regular)) if regular.any?
+      result.merge!(on_schema(schema, recurse: :ignore) { yield(temporal) }) if temporal.any?
+      result.slice(*table_name.map(&:to_s))
+    end
 
     # Rails 7.1 uses `@raw_connection`, older versions use `@connection`
     #

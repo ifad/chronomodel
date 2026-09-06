@@ -139,4 +139,73 @@ RSpec.describe ChronoModel::Adapter do
       it { is_expected.to be false }
     end
   end
+
+  describe '.columns' do
+    subject(:table_columns) { adapter.columns(table) }
+
+    let(:column_names) { %w[id test foo bar baz ary bool] }
+    let(:test_default) { table_columns.find { |c| c.name == 'test' }.default }
+
+    context 'with temporal tables' do
+      include_context 'with temporal tables'
+
+      it { expect(table_columns.map(&:name)).to eq column_names }
+      it { expect(test_default).to eq 'default-value' }
+    end
+
+    context 'with plain tables' do
+      include_context 'with plain tables'
+
+      it { expect(table_columns.map(&:name)).to eq column_names }
+      it { expect(test_default).to eq 'default-value' }
+    end
+  end
+
+  describe '.primary_key' do
+    subject { adapter.primary_key(table) }
+
+    context 'with temporal tables' do
+      include_context 'with temporal tables'
+
+      it { is_expected.to eq 'id' }
+    end
+
+    context 'with plain tables' do
+      include_context 'with plain tables'
+
+      it { is_expected.to eq 'id' }
+    end
+  end
+
+  describe 'schema readers given many tables', if: ActiveRecord::VERSION::STRING >= '8.2' do
+    include_context 'with temporal tables'
+
+    let(:tables) { ['plain_table', table] }
+
+    before do
+      adapter.create_table(:plain_table, &columns)
+      tables.each { |name| adapter.add_index name, :foo }
+    end
+
+    after { adapter.drop_table :plain_table }
+
+    describe '.columns' do
+      subject(:result) { adapter.columns(tables) }
+
+      it { expect(result.keys).to eq tables }
+      it { expect(result.values.map { |cols| cols.find { |c| c.name == 'test' }.default }).to all eq 'default-value' }
+    end
+
+    describe '.primary_keys' do
+      subject { adapter.primary_keys(tables) }
+
+      it { is_expected.to eq('plain_table' => ['id'], table => ['id']) }
+    end
+
+    describe '.indexes' do
+      subject { adapter.indexes(tables).transform_values { |indexes| indexes.map(&:name) } }
+
+      it { is_expected.to eq('plain_table' => ['index_plain_table_on_foo'], table => ['index_test_table_on_foo']) }
+    end
+  end
 end
