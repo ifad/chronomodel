@@ -74,11 +74,19 @@ RSpec.describe ChronoModel::Adapter do
           end
         end
 
-        it {
-          expect { on_schema }
-            .to raise_error(/current transaction is aborted/)
-            .and(change { adapter.instance_variable_get(:@schema_search_path) })
-        }
+        # PostgreSQL 18 reports search_path changes to the client and Rails
+        # main skips the SET when the reported value already matches, so the
+        # error raised is the original one rather than "current transaction
+        # is aborted". Either way, the memoized search path must not be stale
+        # once the transaction is rolled back.
+        it 'raises and does not leave a stale memoized search path' do
+          expect { on_schema }.to raise_error(ActiveRecord::StatementInvalid)
+
+          adapter.execute 'ROLLBACK'
+
+          expect(adapter.schema_search_path).to eq('"$user", public')
+          expect(adapter).to be_in_schema(:default)
+        end
       end
     end
 
