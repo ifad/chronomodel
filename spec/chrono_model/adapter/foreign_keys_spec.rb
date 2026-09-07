@@ -62,6 +62,10 @@ RSpec.describe ChronoModel::Adapter do
         expect(adapter.foreign_key_exists?(countries, regions)).to be(true)
       end
 
+      it 'is matched by .foreign_key_exists? given the referenced table as a keyword' do
+        expect(adapter.foreign_key_exists?(countries, to_table: regions)).to be(true)
+      end
+
       it 'enforces referential integrity on the public view' do
         expect do
           adapter.execute "INSERT INTO #{countries} (name, fk_region_id) VALUES ('foo', 0)"
@@ -87,6 +91,10 @@ RSpec.describe ChronoModel::Adapter do
 
       it 'is matched by .foreign_key_exists?' do
         expect(adapter.foreign_key_exists?(cities, regions)).to be(true)
+      end
+
+      it 'is matched by .foreign_key_exists? given the referenced table as a keyword' do
+        expect(adapter.foreign_key_exists?(cities, to_table: regions)).to be(true)
       end
     end
 
@@ -212,6 +220,22 @@ RSpec.describe ChronoModel::Adapter do
     end
   end
 
+  describe '.create_table with references' do
+    let(:orders) { 'fk_orders' }
+
+    after { adapter.drop_table orders }
+
+    it 'supports foreign keys between temporal tables' do
+      adapter.create_table orders, temporal: true do |t|
+        t.string :name
+        t.references :fk_region, foreign_key: { to_table: regions }
+      end
+
+      expect(orders).to have_temporal_foreign_key(regions)
+      expect(adapter.foreign_key_exists?(orders, regions)).to be(true)
+    end
+  end
+
   describe 'references with foreign keys' do
     it 'are added to and removed from temporal tables' do
       adapter.add_reference countries, :capital, foreign_key: { to_table: cities }
@@ -235,6 +259,66 @@ RSpec.describe ChronoModel::Adapter do
       end
 
       expect(adapter.foreign_key_exists?(countries, cities, column: :capital_id)).to be(true)
+    end
+  end
+
+  describe 'schema-qualified table names' do
+    it 'supports adding and removing foreign keys' do
+      adapter.add_foreign_key "#{temporal_schema}.#{countries}", "#{temporal_schema}.#{regions}"
+      expect(countries).to have_temporal_foreign_key(regions)
+
+      adapter.remove_foreign_key "#{temporal_schema}.#{countries}", "#{temporal_schema}.#{regions}"
+      expect(countries).not_to have_temporal_foreign_key(regions)
+    end
+
+    it 'are equivalent to the bare table names' do
+      adapter.add_foreign_key countries, regions
+
+      expect(adapter.foreign_key_exists?("#{temporal_schema}.#{countries}", "#{temporal_schema}.#{regions}")).to be(true)
+      expect(adapter.foreign_key_exists?("#{temporal_schema}.#{countries}", to_table: regions)).to be(true)
+
+      adapter.add_foreign_key "#{temporal_schema}.#{countries}", "#{temporal_schema}.#{regions}", if_not_exists: true
+
+      expect(adapter.foreign_keys(countries).count { |fk| fk.to_table == regions }).to eq 1
+    end
+  end
+
+  describe 'conversion of a plain table with foreign keys to temporal' do
+    let(:districts) { 'fk_districts' }
+
+    before do
+      adapter.create_table districts do |t|
+        t.string :name
+        t.references :fk_region, index: false
+      end
+
+      adapter.add_foreign_key districts, regions
+    end
+
+    after { adapter.drop_table districts }
+
+    it 'keeps the foreign keys on the table' do
+      adapter.change_table districts, temporal: true
+
+      expect(districts).to have_temporal_foreign_key(regions)
+      expect(districts).not_to have_foreign_key(regions, to_schema: temporal_schema)
+      expect(adapter.foreign_key_exists?(districts, regions)).to be(true)
+    end
+
+    it 'keeps enforcing referential integrity on the public view' do
+      adapter.change_table districts, temporal: true
+
+      expect do
+        adapter.execute "INSERT INTO #{districts} (name, fk_region_id) VALUES ('foo', 0)"
+      end.to raise_error(ActiveRecord::InvalidForeignKey)
+    end
+
+    it 'keeps the foreign keys when converted back to plain' do
+      adapter.change_table districts, temporal: true
+      adapter.change_table districts, temporal: false
+
+      expect(districts).to have_foreign_key(regions, to_schema: temporal_schema)
+      expect(adapter.foreign_key_exists?(districts, regions)).to be(true)
     end
   end
 

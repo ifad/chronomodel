@@ -28,7 +28,9 @@ module ChronoModel
       def add_foreign_key(from_table, to_table, **options)
         return super unless is_chrono?(from_table) || is_chrono?(to_table)
 
-        on_temporal_schema_with_fallback { super }
+        on_temporal_schema_with_fallback do
+          super(chrono_unqualify(from_table), chrono_unqualify(to_table), **options)
+        end
       end
 
       # Removes a foreign key, applying the same schema redirection as
@@ -44,7 +46,12 @@ module ChronoModel
 
         return super unless is_chrono?(from_table) || (referenced_table && is_chrono?(referenced_table))
 
-        on_temporal_schema_with_fallback { super }
+        to_table = chrono_unqualify(to_table) if to_table
+        options[:to_table] = chrono_unqualify(options[:to_table]) if options[:to_table]
+
+        on_temporal_schema_with_fallback do
+          super(chrono_unqualify(from_table), to_table, **options)
+        end
       end
 
       # Reads the foreign keys of a temporal table from the table in the
@@ -54,7 +61,7 @@ module ChronoModel
       def foreign_keys(table_name)
         return super unless is_chrono?(table_name)
 
-        on_temporal_schema_with_fallback { super }
+        on_temporal_schema_with_fallback { super(chrono_unqualify(table_name)) }
       end
 
       # Checks foreign key existence applying the same schema redirection
@@ -66,7 +73,12 @@ module ChronoModel
 
         return super unless is_chrono?(from_table) || (referenced_table && is_chrono?(referenced_table))
 
-        on_temporal_schema_with_fallback { super }
+        to_table = chrono_unqualify(to_table) if to_table
+        options[:to_table] = chrono_unqualify(options[:to_table]) if options[:to_table]
+
+        on_temporal_schema_with_fallback do
+          super(chrono_unqualify(from_table), to_table, **options)
+        end
       end
 
       private
@@ -81,6 +93,15 @@ module ChronoModel
       #
       def on_temporal_schema_with_fallback(&block)
         on_schema("#{TEMPORAL_SCHEMA},#{schema_search_path}", recurse: :ignore, &block)
+      end
+
+      # Strips the temporal schema qualification from the given table name:
+      # under the redirected search path, "temporal.table" and "table" refer
+      # to the same table, but constraint metadata is rendered and looked up
+      # through the unqualified name.
+      #
+      def chrono_unqualify(table_name)
+        table_name.to_s.delete_prefix("#{TEMPORAL_SCHEMA}.")
       end
     end
   end
