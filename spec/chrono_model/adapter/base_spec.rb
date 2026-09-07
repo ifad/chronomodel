@@ -74,11 +74,14 @@ RSpec.describe ChronoModel::Adapter do
           end
         end
 
-        it {
-          expect { on_schema }
-            .to raise_error(ActiveRecord::StatementInvalid)
-            .and(change { adapter.instance_variable_get(:@schema_search_path) })
-        }
+        it 'does not cache a temporary schema' do
+          original_schema = adapter.schema_search_path
+
+          expect { on_schema }.to raise_error(ActiveRecord::StatementInvalid)
+
+          cached_schema = adapter.instance_variable_get(:@schema_search_path)
+          expect(cached_schema).to be_nil.or eq(original_schema)
+        end
       end
     end
 
