@@ -415,7 +415,10 @@ Ensure to run the full test suite before pushing.
    past][cm-cte-impl], because the resulting queries were more readable,
    and do not inhibit using `.from()` on the `AR::Relation`.
 
- * Foreign keys are not supported. [See issue #174][gh-issue-174]
+ * Foreign keys are defined on the tables in the temporal schema, and can
+   reference both temporal and plain tables. History tables carry no foreign
+   keys, so historical records keep referencing data that may have been
+   deleted later on. [See issue #174][gh-issue-174]
 
  * Global ID ignores historical objects. [See issue #192][gh-issue-192]
 

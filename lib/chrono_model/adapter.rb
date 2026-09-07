@@ -6,6 +6,7 @@ require_relative 'adapter/migrations'
 require_relative 'adapter/migrations_modules/stable'
 
 require_relative 'adapter/ddl'
+require_relative 'adapter/foreign_keys'
 require_relative 'adapter/indexes'
 require_relative 'adapter/upgrade'
 
@@ -17,6 +18,7 @@ module ChronoModel
   class Adapter < ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
     include ChronoModel::Adapter::Migrations
     include ChronoModel::Adapter::DDL
+    include ChronoModel::Adapter::ForeignKeys
     include ChronoModel::Adapter::Indexes
     include ChronoModel::Adapter::Upgrade
 
