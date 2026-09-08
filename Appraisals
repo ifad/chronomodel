@@ -4,14 +4,19 @@ appraise 'rails-7.0' do
   gem 'rails', '~> 7.0.0'
 
   gem 'concurrent-ruby', '1.3.4' # Ref: rails/rails#54260
+  gem 'json', '< 3' # multi_json 1.21+ requires Ruby >= 3.2
 end
 
 appraise 'rails-7.1' do
   gem 'rails', '~> 7.1.0'
+
+  gem 'json', '< 3' # multi_json 1.21+ requires Ruby >= 3.2
 end
 
 appraise 'rails-7.2' do
   gem 'rails', '~> 7.2.0'
+
+  gem 'json', '< 3' # multi_json 1.21+ requires Ruby >= 3.2
 end
 
 appraise 'rails-8.0' do

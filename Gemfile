@@ -7,7 +7,6 @@ gem 'aruba'
 gem 'bundler'
 gem 'byebug'
 gem 'hirb'
-gem 'json', '< 3' # TODO: Remove when a multi_json-compatible version is released.
 gem 'pry'
 gem 'rails'
 gem 'rake'
