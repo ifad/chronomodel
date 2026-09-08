@@ -41,12 +41,96 @@ RSpec.describe ChronoModel::Adapter do
     context 'with temporal tables' do
       include_context 'with temporal tables'
       it_behaves_like 'temporal table'
+
+      context 'when defining indexes in the table block' do
+        let(:columns) do
+          proc do |t|
+            t.references :activity
+            t.belongs_to :owner, index: true
+            t.references :subject, polymorphic: true
+            t.references :unindexed, index: false
+            t.references :unique, index: { unique: true, name: 'unique_reference_index', where: 'unique_id IS NOT NULL', order: :desc }
+            t.string :code, index: { opclass: :varchar_pattern_ops }
+            t.index %i[activity_id owner_id], name: 'compound_reference_index'
+          end
+        end
+
+        it 'creates reference indexes in both schemas' do
+          expect(table).to have_temporal_index 'index_test_table_on_activity_id', %w[activity_id]
+          expect(table).to have_history_index 'index_test_table_on_activity_id', %w[activity_id]
+        end
+
+        it 'creates belongs_to indexes in both schemas' do
+          expect(table).to have_temporal_index 'index_test_table_on_owner_id', %w[owner_id]
+          expect(table).to have_history_index 'index_test_table_on_owner_id', %w[owner_id]
+        end
+
+        it 'preserves polymorphic index column order in both schemas' do
+          %w[temporal history].each do |schema|
+            indexes = adapter.on_schema(schema) { adapter.indexes(table) }
+
+            expect(indexes).to include(have_attributes(columns: %w[subject_type subject_id]))
+          end
+        end
+
+        it 'does not create indexes when disabled' do
+          expect(table).not_to have_temporal_index 'index_test_table_on_unindexed_id', %w[unindexed_id]
+          expect(table).not_to have_history_index 'index_test_table_on_unindexed_id', %w[unindexed_id]
+        end
+
+        it 'preserves reference index options except uniqueness in history' do
+          temporal_index = adapter.indexes(table).find { |index| index.name == 'unique_reference_index' }
+          history_indexes = adapter.on_schema('history') { adapter.indexes(table) }
+
+          expect(temporal_index).to have_attributes(
+            unique: true, columns: %w[unique_id], where: '(unique_id IS NOT NULL)', orders: :desc
+          )
+          expect(history_indexes).to include(
+            have_attributes(name: temporal_index.name, columns: temporal_index.columns, unique: false,
+                            where: temporal_index.where, orders: temporal_index.orders)
+          )
+        end
+
+        it 'preserves inline column index options in both schemas' do
+          %w[temporal history].each do |schema|
+            indexes = adapter.on_schema(schema) { adapter.indexes(table) }
+
+            expect(indexes).to include(
+              have_attributes(name: 'index_test_table_on_code', columns: %w[code], opclasses: :varchar_pattern_ops)
+            )
+          end
+        end
+
+        it 'creates explicit composite indexes in both schemas' do
+          expect(table).to have_temporal_index 'compound_reference_index', %w[activity_id owner_id]
+          expect(table).to have_history_index 'compound_reference_index', %w[activity_id owner_id]
+        end
+
+        it 'recreates indexes when forcing table creation' do
+          adapter.create_table table, temporal: true, force: true, &columns
+
+          expect(table).to have_temporal_index 'index_test_table_on_activity_id', %w[activity_id]
+          expect(table).to have_history_index 'index_test_table_on_activity_id', %w[activity_id]
+        end
+      end
+
+      # FIXME: Creating a temporal table without a block generates invalid trigger SQL.
     end
 
     context 'with plain tables' do
       include_context 'with plain tables'
 
       it_behaves_like 'plain table'
+
+      it 'creates reference indexes only in the public schema' do
+        adapter.create_table table, force: true do |t|
+          t.references :activity
+        end
+
+        expect(table).to have_index 'index_test_table_on_activity_id', %w[activity_id]
+        expect(table).not_to have_temporal_index 'index_test_table_on_activity_id', %w[activity_id]
+        expect(table).not_to have_history_index 'index_test_table_on_activity_id', %w[activity_id]
+      end
     end
   end
 
