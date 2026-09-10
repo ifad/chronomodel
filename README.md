@@ -415,7 +415,16 @@ Ensure to run the full test suite before pushing.
    past][cm-cte-impl], because the resulting queries were more readable,
    and do not inhibit using `.from()` on the `AR::Relation`.
 
- * Foreign keys are not supported. [See issue #174][gh-issue-174]
+ * Foreign keys are defined on the tables in the temporal schema, and can
+   reference both temporal and plain tables. History tables carry no foreign
+   keys, so historical records keep referencing data that may have been
+   deleted later on. Mutating actions (`:cascade` and `:nullify`) are not
+   supported on temporal tables, as PostgreSQL would apply them directly on
+   the backing table, bypassing the history triggers: use restrictive
+   constraints, or handle dependent records in the application. Inline
+   references in a temporal `create_table` cannot reference plain tables;
+   add such foreign keys with `add_foreign_key` after table creation.
+   [See issue #174][gh-issue-174]
 
  * Global ID ignores historical objects. [See issue #192][gh-issue-192]
 
