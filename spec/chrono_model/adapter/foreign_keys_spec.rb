@@ -118,8 +118,8 @@ RSpec.describe ChronoModel::Adapter do
       end
     end
 
-    context 'with a custom name and on_delete action' do
-      before { adapter.add_foreign_key countries, regions, name: 'countries_regions_fk', on_delete: :cascade }
+    context 'with a custom name' do
+      before { adapter.add_foreign_key countries, regions, name: 'countries_regions_fk' }
 
       it { expect(countries).to have_temporal_foreign_key(regions) }
 
@@ -132,8 +132,53 @@ RSpec.describe ChronoModel::Adapter do
 
         expect(foreign_key).to be_present
         expect(foreign_key.to_table).to eq regions
-        expect(foreign_key.on_delete).to eq :cascade
         expect(Array(foreign_key.column)).to eq %w[fk_region_id]
+      end
+    end
+
+    context 'with a mutating action on a temporal table' do
+      it 'rejects on_delete cascade' do
+        expect do
+          adapter.add_foreign_key countries, regions, on_delete: :cascade
+        end.to raise_error(ChronoModel::Error, /cascade/)
+      end
+
+      it 'rejects on_delete nullify' do
+        expect do
+          adapter.add_foreign_key countries, regions, on_delete: :nullify
+        end.to raise_error(ChronoModel::Error, /nullify/)
+      end
+
+      it 'rejects on_update cascade' do
+        expect do
+          adapter.add_foreign_key countries, regions, on_update: :cascade
+        end.to raise_error(ChronoModel::Error, /cascade/)
+      end
+
+      it 'rejects mixed temporal to plain references' do
+        expect do
+          adapter.add_foreign_key countries, cities, column: :fk_city_id, on_delete: :nullify
+        end.to raise_error(ChronoModel::Error, /nullify/)
+      end
+
+      it 'does not create the constraint' do
+        expect do
+          adapter.add_foreign_key countries, regions, on_delete: :cascade
+        end.to raise_error(ChronoModel::Error)
+
+        expect(adapter.foreign_keys(countries)).to be_empty
+      end
+    end
+
+    context 'with a mutating action on a plain referencing table' do
+      before { adapter.add_foreign_key cities, regions, on_delete: :cascade }
+
+      it { expect(cities).to have_foreign_key(regions, to_schema: temporal_schema) }
+
+      it 'keeps the given action' do
+        foreign_key = adapter.foreign_keys(cities).first
+
+        expect(foreign_key.on_delete).to eq :cascade
       end
     end
 
@@ -223,7 +268,7 @@ RSpec.describe ChronoModel::Adapter do
   describe '.create_table with references' do
     let(:orders) { 'fk_orders' }
 
-    after { adapter.drop_table orders }
+    after { adapter.drop_table orders, if_exists: true }
 
     it 'supports foreign keys between temporal tables' do
       adapter.create_table orders, temporal: true do |t|
@@ -233,6 +278,17 @@ RSpec.describe ChronoModel::Adapter do
 
       expect(orders).to have_temporal_foreign_key(regions)
       expect(adapter.foreign_key_exists?(orders, regions)).to be(true)
+    end
+
+    it 'rejects mutating foreign key actions' do
+      expect do
+        adapter.create_table orders, temporal: true do |t|
+          t.string :name
+          t.references :fk_region, foreign_key: { to_table: regions, on_delete: :cascade }
+        end
+      end.to raise_error(ChronoModel::Error, /cascade/)
+
+      expect(adapter.on_temporal_schema { adapter.data_source_exists?(orders) }).to be(false)
     end
   end
 
@@ -259,6 +315,14 @@ RSpec.describe ChronoModel::Adapter do
       end
 
       expect(adapter.foreign_key_exists?(countries, cities, column: :capital_id)).to be(true)
+    end
+
+    it 'are supported by change_table with temporal: true' do
+      adapter.change_table countries, temporal: true do |t|
+        t.foreign_key cities, column: :fk_city_id
+      end
+
+      expect(adapter.foreign_key_exists?(countries, cities)).to be(true)
     end
   end
 
@@ -291,49 +355,109 @@ RSpec.describe ChronoModel::Adapter do
         t.string :name
         t.references :fk_region, index: false
       end
-
-      adapter.add_foreign_key districts, regions
     end
 
     after { adapter.drop_table districts }
 
-    it 'keeps the foreign keys on the table' do
-      adapter.change_table districts, temporal: true
+    context 'with a restrictive foreign key' do
+      before { adapter.add_foreign_key districts, regions }
 
-      expect(districts).to have_temporal_foreign_key(regions)
-      expect(districts).not_to have_foreign_key(regions, to_schema: temporal_schema)
-      expect(adapter.foreign_key_exists?(districts, regions)).to be(true)
+      it 'keeps the foreign keys on the table' do
+        adapter.change_table districts, temporal: true
+
+        expect(districts).to have_temporal_foreign_key(regions)
+        expect(districts).not_to have_foreign_key(regions, to_schema: temporal_schema)
+        expect(adapter.foreign_key_exists?(districts, regions)).to be(true)
+      end
+
+      it 'keeps enforcing referential integrity on the public view' do
+        adapter.change_table districts, temporal: true
+
+        expect do
+          adapter.execute "INSERT INTO #{districts} (name, fk_region_id) VALUES ('foo', 0)"
+        end.to raise_error(ActiveRecord::InvalidForeignKey)
+      end
+
+      it 'keeps the foreign keys when converted back to plain' do
+        adapter.change_table districts, temporal: true
+        adapter.change_table districts, temporal: false
+
+        expect(districts).to have_foreign_key(regions, to_schema: temporal_schema)
+        expect(adapter.foreign_key_exists?(districts, regions)).to be(true)
+      end
     end
 
-    it 'keeps enforcing referential integrity on the public view' do
-      adapter.change_table districts, temporal: true
+    context 'with a mutating foreign key' do
+      before { adapter.add_foreign_key districts, regions, on_delete: :cascade }
 
-      expect do
-        adapter.execute "INSERT INTO #{districts} (name, fk_region_id) VALUES ('foo', 0)"
-      end.to raise_error(ActiveRecord::InvalidForeignKey)
-    end
+      it 'refuses the conversion' do
+        expect do
+          adapter.change_table districts, temporal: true
+        end.to raise_error(ChronoModel::Error, /cascade/)
 
-    it 'keeps the foreign keys when converted back to plain' do
-      adapter.change_table districts, temporal: true
-      adapter.change_table districts, temporal: false
-
-      expect(districts).to have_foreign_key(regions, to_schema: temporal_schema)
-      expect(adapter.foreign_key_exists?(districts, regions)).to be(true)
+        expect(districts).to have_foreign_key(regions, to_schema: temporal_schema)
+      end
     end
   end
 
   describe 'referential integrity' do
-    before { adapter.add_foreign_key countries, regions, on_delete: :cascade }
+    let(:districts) { 'fk_districts' }
 
-    it 'cascades deletes of current data while preserving the history' do
-      adapter.execute "INSERT INTO #{regions} (name) VALUES ('region')"
-      region_id = adapter.select_value "SELECT id FROM #{regions}"
+    def history_now(table)
+      adapter.select_rows(<<~SQL.squish)
+        SELECT 1 FROM history.#{table}
+        WHERE validity @> timezone('UTC', now())
+      SQL
+    end
 
-      adapter.execute "INSERT INTO #{countries} (name, fk_region_id) VALUES ('country', #{region_id})"
-      adapter.execute "DELETE FROM #{regions} WHERE id = #{region_id}"
+    context 'with a restrictive foreign key' do
+      before { adapter.add_foreign_key countries, regions }
 
-      expect(adapter.select_value("SELECT COUNT(*) FROM #{countries}")).to eq 0
-      expect(adapter.select_value("SELECT COUNT(*) FROM history.#{countries}")).to eq 1
+      it 'rejects deleting a referenced row' do
+        adapter.execute "INSERT INTO #{regions} (name) VALUES ('region')"
+        region_id = adapter.select_value "SELECT id FROM #{regions}"
+        adapter.execute "INSERT INTO #{countries} (name, fk_region_id) VALUES ('country', #{region_id})"
+
+        expect do
+          adapter.execute "DELETE FROM #{regions} WHERE id = #{region_id}"
+        end.to raise_error(ActiveRecord::InvalidForeignKey)
+      end
+
+      it 'closes history validity when deleting a child through the view' do
+        adapter.execute "INSERT INTO #{countries} (name) VALUES ('country')"
+        country_id = adapter.select_value "SELECT id FROM #{countries}"
+
+        expect(history_now(countries)).not_to be_empty
+
+        adapter.execute "DELETE FROM #{countries} WHERE id = #{country_id}"
+
+        expect(history_now(countries)).to be_empty
+        expect(adapter.select_value("SELECT COUNT(*) FROM history.#{countries}")).to eq 1
+      end
+    end
+
+    context 'with a cascading foreign key on a plain referencing table' do
+      before do
+        adapter.create_table districts do |t|
+          t.string :name
+          t.references :fk_region, index: false
+        end
+
+        adapter.add_foreign_key districts, regions, on_delete: :cascade
+      end
+
+      after { adapter.drop_table districts }
+
+      it 'cascades deletes and closes the referenced history' do
+        adapter.execute "INSERT INTO #{regions} (name) VALUES ('region')"
+        region_id = adapter.select_value "SELECT id FROM #{regions}"
+        adapter.execute "INSERT INTO #{districts} (name, fk_region_id) VALUES ('district', #{region_id})"
+
+        adapter.execute "DELETE FROM #{regions} WHERE id = #{region_id}"
+
+        expect(adapter.select_value("SELECT COUNT(*) FROM #{districts}")).to eq 0
+        expect(history_now(regions)).to be_empty
+      end
     end
   end
 end

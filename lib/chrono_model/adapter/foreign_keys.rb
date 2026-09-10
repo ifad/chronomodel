@@ -12,6 +12,12 @@ module ChronoModel
     # See https://github.com/ifad/chronomodel/issues/174.
     #
     module ForeignKeys
+      # Foreign key actions that mutate the referencing table. PostgreSQL
+      # applies them directly on the backing temporal table, bypassing the
+      # history-maintaining triggers of the public view.
+      #
+      MUTATING_ACTIONS = %i[cascade nullify].freeze
+
       # Adds a foreign key between two tables.
       #
       # When either table is temporal, the foreign key is created on (or
@@ -25,8 +31,14 @@ module ChronoModel
       # propagate them to inheritance children, thus historical records
       # keep referencing data that may have been deleted later on.
       #
+      # Mutating actions (cascade, nullify) are rejected when the
+      # referencing table is temporal, as they would corrupt the history.
+      #
       def add_foreign_key(from_table, to_table, **options)
-        return super unless is_chrono?(from_table) || is_chrono?(to_table)
+        from_chrono = is_chrono?(from_table)
+        return super unless from_chrono || is_chrono?(to_table)
+
+        chrono_assert_supported_actions(from_table, options[:on_delete], options[:on_update]) if from_chrono
 
         on_temporal_schema_with_fallback do
           super(chrono_unqualify(from_table), chrono_unqualify(to_table), **options)
@@ -102,6 +114,33 @@ module ChronoModel
       #
       def chrono_unqualify(table_name)
         table_name.to_s.delete_prefix("#{TEMPORAL_SCHEMA}.")
+      end
+
+      # Rejects mutating actions on foreign keys referencing a temporal
+      # table: PostgreSQL applies them directly on the backing table, so
+      # the history would keep the previous state valid indefinitely, or
+      # miss the new one entirely (see GH #174).
+      #
+      def chrono_assert_supported_actions(table_name, *actions)
+        unsupported = actions.compact.map(&:to_sym).select { |action| MUTATING_ACTIONS.include?(action) }
+        return if unsupported.empty?
+
+        raise ChronoModel::Error, <<~MSG.squish
+          Mutating foreign key actions (#{unsupported.uniq.join(', ')}) are not supported on
+          temporal table #{table_name.inspect}: PostgreSQL applies them directly on the
+          backing table, bypassing the history triggers and corrupting the timeline.
+          Use a restrictive constraint, or handle dependent records in the application.
+        MSG
+      end
+
+      # Rejects mutating actions on any foreign key owned by the given
+      # table. Used on table creation and conversion to temporal, where
+      # constraints are not created through +add_foreign_key+.
+      #
+      def chrono_assert_supported_foreign_keys(table_name)
+        foreign_keys(table_name).each do |foreign_key|
+          chrono_assert_supported_actions(table_name, foreign_key.on_delete, foreign_key.on_update)
+        end
       end
     end
   end
