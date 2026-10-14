@@ -18,7 +18,15 @@ module ChronoModel
         end
 
         transaction do
-          on_temporal_schema { super }
+          on_temporal_schema do
+            super
+
+            # Foreign keys are emitted inline in the CREATE TABLE statement,
+            # instead of going through +add_foreign_key+, thus they are
+            # validated here before wiring the history triggers.
+            chrono_assert_supported_foreign_keys(table_name)
+          end
+
           on_history_schema { chrono_history_table_ddl(table_name) }
 
           chrono_public_view_ddl(table_name, options)
@@ -183,7 +191,12 @@ module ChronoModel
 
           execute "DROP VIEW #{table_name}"
 
-          on_temporal_schema(&block)
+          # Include the current search path as a fallback, so that plain
+          # tables keep resolving while the temporal table is altered, e.g.
+          # for foreign keys added through +change_table+ with +temporal:
+          # true+ (see GH #174).
+          #
+          on_schema("#{TEMPORAL_SCHEMA},#{schema_search_path}", recurse: :ignore, &block)
 
           # Recreate the triggers
           chrono_public_view_ddl(table_name, options)
@@ -191,6 +204,10 @@ module ChronoModel
       end
 
       def chrono_make_temporal_table(table_name, options)
+        # Reject foreign keys whose actions would bypass the history
+        # triggers once the table is moved to the temporal schema.
+        chrono_assert_supported_foreign_keys(table_name)
+
         # Add temporal features to this table
         #
         unless primary_key(table_name)
