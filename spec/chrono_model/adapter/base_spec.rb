@@ -106,6 +106,35 @@ RSpec.describe ChronoModel::Adapter do
     end
   end
 
+  describe '.on_temporal_schema' do
+    let(:adapter) { ChronoTest::AR.connection_pool.checkout }
+
+    after do
+      adapter.disconnect!
+      ChronoTest::AR.connection_pool.checkin(adapter)
+    end
+
+    it 'restores the schema after reconnecting a closed connection' do
+      original_path = adapter.schema_search_path
+      expect(adapter.on_temporal_schema { adapter.select_value('SELECT current_schema()') }).to eq('temporal')
+      old_connection = adapter.raw_connection
+
+      adapter.disconnect!
+      expect(old_connection).to be_finished
+
+      adapter.reconnect!
+
+      # Rails 7.0 reopens the existing PG connection instead of replacing it.
+      if ActiveRecord.gem_version >= Gem::Version.new('7.1')
+        expect(adapter.raw_connection).not_to equal(old_connection)
+      end
+      expect(adapter.select_value('SELECT 1')).to eq(1)
+
+      expect(adapter.on_temporal_schema { adapter.select_value('SELECT current_schema()') }).to eq('temporal')
+      expect(adapter.select_value('SHOW search_path')).to eq(original_path)
+    end
+  end
+
   describe '.is_chrono?' do
     subject(:is_chrono?) { adapter.is_chrono?(table) }
 

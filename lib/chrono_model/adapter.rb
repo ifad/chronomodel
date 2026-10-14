@@ -197,7 +197,7 @@ module ChronoModel
     # Rails 7.1 uses `@raw_connection`, older versions use `@connection`
     #
     def chrono_connection
-      @chrono_connection ||= @raw_connection || @connection
+      @raw_connection || @connection
     end
 
     # Counts the number of recursions in a thread local variable
