@@ -22,7 +22,7 @@ module ChronoTest
     end
 
     def aruba_working_directory
-      File.expand_path("../../#{::Aruba.config.working_directory}", __dir__)
+      expand_path('.')
     end
 
     def dummy_app_directory
