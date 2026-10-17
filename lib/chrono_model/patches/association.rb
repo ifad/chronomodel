@@ -14,7 +14,10 @@ module ChronoModel
       # If the association class or the through association are ChronoModels,
       # then fetches the records from a virtual table using a subquery scope
       # to a specific timestamp.
-      def scope
+      # +CollectionAssociation#scope+ may forward the association routes to
+      # +super+, so this accepts and forwards any argument, while versions
+      # that call +scope+ without arguments keep working.
+      def scope(*)
         scope = super
         return scope unless _chrono_record?
 
