@@ -160,6 +160,75 @@ RSpec.describe ChronoModel::TimeMachine do
         Foo::History.where(id: foo.id).delete_all if foo
       end
     end
+
+    it 'keeps a concurrent update of another column made while waiting for the lock' do
+      foo = Foo.create!(name: 'orig', fooity: 0)
+      errors = []
+      mutex = Mutex.new
+      updated = Queue.new
+      commit = Queue.new
+      updater_pid = Queue.new
+      first = nil
+      second = nil
+
+      begin
+        first = Thread.new do
+          Foo.connection_pool.with_connection do
+            Foo.transaction do
+              Foo.find(foo.id).update!(name: 'first')
+              updated << true
+              commit.pop
+            end
+          end
+        rescue StandardError => e
+          updated << true
+          mutex.synchronize { errors << e }
+        end
+
+        updated.pop
+
+        second = Thread.new do
+          Foo.connection_pool.with_connection do |connection|
+            updater_pid << connection.select_value('SELECT pg_backend_pid()')
+            Foo.find(foo.id).update!(fooity: 42)
+          end
+        rescue StandardError => e
+          updater_pid << nil
+          mutex.synchronize { errors << e }
+        end
+
+        pid = updater_pid.pop
+        deadline = Process.clock_gettime(Process::CLOCK_MONOTONIC) + 5
+        loop do
+          wait_event = Foo.connection.select_value(<<~SQL.squish)
+            SELECT wait_event_type FROM pg_stat_activity WHERE pid = #{Integer(pid)}
+          SQL
+          break if wait_event == 'Lock'
+
+          if Process.clock_gettime(Process::CLOCK_MONOTONIC) > deadline
+            raise 'second update did not wait for the current-row lock'
+          end
+
+          sleep 0.01
+        end
+
+        commit << true
+        first.join
+        second.join
+
+        expect(errors).to be_empty
+        expect(foo.reload.name).to eq('first')
+        expect(foo.fooity).to eq(42)
+        expect(foo.history.map { |f| [f.name, f.fooity] }).to eq([['orig', 0], ['first', 0], ['first', 42]])
+      ensure
+        commit << true if first&.alive?
+        first&.join
+        second&.join
+
+        Foo.where(id: foo.id).delete_all if foo
+        Foo::History.where(id: foo.id).delete_all if foo
+      end
+    end
   end
 
   describe 'concurrent deletions' do
