@@ -118,6 +118,11 @@ module ChronoModel
       # environment variable. This is useful when running scenarios inside
       # cucumber, in which everything runs in the same transaction.
       #
+      # OLD and NEW come from the statement's snapshot, taken before the row lock,
+      # so a concurrent transaction may have changed the row since. After locking,
+      # the trigger re-reads the row and keeps those changes in the columns this
+      # UPDATE does not change, as PostgreSQL does for plain tables.
+      #
       def chrono_create_UPDATE_trigger(table, pk, current, history, fields, values, options, columns)
         # Columns to be journaled. By default everything except updated_at (GH #7)
         #
@@ -141,6 +146,7 @@ module ChronoModel
             CREATE OR REPLACE FUNCTION chronomodel_#{table}_update() RETURNS TRIGGER AS $$
                 DECLARE _now timestamp;
                 DECLARE _hid integer;
+                DECLARE _cur record;
                 DECLARE _old record;
                 DECLARE _new record;
                 BEGIN
@@ -148,17 +154,19 @@ module ChronoModel
                         RETURN NULL;
                     END IF;
 
-                    _old := row(#{journal.map { |c| "OLD.#{c}" }.join(', ')});
+                    SELECT * INTO _cur FROM ONLY #{current} WHERE #{pk} = OLD.#{pk} FOR UPDATE;
+                    IF NOT FOUND THEN
+                        RETURN NULL;
+                    END IF;
+
+                    #{columns.map { |c| "IF NEW.#{c} IS NOT DISTINCT FROM OLD.#{c} THEN NEW.#{c} := _cur.#{c}; END IF;" }.join(' ')}
+
+                    _old := row(#{journal.map { |c| "_cur.#{c}" }.join(', ')});
                     _new := row(#{journal.map { |c| "NEW.#{c}" }.join(', ')});
 
                     IF _old IS NOT DISTINCT FROM _new THEN
                         UPDATE ONLY #{current} SET (#{fields}) = (#{values}) WHERE #{pk} = OLD.#{pk};
                         RETURN NEW;
-                    END IF;
-
-                    PERFORM 1 FROM ONLY #{current} WHERE #{pk} = OLD.#{pk} FOR UPDATE;
-                    IF NOT FOUND THEN
-                        RETURN NULL;
                     END IF;
 
                     _now := timezone('UTC', now());

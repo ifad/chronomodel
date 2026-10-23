@@ -93,9 +93,15 @@ create trigger chronomodel_insert
 --
 -- By default, history is not recorded if only the updated_at field is changed.
 --
+-- OLD and NEW come from the statement's snapshot, taken before the row lock,
+-- so a concurrent transaction may have changed the row since. After locking,
+-- the trigger re-reads the row and keeps those changes in the columns this
+-- UPDATE does not change, as PostgreSQL does for plain tables.
+--
 create or replace function chronomodel_countries_update() returns trigger as $$
   declare _now timestamp;
   declare _hid integer;
+  declare _cur record;
   declare _old record;
   declare _new record;
   begin
@@ -103,17 +109,20 @@ create or replace function chronomodel_countries_update() returns trigger as $$
       return null;
     end if;
 
-    _old := row(old.name);
+    select * into _cur from only temporal.countries where id = old.id for update;
+    if not found then
+      return null;
+    end if;
+
+    if new.name is not distinct from old.name then new.name := _cur.name; end if;
+    if new.updated_at is not distinct from old.updated_at then new.updated_at := _cur.updated_at; end if;
+
+    _old := row(_cur.name);
     _new := row(new.name);
 
     if _old is not distinct from _new then
       update only temporal.countries set ( name, updated_at ) = ( new.name, new.updated_at ) where id = old.id;
       return new;
-    end if;
-
-    perform 1 from only temporal.countries where id = old.id for update;
-    if not found then
-      return null;
     end if;
 
     _now := timezone('UTC', now());
