@@ -93,10 +93,14 @@ create trigger chronomodel_insert
 --
 -- By default, history is not recorded if only the updated_at field is changed.
 --
--- OLD and NEW come from the statement's snapshot, taken before the row lock,
--- so a concurrent transaction may have changed the row since. After locking,
--- the trigger re-reads the row and keeps those changes in the columns this
--- UPDATE does not change, as PostgreSQL does for plain tables.
+-- OLD and NEW come from the statement's snapshot, taken before the row lock.
+-- After locking, re-read the row and keep concurrent changes in the columns
+-- whose value this UPDATE leaves unchanged.
+--
+-- Trade-off: a column explicitly set to the value it already had counts as
+-- unchanged. Starting from retries = 0, `SET status = 'done', retries = 0`
+-- waiting on a concurrent `SET retries = 1` ends with retries = 1. SET
+-- expressions (`x = x + 1`) and the WHERE clause are not re-evaluated either.
 --
 create or replace function chronomodel_countries_update() returns trigger as $$
   declare _now timestamp;
