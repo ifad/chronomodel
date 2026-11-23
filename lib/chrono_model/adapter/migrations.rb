@@ -3,28 +3,6 @@
 module ChronoModel
   class Adapter < ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
     module Migrations
-      # Creates the given table, possibly creating the temporal schema
-      # objects if the `:temporal` option is given and set to true.
-      #
-      def create_table(table_name, **options)
-        # No temporal features requested, skip
-        return super unless options[:temporal]
-
-        if options[:id] == false
-          logger.warn 'ChronoModel: Temporal Temporal tables require a primary key.'
-          logger.warn "ChronoModel: Adding a `__chrono_id' primary key to #{table_name} definition."
-
-          options[:id] = '__chrono_id'
-        end
-
-        transaction do
-          on_temporal_schema { super }
-          on_history_schema { chrono_history_table_ddl(table_name) }
-
-          chrono_public_view_ddl(table_name, options)
-        end
-      end
-
       # If renaming a temporal table, rename the history and view as well.
       #
       def rename_table(name, new_name, **options)
